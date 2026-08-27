@@ -1,0 +1,121 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.3.0" />
+  </ItemGroup>
+
+  <!-- Resources generales -->
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormLogin -->
+  <ItemGroup>
+    <Compile Update="FormLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormLogin.Designer.cs">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="FormLogin.resx">
+      <DependentUpon>FormLogin.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormPrincipal_Admin -->
+  <ItemGroup>
+    <Compile Update="FormPrincipal_Admin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormPrincipal_Admin.Designer.cs">
+      <DependentUpon>FormPrincipal_Admin.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="FormPrincipal_Admin.resx">
+      <DependentUpon>FormPrincipal_Admin.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormPrincipal_Usuario -->
+  <ItemGroup>
+    <Compile Update="FormPrincipal_Usuario.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormPrincipal_Usuario.Designer.cs">
+      <DependentUpon>FormPrincipal_Usuario.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="FormPrincipal_Usuario.resx">
+      <DependentUpon>FormPrincipal_Usuario.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormGestionUsuarios -->
+  <ItemGroup>
+    <Compile Update="FormGestionUsuarios.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionUsuarios.Designer.cs">
+      <DependentUpon>FormGestionUsuarios.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- FormGestionClientes -->
+  <ItemGroup>
+    <Compile Update="FormGestionClientes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionClientes.Designer.cs">
+      <DependentUpon>FormGestionClientes.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- FormGestionProductos -->
+  <ItemGroup>
+    <Compile Update="FormGestionProductos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionProductos.Designer.cs">
+      <DependentUpon>FormGestionProductos.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- FormGestionCategorias -->
+  <ItemGroup>
+    <Compile Update="FormGestionCategorias.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionCategorias.Designer.cs">
+      <DependentUpon>FormGestionCategorias.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+
+
+  <!-- FormCambiarPassword -->
+  <ItemGroup>
+    <Compile Update="FormCambiarPassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormCambiarPassword.Designer.cs">
+      <DependentUpon>FormCambiarPassword.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>
