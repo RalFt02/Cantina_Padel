@@ -82,7 +82,6 @@ namespace Cantina_Padel
         {
             LimpiarFormulario();
             Guardar_Boton.Text = "Crear Proveedor";
-            txtId.Text = "";
         }
 
         // ─────────────────────────────────────────────
