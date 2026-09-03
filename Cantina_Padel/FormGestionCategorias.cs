@@ -4,10 +4,24 @@ namespace Cantina_Padel
 {
     public partial class FormGestionCategorias : Form
     {
+        // Guarda el ID de la categoría seleccionada en la grilla (null = alta nueva).
+        // No usamos un TextBox oculto: así no aparece ni en tiempo de ejecución
+        // ni en el lienzo de diseño de Visual Studio.
+        private int? _idSeleccionado;
+
         public FormGestionCategorias()
         {
             InitializeComponent();
             CargarCategorias();
+        }
+
+        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
+        private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -51,7 +65,6 @@ namespace Cantina_Padel
         {
             LimpiarFormulario();
             Guardar_Boton.Text = "Crear Categoría";
-            txtId.Text = "";
         }
 
         // ─────────────────────────────────────────────
@@ -66,7 +79,7 @@ namespace Cantina_Padel
                 return;
             }
 
-            bool esNuevo = string.IsNullOrEmpty(txtId.Text);
+            bool esNuevo = _idSeleccionado == null;
 
             try
             {
@@ -114,7 +127,7 @@ namespace Cantina_Padel
 
         private void EditarCategoria(MySqlConnection conn)
         {
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado!.Value;
 
             string checkQuery = "SELECT COUNT(*) FROM categoria WHERE nombre = @n AND id_categoria <> @id";
             using (MySqlCommand check = new MySqlCommand(checkQuery, conn))
@@ -170,14 +183,14 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void Eliminar_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná una categoría de la lista.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado.Value;
 
             try
             {
@@ -226,7 +239,7 @@ namespace Cantina_Padel
             if (e.RowIndex < 0) return;
             var row = gridCategorias.Rows[e.RowIndex];
 
-            txtId.Text     = row.Cells["id_categoria"].Value?.ToString() ?? "";
+            _idSeleccionado = Convert.ToInt32(row.Cells["id_categoria"].Value);
             txtNombre.Text = row.Cells["nombre"].Value?.ToString() ?? "";
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             Guardar_Boton.Text = "Guardar Cambios";
@@ -249,7 +262,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
-            txtId.Text         = "";
+            _idSeleccionado    = null;
             txtNombre.Text     = "";
             chkActivo.Checked  = true;
             Guardar_Boton.Text = "Crear Categoría";

@@ -22,8 +22,6 @@ namespace Cantina_Padel
             lblBuscar = new Label();
             txtBuscar = new TextBox();
             grpDatos = new GroupBox();
-            lblId = new Label();
-            txtId = new TextBox();
             lblNombre = new Label();
             txtNombre = new TextBox();
             chkActivo = new CheckBox();
@@ -101,8 +99,6 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-            grpDatos.Controls.Add(lblId);
-            grpDatos.Controls.Add(txtId);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
             grpDatos.Controls.Add(chkActivo);
@@ -117,26 +113,6 @@ namespace Cantina_Padel
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos de la Categoría";
-            // 
-            // lblId
-            // 
-            lblId.AutoSize = true;
-            lblId.ForeColor = Color.Gray;
-            lblId.Location = new Point(10, 28);
-            lblId.Name = "lblId";
-            lblId.Size = new Size(29, 20);
-            lblId.TabIndex = 0;
-            lblId.Text = "ID:";
-            // 
-            // txtId
-            // 
-            txtId.BackColor = Color.FromArgb(15, 23, 42);
-            txtId.ForeColor = Color.Gray;
-            txtId.Location = new Point(60, 25);
-            txtId.Name = "txtId";
-            txtId.ReadOnly = true;
-            txtId.Size = new Size(60, 27);
-            txtId.TabIndex = 1;
             // 
             // lblNombre
             // 
@@ -153,9 +129,11 @@ namespace Cantina_Padel
             txtNombre.BackColor = Color.FromArgb(51, 65, 85);
             txtNombre.ForeColor = Color.White;
             txtNombre.Location = new Point(10, 90);
+            txtNombre.MaxLength = 30;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(280, 27);
             txtNombre.TabIndex = 3;
+            txtNombre.KeyPress += SoloLetras_KeyPress;
             // 
             // chkActivo
             // 
@@ -190,7 +168,7 @@ namespace Cantina_Padel
             Cancelar_Boton.FlatAppearance.BorderSize = 0;
             Cancelar_Boton.FlatStyle = FlatStyle.Flat;
             Cancelar_Boton.ForeColor = Color.White;
-            Cancelar_Boton.Location = new Point(10, 216);
+            Cancelar_Boton.Location = new Point(6, 270);
             Cancelar_Boton.Name = "Cancelar_Boton";
             Cancelar_Boton.Size = new Size(280, 38);
             Cancelar_Boton.TabIndex = 6;
@@ -204,7 +182,7 @@ namespace Cantina_Padel
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
             Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.Location = new Point(10, 262);
+            Eliminar_Boton.Location = new Point(10, 220);
             Eliminar_Boton.Name = "Eliminar_Boton";
             Eliminar_Boton.Size = new Size(280, 35);
             Eliminar_Boton.TabIndex = 7;
@@ -271,8 +249,6 @@ namespace Cantina_Padel
         private Label            lblBuscar;
         private TextBox          txtBuscar;
         private GroupBox         grpDatos;
-        private Label            lblId;
-        private TextBox          txtId;
         private Label            lblNombre;
         private TextBox          txtNombre;
         private CheckBox         chkActivo;

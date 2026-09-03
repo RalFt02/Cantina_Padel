@@ -1,14 +1,42 @@
 using MySql.Data.MySqlClient;
+using System.Drawing;
 
 namespace Cantina_Padel
 {
     public partial class FormGestionProductos : Form
     {
+        // Guarda el ID del producto seleccionado en la grilla (null = alta nueva).
+        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
+        // ejecución ni en el lienzo de diseño de Visual Studio.
+        private int? _idSeleccionado;
+
         public FormGestionProductos()
         {
             InitializeComponent();
             CargarCombos();
             CargarProductos();
+        }
+
+        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
+        private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            var txt = (TextBox)sender;
+            if (char.IsControl(e.KeyChar)) return;
+
+            if (e.KeyChar == '.' && !txt.Text.Contains('.'))
+                return;
+
+            if (!char.IsDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
+        // Permite solo dígitos y teclas de control (backspace, etc.)
+        private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -71,6 +99,7 @@ namespace Cantina_Padel
 
                 string query = @"
                     SELECT p.id_producto,
+                           p.codigo,
                            p.nombre,
                            p.descripcion,
                            p.precio_venta,
@@ -96,7 +125,21 @@ namespace Cantina_Padel
                 gridProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
                 gridProductos.DataSource = dt;
 
+                // Las columnas se auto-generan recién acá; a veces no heredan bien
+                // el ForeColor blanco definido en el diseñador, así que lo forzamos
+                // columna por columna para que el texto no se vea negro.
+                gridProductos.RowsDefaultCellStyle.ForeColor = Color.White;
+                gridProductos.RowsDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
+                foreach (DataGridViewColumn col in gridProductos.Columns)
+                {
+                    col.DefaultCellStyle.ForeColor = Color.White;
+                    col.DefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
+                    col.DefaultCellStyle.SelectionForeColor = Color.Black;
+                    col.DefaultCellStyle.SelectionBackColor = Color.FromArgb(163, 230, 53);
+                }
+
                 gridProductos.Columns["id_producto"].HeaderText   = "ID";
+                gridProductos.Columns["codigo"].HeaderText         = "Código";
                 gridProductos.Columns["nombre"].HeaderText         = "Nombre";
                 gridProductos.Columns["descripcion"].HeaderText    = "Descripción";
                 gridProductos.Columns["precio_venta"].HeaderText   = "Precio";
@@ -107,6 +150,7 @@ namespace Cantina_Padel
                 gridProductos.Columns["activo"].HeaderText         = "Activo";
 
                 gridProductos.Columns["id_producto"].Width  = 40;
+                gridProductos.Columns["codigo"].Width         = 110;
                 gridProductos.Columns["nombre"].Width         = 130;
                 gridProductos.Columns["descripcion"].Width    = 160;
                 gridProductos.Columns["precio_venta"].Width   = 90;
@@ -137,7 +181,6 @@ namespace Cantina_Padel
         {
             LimpiarFormulario();
             Guardar_Boton.Text = "Crear Producto";
-            txtId.Text = "";
         }
 
         // ─────────────────────────────────────────────
@@ -169,7 +212,7 @@ namespace Cantina_Padel
                 return;
             }
 
-            bool esNuevo = string.IsNullOrEmpty(txtId.Text);
+            bool esNuevo = _idSeleccionado == null;
 
             try
             {
@@ -197,25 +240,64 @@ namespace Cantina_Padel
 
         private void CrearProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock)
         {
+            string codigo = GenerarCodigoEan13Unico(conn, tx);
+
             string insertProducto = @"
-                INSERT INTO producto (nombre, descripcion, precio_venta, stock, activo, id_marca, id_categoria, id_proveedor)
-                VALUES (@n, @desc, @p, @s, @a, @idm, @idc, @idp)";
+                INSERT INTO producto (codigo, nombre, descripcion, precio_venta, stock, activo, id_marca, id_categoria, id_proveedor)
+                VALUES (@cod, @n, @desc, @p, @s, @a, @idm, @idc, @idp)";
 
             using MySqlCommand cmd = new MySqlCommand(insertProducto, conn, tx);
+            cmd.Parameters.AddWithValue("@cod",  codigo);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio);
+            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * 15));
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
             cmd.Parameters.AddWithValue("@idc",  cmbCategoria.SelectedValue);
             cmd.Parameters.AddWithValue("@idp",  cmbProveedor.SelectedValue);
             cmd.ExecuteNonQuery();
+
+            txtCodigo.Text = codigo;
+        }
+
+        // ─────────────────────────────────────────────
+        //  Generador de código de barras (EAN-13 válido)
+        // ─────────────────────────────────────────────
+        // Arma un código de 13 dígitos: prefijo 779 (rango GS1 Argentina) +
+        // 9 dígitos aleatorios + dígito verificador calculado. Verifica contra
+        // la base que no exista otro producto con el mismo código antes de
+        // devolverlo (reintenta si hay colisión, algo prácticamente imposible
+        // con 9 dígitos aleatorios, pero mejor curarse en salud).
+        private string GenerarCodigoEan13Unico(MySqlConnection conn, MySqlTransaction tx)
+        {
+            var rnd = new Random();
+
+            while (true)
+            {
+                string cuerpo = "779" + rnd.Next(0, 999_999_999).ToString("D9");
+
+                int suma = 0;
+                for (int i = 0; i < cuerpo.Length; i++)
+                {
+                    int digito = cuerpo[i] - '0';
+                    suma += (i % 2 == 0) ? digito : digito * 3;
+                }
+                int verificador = (10 - (suma % 10)) % 10;
+                string codigo = cuerpo + verificador;
+
+                string check = "SELECT COUNT(*) FROM producto WHERE codigo = @c";
+                using MySqlCommand cmd = new MySqlCommand(check, conn, tx);
+                cmd.Parameters.AddWithValue("@c", codigo);
+                long count = (long)cmd.ExecuteScalar()!;
+
+                if (count == 0) return codigo;
+            }
         }
 
         private void EditarProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock)
         {
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado!.Value;
 
             string updateProducto = @"
                 UPDATE producto
@@ -232,7 +314,7 @@ namespace Cantina_Padel
             using MySqlCommand cmd = new MySqlCommand(updateProducto, conn, tx);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio);
+            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * 15));
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
@@ -247,7 +329,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void Eliminar_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná un producto de la lista.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -267,7 +349,7 @@ namespace Cantina_Padel
 
                 string query = "UPDATE producto SET activo = 0 WHERE id_producto = @id";
                 using MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@id", int.Parse(txtId.Text));
+                cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("Producto desactivado.", "Listo",
@@ -290,7 +372,8 @@ namespace Cantina_Padel
             if (e.RowIndex < 0) return;
             var row = gridProductos.Rows[e.RowIndex];
 
-            txtId.Text          = row.Cells["id_producto"].Value?.ToString() ?? "";
+            _idSeleccionado      = Convert.ToInt32(row.Cells["id_producto"].Value);
+            txtCodigo.Text      = row.Cells["codigo"].Value?.ToString() ?? "";
             txtNombre.Text      = row.Cells["nombre"].Value?.ToString() ?? "";
             txtDescripcion.Text = row.Cells["descripcion"].Value?.ToString() ?? "";
 
@@ -318,7 +401,7 @@ namespace Cantina_Padel
             {
                 string filtro = txtBuscar.Text.Replace("'", "''");
                 dt.DefaultView.RowFilter =
-                    $"nombre LIKE '%{filtro}%' OR marca LIKE '%{filtro}%' OR categoria LIKE '%{filtro}%' OR proveedor LIKE '%{filtro}%'";
+                    $"nombre LIKE '%{filtro}%' OR codigo LIKE '%{filtro}%' OR marca LIKE '%{filtro}%' OR categoria LIKE '%{filtro}%' OR proveedor LIKE '%{filtro}%'";
             }
         }
 
@@ -327,7 +410,8 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
-            txtId.Text          = "";
+            _idSeleccionado     = null;
+            txtCodigo.Text      = "(se genera al guardar)";
             txtNombre.Text      = "";
             txtDescripcion.Text = "";
             txtPrecio.Text      = "0.00";

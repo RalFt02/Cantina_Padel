@@ -4,10 +4,24 @@ namespace Cantina_Padel
 {
     public partial class FormGestionUsuarios : Form
     {
+        // Guarda el ID del usuario seleccionado en la grilla (null = alta nueva).
+        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
+        // ejecución ni en el lienzo de diseño de Visual Studio.
+        private int? _idSeleccionado;
+
         public FormGestionUsuarios()
         {
             InitializeComponent();
             CargarUsuarios();
+        }
+
+        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
+        private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
         }
 
         // ─────────────────────────────────────────────
@@ -67,7 +81,6 @@ namespace Cantina_Padel
         {
             LimpiarFormulario();
             Guardar_Boton.Text = "Crear Usuario";
-            txtId.Text = "";
         }
 
         // ─────────────────────────────────────────────
@@ -84,7 +97,7 @@ namespace Cantina_Padel
                 return;
             }
 
-            bool esNuevo = string.IsNullOrEmpty(txtId.Text);
+            bool esNuevo = _idSeleccionado == null;
 
             if (esNuevo && string.IsNullOrWhiteSpace(txtPassword.Text))
             {
@@ -160,7 +173,7 @@ namespace Cantina_Padel
 
         private void EditarUsuario(MySqlConnection conn, MySqlTransaction tx)
         {
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado!.Value;
 
             string updateUsuario = @"
                 UPDATE Usuario
@@ -202,7 +215,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void Eliminar_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná un usuario de la lista.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -222,7 +235,7 @@ namespace Cantina_Padel
 
                 string query = "UPDATE Usuario SET activo = 0 WHERE id_usuario = @id";
                 using MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@id", int.Parse(txtId.Text));
+                cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("Usuario desactivado.", "Listo",
@@ -245,7 +258,7 @@ namespace Cantina_Padel
             if (e.RowIndex < 0) return;
             var row = gridUsuarios.Rows[e.RowIndex];
 
-            txtId.Text       = row.Cells["id_usuario"].Value?.ToString() ?? "";
+            _idSeleccionado  = Convert.ToInt32(row.Cells["id_usuario"].Value);
             txtUsername.Text = row.Cells["username"].Value?.ToString() ?? "";
             txtNombre.Text   = row.Cells["nombre_completo"].Value?.ToString() ?? "";
             txtPassword.Text = "";  // no mostramos el hash
@@ -274,14 +287,14 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void CambiarPass_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná un usuario primero.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var form = new FormCambiarPassword(int.Parse(txtId.Text), txtUsername.Text);
+            var form = new FormCambiarPassword(_idSeleccionado.Value, txtUsername.Text);
             form.ShowDialog(this);
         }
 
@@ -290,7 +303,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
-            txtId.Text       = "";
+            _idSeleccionado  = null;
             txtUsername.Text = "";
             txtNombre.Text   = "";
             txtPassword.Text = "";

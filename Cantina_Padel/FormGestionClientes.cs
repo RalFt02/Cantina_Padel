@@ -4,10 +4,46 @@ namespace Cantina_Padel
 {
     public partial class FormGestionClientes : Form
     {
+        // Guarda el ID del cliente seleccionado en la grilla (null = alta nueva).
+        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
+        // ejecución ni en el lienzo de diseño de Visual Studio.
+        private int? _idSeleccionado;
+
         public FormGestionClientes()
         {
             InitializeComponent();
             CargarClientes();
+        }
+
+        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
+        private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        // Permite solo dígitos y teclas de control (backspace, etc.)
+        private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
+        private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            var txt = (TextBox)sender;
+            if (char.IsControl(e.KeyChar)) return;
+
+            if (e.KeyChar == '.' && !txt.Text.Contains('.'))
+                return;
+
+            if (!char.IsDigit(e.KeyChar))
+                e.Handled = true;
         }
 
         // ─────────────────────────────────────────────
@@ -84,7 +120,6 @@ namespace Cantina_Padel
         {
             LimpiarFormulario();
             Guardar_Boton.Text = "Crear Cliente";
-            txtId.Text = "";
         }
 
         // ─────────────────────────────────────────────
@@ -108,7 +143,7 @@ namespace Cantina_Padel
                 return;
             }
 
-            bool esNuevo = string.IsNullOrEmpty(txtId.Text);
+            bool esNuevo = _idSeleccionado == null;
 
             try
             {
@@ -215,7 +250,7 @@ namespace Cantina_Padel
 
         private void EditarCliente(MySqlConnection conn, MySqlTransaction tx, decimal saldo)
         {
-            int id = int.Parse(txtId.Text);
+            int id = _idSeleccionado!.Value;
 
             object emailValue = string.IsNullOrWhiteSpace(txtEmail.Text)
                 ? DBNull.Value
@@ -285,7 +320,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void Eliminar_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná un cliente de la lista.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -309,7 +344,7 @@ namespace Cantina_Padel
                     SET p.activo = 0
                     WHERE c.id_cliente = @id";
                 using MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@id", int.Parse(txtId.Text));
+                cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("Cliente desactivado.", "Listo",
@@ -332,7 +367,7 @@ namespace Cantina_Padel
             if (e.RowIndex < 0) return;
             var row = gridClientes.Rows[e.RowIndex];
 
-            txtId.Text         = row.Cells["id_cliente"].Value?.ToString() ?? "";
+            _idSeleccionado    = Convert.ToInt32(row.Cells["id_cliente"].Value);
             txtNombre.Text     = row.Cells["nombre"].Value?.ToString() ?? "";
             txtApellido.Text   = row.Cells["apellido"].Value?.ToString() ?? "";
             txtTelefono.Text   = row.Cells["telefono"].Value?.ToString() ?? "";
@@ -370,7 +405,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
-            txtId.Text          = "";
+            _idSeleccionado     = null;
             txtNombre.Text      = "";
             txtApellido.Text    = "";
             txtTelefono.Text    = "";

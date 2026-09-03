@@ -10,6 +10,11 @@ namespace Cantina_Padel
 {
     public partial class FormGestionMarcas : Form
     {
+        // Guarda el ID de la marca seleccionada en la grilla (null = alta nueva).
+        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
+        // ejecución ni en el lienzo de diseño de Visual Studio.
+        private int? _idSeleccionado;
+
         public FormGestionMarcas()
         {
             InitializeComponent();
@@ -78,7 +83,7 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                bool esNuevo = string.IsNullOrEmpty(txtId.Text);
+                bool esNuevo = _idSeleccionado == null;
 
                 if (esNuevo)
                     CrearMarca(conn);
@@ -133,7 +138,7 @@ namespace Cantina_Padel
             using MySqlCommand cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@n", txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@a", chkActivo.Checked ? 1 : 0);
-            cmd.Parameters.AddWithValue("@id", int.Parse(txtId.Text));
+            cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
             cmd.ExecuteNonQuery();
         }
 
@@ -142,7 +147,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void Eliminar_Boton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtId.Text))
+            if (_idSeleccionado == null)
             {
                 MessageBox.Show("Seleccioná una marca de la lista.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -162,7 +167,7 @@ namespace Cantina_Padel
 
                 string query = "UPDATE Marca SET activo = 0 WHERE id_marca = @id";
                 using MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@id", int.Parse(txtId.Text));
+                cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
                 cmd.ExecuteNonQuery();
 
                 MessageBox.Show("Marca desactivada.", "Listo",
@@ -185,7 +190,7 @@ namespace Cantina_Padel
             if (e.RowIndex < 0) return;
             var row = gridMarcas.Rows[e.RowIndex];
 
-            txtId.Text = row.Cells["id_marca"].Value?.ToString() ?? "";
+            _idSeleccionado = Convert.ToInt32(row.Cells["id_marca"].Value);
             txtNombre.Text = row.Cells["nombre"].Value?.ToString() ?? "";
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             Guardar_Boton.Text = "Guardar Cambios";
@@ -205,7 +210,7 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
-            txtId.Text = "";
+            _idSeleccionado = null;
             txtNombre.Text = "";
             chkActivo.Checked = true;
             Guardar_Boton.Text = "Crear Marca";
@@ -231,177 +236,232 @@ namespace Cantina_Padel
 
         private void InitializeComponent()
         {
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             gridMarcas = new DataGridView();
             lblTitulo = new Label();
             lblBuscar = new Label();
             txtBuscar = new TextBox();
             grpDatos = new GroupBox();
-            lblId = new Label();
-            txtId = new TextBox();
             lblNombre = new Label();
             txtNombre = new TextBox();
             chkActivo = new CheckBox();
-            Nuevo_Boton = new Button();
             Guardar_Boton = new Button();
-            Eliminar_Boton = new Button();
             Cancelar_Boton = new Button();
+            Eliminar_Boton = new Button();
+            Nuevo_Boton = new Button();
             Volver_Boton = new Button();
-
             ((System.ComponentModel.ISupportInitialize)gridMarcas).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
-
+            // 
+            // gridMarcas
+            // 
+            gridMarcas.AllowUserToAddRows = false;
+            gridMarcas.BackgroundColor = Color.FromArgb(30, 41, 59);
+            gridMarcas.BorderStyle = BorderStyle.None;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = Color.FromArgb(51, 65, 85);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle1.ForeColor = Color.FromArgb(163, 230, 53);
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            gridMarcas.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            gridMarcas.ColumnHeadersHeight = 29;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = Color.FromArgb(30, 41, 59);
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = Color.White;
+            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(163, 230, 53);
+            dataGridViewCellStyle2.SelectionForeColor = Color.Black;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            gridMarcas.DefaultCellStyle = dataGridViewCellStyle2;
+            gridMarcas.GridColor = Color.FromArgb(51, 65, 85);
+            gridMarcas.Location = new Point(20, 95);
+            gridMarcas.Name = "gridMarcas";
+            gridMarcas.ReadOnly = true;
+            gridMarcas.RowHeadersVisible = false;
+            gridMarcas.RowHeadersWidth = 51;
+            gridMarcas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            gridMarcas.Size = new Size(580, 490);
+            gridMarcas.TabIndex = 3;
+            gridMarcas.CellClick += gridMarcas_CellClick;
+            // 
+            // lblTitulo
+            // 
+            lblTitulo.AutoSize = true;
+            lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
+            lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
+            lblTitulo.Location = new Point(20, 15);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new Size(293, 37);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "GESTIÓN DE MARCAS";
+            // 
+            // lblBuscar
+            // 
+            lblBuscar.AutoSize = true;
+            lblBuscar.ForeColor = Color.White;
+            lblBuscar.Location = new Point(20, 60);
+            lblBuscar.Name = "lblBuscar";
+            lblBuscar.Size = new Size(55, 20);
+            lblBuscar.TabIndex = 1;
+            lblBuscar.Text = "Buscar:";
+            // 
+            // txtBuscar
+            // 
+            txtBuscar.BackColor = Color.FromArgb(51, 65, 85);
+            txtBuscar.ForeColor = Color.White;
+            txtBuscar.Location = new Point(80, 57);
+            txtBuscar.Name = "txtBuscar";
+            txtBuscar.Size = new Size(240, 27);
+            txtBuscar.TabIndex = 2;
+            txtBuscar.TextChanged += txtBuscar_TextChanged;
+            // 
+            // grpDatos
+            // 
+            grpDatos.BackColor = Color.FromArgb(30, 41, 59);
+            grpDatos.Controls.Add(lblNombre);
+            grpDatos.Controls.Add(txtNombre);
+            grpDatos.Controls.Add(chkActivo);
+            grpDatos.Controls.Add(Guardar_Boton);
+            grpDatos.Controls.Add(Cancelar_Boton);
+            grpDatos.Controls.Add(Eliminar_Boton);
+            grpDatos.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            grpDatos.ForeColor = Color.FromArgb(163, 230, 53);
+            grpDatos.Location = new Point(620, 95);
+            grpDatos.Name = "grpDatos";
+            grpDatos.Size = new Size(380, 280);
+            grpDatos.TabIndex = 4;
+            grpDatos.TabStop = false;
+            grpDatos.Text = "Datos de la Marca";
+            // 
+            // lblNombre
+            // 
+            lblNombre.AutoSize = true;
+            lblNombre.ForeColor = Color.White;
+            lblNombre.Location = new Point(10, 65);
+            lblNombre.Name = "lblNombre";
+            lblNombre.Size = new Size(82, 20);
+            lblNombre.TabIndex = 2;
+            lblNombre.Text = "Nombre: *";
+            // 
+            // txtNombre
+            // 
+            txtNombre.BackColor = Color.FromArgb(51, 65, 85);
+            txtNombre.ForeColor = Color.White;
+            txtNombre.Location = new Point(10, 87);
+            txtNombre.MaxLength = 30;
+            txtNombre.Name = "txtNombre";
+            txtNombre.Size = new Size(350, 27);
+            txtNombre.TabIndex = 3;
+            // 
+            // chkActivo
+            // 
+            chkActivo.AutoSize = true;
+            chkActivo.Checked = true;
+            chkActivo.CheckState = CheckState.Checked;
+            chkActivo.ForeColor = Color.White;
+            chkActivo.Location = new Point(10, 125);
+            chkActivo.Name = "chkActivo";
+            chkActivo.Size = new Size(119, 24);
+            chkActivo.TabIndex = 4;
+            chkActivo.Text = "Marca activa";
+            // 
+            // Guardar_Boton
+            // 
+            Guardar_Boton.BackColor = Color.FromArgb(163, 230, 53);
+            Guardar_Boton.FlatAppearance.BorderSize = 0;
+            Guardar_Boton.FlatStyle = FlatStyle.Flat;
+            Guardar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            Guardar_Boton.ForeColor = Color.Black;
+            Guardar_Boton.Location = new Point(10, 165);
+            Guardar_Boton.Name = "Guardar_Boton";
+            Guardar_Boton.Size = new Size(165, 38);
+            Guardar_Boton.TabIndex = 5;
+            Guardar_Boton.Text = "Crear Marca";
+            Guardar_Boton.UseVisualStyleBackColor = false;
+            Guardar_Boton.Click += Guardar_Boton_Click;
+            // 
+            // Cancelar_Boton
+            // 
+            Cancelar_Boton.BackColor = Color.FromArgb(71, 85, 105);
+            Cancelar_Boton.FlatAppearance.BorderSize = 0;
+            Cancelar_Boton.FlatStyle = FlatStyle.Flat;
+            Cancelar_Boton.ForeColor = Color.White;
+            Cancelar_Boton.Location = new Point(191, 220);
+            Cancelar_Boton.Name = "Cancelar_Boton";
+            Cancelar_Boton.Size = new Size(175, 38);
+            Cancelar_Boton.TabIndex = 6;
+            Cancelar_Boton.Text = "Limpiar";
+            Cancelar_Boton.UseVisualStyleBackColor = false;
+            Cancelar_Boton.Click += Cancelar_Boton_Click;
+            // 
+            // Eliminar_Boton
+            // 
+            Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
+            Eliminar_Boton.FlatAppearance.BorderSize = 0;
+            Eliminar_Boton.FlatStyle = FlatStyle.Flat;
+            Eliminar_Boton.ForeColor = Color.White;
+            Eliminar_Boton.Location = new Point(191, 165);
+            Eliminar_Boton.Name = "Eliminar_Boton";
+            Eliminar_Boton.Size = new Size(175, 38);
+            Eliminar_Boton.TabIndex = 7;
+            Eliminar_Boton.Text = "Desactivar";
+            Eliminar_Boton.UseVisualStyleBackColor = false;
+            Eliminar_Boton.Click += Eliminar_Boton_Click;
+            // 
+            // Nuevo_Boton
+            // 
+            Nuevo_Boton.BackColor = Color.FromArgb(163, 230, 53);
+            Nuevo_Boton.FlatAppearance.BorderSize = 0;
+            Nuevo_Boton.FlatStyle = FlatStyle.Flat;
+            Nuevo_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            Nuevo_Boton.ForeColor = Color.Black;
+            Nuevo_Boton.Location = new Point(340, 55);
+            Nuevo_Boton.Name = "Nuevo_Boton";
+            Nuevo_Boton.Size = new Size(150, 32);
+            Nuevo_Boton.TabIndex = 5;
+            Nuevo_Boton.Text = "+ Nueva Marca";
+            Nuevo_Boton.UseVisualStyleBackColor = false;
+            Nuevo_Boton.Click += Nuevo_Boton_Click;
+            // 
+            // Volver_Boton
+            // 
+            Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
+            Volver_Boton.FlatAppearance.BorderSize = 0;
+            Volver_Boton.FlatStyle = FlatStyle.Flat;
+            Volver_Boton.ForeColor = Color.White;
+            Volver_Boton.Location = new Point(890, 55);
+            Volver_Boton.Name = "Volver_Boton";
+            Volver_Boton.Size = new Size(110, 32);
+            Volver_Boton.TabIndex = 6;
+            Volver_Boton.Text = "← Volver";
+            Volver_Boton.UseVisualStyleBackColor = false;
+            Volver_Boton.Click += Volver_Boton_Click;
+            // 
+            // FormGestionMarcas
+            // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
             ClientSize = new Size(1020, 620);
+            Controls.Add(lblTitulo);
+            Controls.Add(lblBuscar);
+            Controls.Add(txtBuscar);
+            Controls.Add(gridMarcas);
+            Controls.Add(grpDatos);
+            Controls.Add(Nuevo_Boton);
+            Controls.Add(Volver_Boton);
             Name = "FormGestionMarcas";
-            Text = "Gestión de Marcas";
             StartPosition = FormStartPosition.CenterScreen;
-
-            lblTitulo.Text = "GESTIÓN DE MARCAS";
-            lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
-            lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
-            lblTitulo.Location = new Point(20, 15);
-            lblTitulo.AutoSize = true;
-
-            lblBuscar.Text = "Buscar:";
-            lblBuscar.ForeColor = Color.White;
-            lblBuscar.Location = new Point(20, 60);
-            lblBuscar.AutoSize = true;
-
-            txtBuscar.Location = new Point(80, 57);
-            txtBuscar.Size = new Size(240, 27);
-            txtBuscar.BackColor = Color.FromArgb(51, 65, 85);
-            txtBuscar.ForeColor = Color.White;
-            txtBuscar.TextChanged += txtBuscar_TextChanged;
-
-            gridMarcas.Location = new Point(20, 95);
-            gridMarcas.Size = new Size(580, 490);
-            gridMarcas.BackgroundColor = Color.FromArgb(30, 41, 59);
-            gridMarcas.ForeColor = Color.White;
-            gridMarcas.GridColor = Color.FromArgb(51, 65, 85);
-            gridMarcas.BorderStyle = BorderStyle.None;
-            gridMarcas.RowHeadersVisible = false;
-            gridMarcas.AllowUserToAddRows = false;
-            gridMarcas.ReadOnly = true;
-            gridMarcas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridMarcas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
-            gridMarcas.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
-            gridMarcas.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);
-            gridMarcas.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            gridMarcas.DefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
-            gridMarcas.DefaultCellStyle.ForeColor = Color.White;
-            gridMarcas.DefaultCellStyle.SelectionBackColor = Color.FromArgb(163, 230, 53);
-            gridMarcas.DefaultCellStyle.SelectionForeColor = Color.Black;
-            gridMarcas.CellClick += gridMarcas_CellClick;
-
-            grpDatos.Text = "Datos de la Marca";
-            grpDatos.ForeColor = Color.FromArgb(163, 230, 53);
-            grpDatos.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            grpDatos.Location = new Point(620, 95);
-            grpDatos.Size = new Size(380, 280);
-            grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-
-            lblId.Text = "ID:";
-            lblId.ForeColor = Color.Gray;
-            lblId.Location = new Point(10, 28);
-            lblId.AutoSize = true;
-            txtId.Location = new Point(40, 25);
-            txtId.Size = new Size(60, 27);
-            txtId.ReadOnly = true;
-            txtId.BackColor = Color.FromArgb(15, 23, 42);
-            txtId.ForeColor = Color.Gray;
-
-            lblNombre.Text = "Nombre: *";
-            lblNombre.ForeColor = Color.White;
-            lblNombre.Location = new Point(10, 65);
-            lblNombre.AutoSize = true;
-            txtNombre.Location = new Point(10, 87);
-            txtNombre.Size = new Size(350, 27);
-            txtNombre.BackColor = Color.FromArgb(51, 65, 85);
-            txtNombre.ForeColor = Color.White;
-
-            chkActivo.Text = "Marca activa";
-            chkActivo.ForeColor = Color.White;
-            chkActivo.Location = new Point(10, 125);
-            chkActivo.Checked = true;
-            chkActivo.AutoSize = true;
-
-            Guardar_Boton.Text = "Crear Marca";
-            Guardar_Boton.Location = new Point(10, 165);
-            Guardar_Boton.Size = new Size(165, 38);
-            Guardar_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Guardar_Boton.ForeColor = Color.Black;
-            Guardar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            Guardar_Boton.FlatStyle = FlatStyle.Flat;
-            Guardar_Boton.FlatAppearance.BorderSize = 0;
-            Guardar_Boton.UseVisualStyleBackColor = false;
-            Guardar_Boton.Click += Guardar_Boton_Click;
-
-            Cancelar_Boton.Text = "Limpiar";
-            Cancelar_Boton.Location = new Point(185, 165);
-            Cancelar_Boton.Size = new Size(175, 38);
-            Cancelar_Boton.BackColor = Color.FromArgb(71, 85, 105);
-            Cancelar_Boton.ForeColor = Color.White;
-            Cancelar_Boton.FlatStyle = FlatStyle.Flat;
-            Cancelar_Boton.FlatAppearance.BorderSize = 0;
-            Cancelar_Boton.UseVisualStyleBackColor = false;
-            Cancelar_Boton.Click += Cancelar_Boton_Click;
-
-            Eliminar_Boton.Text = "Desactivar";
-            Eliminar_Boton.Location = new Point(10, 213);
-            Eliminar_Boton.Size = new Size(350, 38);
-            Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
-            Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.FlatStyle = FlatStyle.Flat;
-            Eliminar_Boton.FlatAppearance.BorderSize = 0;
-            Eliminar_Boton.UseVisualStyleBackColor = false;
-            Eliminar_Boton.Click += Eliminar_Boton_Click;
-
-            grpDatos.Controls.AddRange(new Control[]
-            {
-                lblId, txtId,
-                lblNombre, txtNombre,
-                chkActivo,
-                Guardar_Boton, Cancelar_Boton,
-                Eliminar_Boton
-            });
-
-            Nuevo_Boton.Text = "+ Nueva Marca";
-            Nuevo_Boton.Location = new Point(340, 55);
-            Nuevo_Boton.Size = new Size(150, 32);
-            Nuevo_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Nuevo_Boton.ForeColor = Color.Black;
-            Nuevo_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            Nuevo_Boton.FlatStyle = FlatStyle.Flat;
-            Nuevo_Boton.FlatAppearance.BorderSize = 0;
-            Nuevo_Boton.UseVisualStyleBackColor = false;
-            Nuevo_Boton.Click += Nuevo_Boton_Click;
-
-            Volver_Boton.Text = "← Volver";
-            Volver_Boton.Location = new Point(890, 55);
-            Volver_Boton.Size = new Size(110, 32);
-            Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
-            Volver_Boton.ForeColor = Color.White;
-            Volver_Boton.FlatStyle = FlatStyle.Flat;
-            Volver_Boton.FlatAppearance.BorderSize = 0;
-            Volver_Boton.UseVisualStyleBackColor = false;
-            Volver_Boton.Click += Volver_Boton_Click;
-
-            Controls.AddRange(new Control[]
-            {
-                lblTitulo,
-                lblBuscar, txtBuscar,
-                gridMarcas,
-                grpDatos,
-                Nuevo_Boton,
-                Volver_Boton
-            });
-
+            Text = "Gestión de Marcas";
             ((System.ComponentModel.ISupportInitialize)gridMarcas).EndInit();
             grpDatos.ResumeLayout(false);
+            grpDatos.PerformLayout();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -411,8 +471,6 @@ namespace Cantina_Padel
         private Label lblBuscar;
         private TextBox txtBuscar;
         private GroupBox grpDatos;
-        private Label lblId;
-        private TextBox txtId;
         private Label lblNombre;
         private TextBox txtNombre;
         private CheckBox chkActivo;
