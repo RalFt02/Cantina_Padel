@@ -106,7 +106,15 @@
     </Compile>
   </ItemGroup>
 
-
+  <!-- FormGestionHorarios -->
+  <ItemGroup>
+    <Compile Update="FormGestionHorarios.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionHorarios.Designer.cs">
+      <DependentUpon>FormGestionHorarios.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
   <!-- FormCambiarPassword -->
   <ItemGroup>
