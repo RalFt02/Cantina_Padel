@@ -1,6 +1,6 @@
 namespace Cantina_Padel
 {
-    partial class FormGestionCategorias
+    partial class FormGestionHorarios
     {
         private System.ComponentModel.IContainer components = null;
 
@@ -17,30 +17,33 @@ namespace Cantina_Padel
         {
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            gridCategorias = new DataGridView();
+            gridHorarios = new DataGridView();
             lblTitulo = new Label();
             lblBuscar = new Label();
             txtBuscar = new TextBox();
             grpDatos = new GroupBox();
-            label1 = new Label();
-            textBox1 = new TextBox();
-            lblNombre = new Label();
-            txtNombre = new TextBox();
-            chkActivo = new CheckBox();
+            lblCancha = new Label();
+            cmbCancha = new ComboBox();
+            lblDia = new Label();
+            cmbDia = new ComboBox();
+            lblHoraInicio = new Label();
+            txtHoraInicio = new TextBox();
+            lblHoraFin = new Label();
+            txtHoraFin = new TextBox();
             Guardar_Boton = new Button();
             Cancelar_Boton = new Button();
             Eliminar_Boton = new Button();
             Nuevo_Boton = new Button();
             Volver_Boton = new Button();
-            ((System.ComponentModel.ISupportInitialize)gridCategorias).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)gridHorarios).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
             // 
-            // gridCategorias
+            // gridHorarios
             // 
-            gridCategorias.AllowUserToAddRows = false;
-            gridCategorias.BackgroundColor = Color.FromArgb(30, 41, 59);
-            gridCategorias.BorderStyle = BorderStyle.None;
+            gridHorarios.AllowUserToAddRows = false;
+            gridHorarios.BackgroundColor = Color.FromArgb(30, 41, 59);
+            gridHorarios.BorderStyle = BorderStyle.None;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = Color.FromArgb(51, 65, 85);
             dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
@@ -48,8 +51,8 @@ namespace Cantina_Padel
             dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            gridCategorias.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            gridCategorias.ColumnHeadersHeight = 29;
+            gridHorarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            gridHorarios.ColumnHeadersHeight = 29;
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = Color.FromArgb(30, 41, 59);
             dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
@@ -57,17 +60,17 @@ namespace Cantina_Padel
             dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(163, 230, 53);
             dataGridViewCellStyle2.SelectionForeColor = Color.Black;
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            gridCategorias.DefaultCellStyle = dataGridViewCellStyle2;
-            gridCategorias.GridColor = Color.FromArgb(51, 65, 85);
-            gridCategorias.Location = new Point(20, 95);
-            gridCategorias.Name = "gridCategorias";
-            gridCategorias.ReadOnly = true;
-            gridCategorias.RowHeadersVisible = false;
-            gridCategorias.RowHeadersWidth = 51;
-            gridCategorias.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridCategorias.Size = new Size(400, 360);
-            gridCategorias.TabIndex = 3;
-            gridCategorias.CellClick += gridCategorias_CellClick;
+            gridHorarios.DefaultCellStyle = dataGridViewCellStyle2;
+            gridHorarios.GridColor = Color.FromArgb(51, 65, 85);
+            gridHorarios.Location = new Point(20, 95);
+            gridHorarios.Name = "gridHorarios";
+            gridHorarios.ReadOnly = true;
+            gridHorarios.RowHeadersVisible = false;
+            gridHorarios.RowHeadersWidth = 51;
+            gridHorarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            gridHorarios.Size = new Size(400, 370);
+            gridHorarios.TabIndex = 3;
+            gridHorarios.CellClick += gridHorarios_CellClick;
             // 
             // lblTitulo
             // 
@@ -76,9 +79,9 @@ namespace Cantina_Padel
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
             lblTitulo.Location = new Point(20, 15);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(343, 37);
+            lblTitulo.Size = new Size(452, 37);
             lblTitulo.TabIndex = 0;
-            lblTitulo.Text = "GESTIÓN DE CATEGORÍAS";
+            lblTitulo.Text = "GESTIÓN DE HORARIOS DE JUEGO";
             // 
             // lblBuscar
             // 
@@ -101,11 +104,14 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-            grpDatos.Controls.Add(label1);
-            grpDatos.Controls.Add(textBox1);
-            grpDatos.Controls.Add(lblNombre);
-            grpDatos.Controls.Add(txtNombre);
-            grpDatos.Controls.Add(chkActivo);
+            grpDatos.Controls.Add(lblCancha);
+            grpDatos.Controls.Add(cmbCancha);
+            grpDatos.Controls.Add(lblDia);
+            grpDatos.Controls.Add(cmbDia);
+            grpDatos.Controls.Add(lblHoraInicio);
+            grpDatos.Controls.Add(txtHoraInicio);
+            grpDatos.Controls.Add(lblHoraFin);
+            grpDatos.Controls.Add(txtHoraFin);
             grpDatos.Controls.Add(Guardar_Boton);
             grpDatos.Controls.Add(Cancelar_Boton);
             grpDatos.Controls.Add(Eliminar_Boton);
@@ -113,63 +119,95 @@ namespace Cantina_Padel
             grpDatos.ForeColor = Color.FromArgb(163, 230, 53);
             grpDatos.Location = new Point(440, 95);
             grpDatos.Name = "grpDatos";
-            grpDatos.Size = new Size(300, 360);
+            grpDatos.Size = new Size(300, 370);
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
-            grpDatos.Text = "Datos de la Categoría";
+            grpDatos.Text = "Datos del Horario";
             // 
-            // label1
+            // lblCancha
             // 
-            label1.AutoSize = true;
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(13, 90);
-            label1.Name = "label1";
-            label1.Size = new Size(115, 20);
-            label1.TabIndex = 9;
-            label1.Text = "% de Ganancia:";
+            lblCancha.AutoSize = true;
+            lblCancha.ForeColor = Color.White;
+            lblCancha.Location = new Point(10, 20);
+            lblCancha.Name = "lblCancha";
+            lblCancha.Size = new Size(63, 20);
+            lblCancha.TabIndex = 0;
+            lblCancha.Text = "Cancha:";
             // 
-            // textBox1
+            // cmbCancha
             // 
-            textBox1.BackColor = Color.FromArgb(51, 65, 85);
-            textBox1.ForeColor = Color.White;
-            textBox1.Location = new Point(10, 115);
-            textBox1.MaxLength = 30;
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(280, 27);
-            textBox1.TabIndex = 8;
+            cmbCancha.BackColor = Color.FromArgb(51, 65, 85);
+            cmbCancha.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCancha.ForeColor = Color.White;
+            cmbCancha.Location = new Point(10, 42);
+            cmbCancha.Name = "cmbCancha";
+            cmbCancha.Size = new Size(280, 28);
+            cmbCancha.TabIndex = 1;
             // 
-            // lblNombre
+            // lblDia
             // 
-            lblNombre.AutoSize = true;
-            lblNombre.ForeColor = Color.White;
-            lblNombre.Location = new Point(10, 30);
-            lblNombre.Name = "lblNombre";
-            lblNombre.Size = new Size(71, 20);
-            lblNombre.TabIndex = 2;
-            lblNombre.Text = "Nombre:";
+            lblDia.AutoSize = true;
+            lblDia.ForeColor = Color.White;
+            lblDia.Location = new Point(10, 80);
+            lblDia.Name = "lblDia";
+            lblDia.Size = new Size(36, 20);
+            lblDia.TabIndex = 2;
+            lblDia.Text = "Día:";
             // 
-            // txtNombre
+            // cmbDia
             // 
-            txtNombre.BackColor = Color.FromArgb(51, 65, 85);
-            txtNombre.ForeColor = Color.White;
-            txtNombre.Location = new Point(10, 55);
-            txtNombre.MaxLength = 30;
-            txtNombre.Name = "txtNombre";
-            txtNombre.Size = new Size(280, 27);
-            txtNombre.TabIndex = 3;
-            txtNombre.KeyPress += SoloLetras_KeyPress;
+            cmbDia.BackColor = Color.FromArgb(51, 65, 85);
+            cmbDia.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbDia.ForeColor = Color.White;
+            cmbDia.Items.AddRange(new object[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" });
+            cmbDia.Location = new Point(10, 102);
+            cmbDia.Name = "cmbDia";
+            cmbDia.Size = new Size(280, 28);
+            cmbDia.TabIndex = 3;
             // 
-            // chkActivo
+            // lblHoraInicio
             // 
-            chkActivo.AutoSize = true;
-            chkActivo.Checked = true;
-            chkActivo.CheckState = CheckState.Checked;
-            chkActivo.ForeColor = Color.White;
-            chkActivo.Location = new Point(13, 162);
-            chkActivo.Name = "chkActivo";
-            chkActivo.Size = new Size(143, 24);
-            chkActivo.TabIndex = 4;
-            chkActivo.Text = "Categoría activa";
+            lblHoraInicio.AutoSize = true;
+            lblHoraInicio.ForeColor = Color.White;
+            lblHoraInicio.Location = new Point(10, 140);
+            lblHoraInicio.Name = "lblHoraInicio";
+            lblHoraInicio.Size = new Size(159, 20);
+            lblHoraInicio.TabIndex = 4;
+            lblHoraInicio.Text = "Hora Inicio (HH:mm):";
+            // 
+            // txtHoraInicio
+            // 
+            txtHoraInicio.BackColor = Color.FromArgb(51, 65, 85);
+            txtHoraInicio.ForeColor = Color.White;
+            txtHoraInicio.Location = new Point(10, 162);
+            txtHoraInicio.MaxLength = 5;
+            txtHoraInicio.Name = "txtHoraInicio";
+            txtHoraInicio.PlaceholderText = "08:00";
+            txtHoraInicio.Size = new Size(130, 27);
+            txtHoraInicio.TabIndex = 5;
+            txtHoraInicio.KeyPress += SoloHora_KeyPress;
+            // 
+            // lblHoraFin
+            // 
+            lblHoraFin.AutoSize = true;
+            lblHoraFin.ForeColor = Color.White;
+            lblHoraFin.Location = new Point(155, 140);
+            lblHoraFin.Name = "lblHoraFin";
+            lblHoraFin.Size = new Size(142, 20);
+            lblHoraFin.TabIndex = 6;
+            lblHoraFin.Text = "Hora Fin (HH:mm):";
+            // 
+            // txtHoraFin
+            // 
+            txtHoraFin.BackColor = Color.FromArgb(51, 65, 85);
+            txtHoraFin.ForeColor = Color.White;
+            txtHoraFin.Location = new Point(155, 162);
+            txtHoraFin.MaxLength = 5;
+            txtHoraFin.Name = "txtHoraFin";
+            txtHoraFin.PlaceholderText = "09:00";
+            txtHoraFin.Size = new Size(135, 27);
+            txtHoraFin.TabIndex = 7;
+            txtHoraFin.KeyPress += SoloHora_KeyPress;
             // 
             // Guardar_Boton
             // 
@@ -178,11 +216,11 @@ namespace Cantina_Padel
             Guardar_Boton.FlatStyle = FlatStyle.Flat;
             Guardar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Guardar_Boton.ForeColor = Color.Black;
-            Guardar_Boton.Location = new Point(10, 210);
+            Guardar_Boton.Location = new Point(10, 215);
             Guardar_Boton.Name = "Guardar_Boton";
             Guardar_Boton.Size = new Size(280, 38);
-            Guardar_Boton.TabIndex = 5;
-            Guardar_Boton.Text = "Crear Categoría";
+            Guardar_Boton.TabIndex = 8;
+            Guardar_Boton.Text = "Crear Horario";
             Guardar_Boton.UseVisualStyleBackColor = false;
             Guardar_Boton.Click += Guardar_Boton_Click;
             // 
@@ -192,10 +230,10 @@ namespace Cantina_Padel
             Cancelar_Boton.FlatAppearance.BorderSize = 0;
             Cancelar_Boton.FlatStyle = FlatStyle.Flat;
             Cancelar_Boton.ForeColor = Color.White;
-            Cancelar_Boton.Location = new Point(10, 310);
+            Cancelar_Boton.Location = new Point(10, 270);
             Cancelar_Boton.Name = "Cancelar_Boton";
             Cancelar_Boton.Size = new Size(280, 38);
-            Cancelar_Boton.TabIndex = 6;
+            Cancelar_Boton.TabIndex = 9;
             Cancelar_Boton.Text = "Limpiar";
             Cancelar_Boton.UseVisualStyleBackColor = false;
             Cancelar_Boton.Click += Cancelar_Boton_Click;
@@ -206,11 +244,11 @@ namespace Cantina_Padel
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
             Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.Location = new Point(10, 260);
+            Eliminar_Boton.Location = new Point(10, 325);
             Eliminar_Boton.Name = "Eliminar_Boton";
             Eliminar_Boton.Size = new Size(280, 35);
-            Eliminar_Boton.TabIndex = 7;
-            Eliminar_Boton.Text = "Desactivar Categoría";
+            Eliminar_Boton.TabIndex = 10;
+            Eliminar_Boton.Text = "Eliminar Horario";
             Eliminar_Boton.UseVisualStyleBackColor = false;
             Eliminar_Boton.Click += Eliminar_Boton_Click;
             // 
@@ -225,7 +263,7 @@ namespace Cantina_Padel
             Nuevo_Boton.Name = "Nuevo_Boton";
             Nuevo_Boton.Size = new Size(160, 32);
             Nuevo_Boton.TabIndex = 5;
-            Nuevo_Boton.Text = "+ Nueva Categoría";
+            Nuevo_Boton.Text = "+ Nuevo Horario";
             Nuevo_Boton.UseVisualStyleBackColor = false;
             Nuevo_Boton.Click += Nuevo_Boton_Click;
             // 
@@ -243,7 +281,7 @@ namespace Cantina_Padel
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
             // 
-            // FormGestionCategorias
+            // FormGestionHorarios
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -252,14 +290,14 @@ namespace Cantina_Padel
             Controls.Add(lblTitulo);
             Controls.Add(lblBuscar);
             Controls.Add(txtBuscar);
-            Controls.Add(gridCategorias);
+            Controls.Add(gridHorarios);
             Controls.Add(grpDatos);
             Controls.Add(Nuevo_Boton);
             Controls.Add(Volver_Boton);
-            Name = "FormGestionCategorias";
+            Name = "FormGestionHorarios";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Gestión de Categorías";
-            ((System.ComponentModel.ISupportInitialize)gridCategorias).EndInit();
+            Text = "Gestión de Horarios de Juego";
+            ((System.ComponentModel.ISupportInitialize)gridHorarios).EndInit();
             grpDatos.ResumeLayout(false);
             grpDatos.PerformLayout();
             ResumeLayout(false);
@@ -268,20 +306,23 @@ namespace Cantina_Padel
 
         #endregion
 
-        private DataGridView     gridCategorias;
+        private DataGridView     gridHorarios;
         private Label            lblTitulo;
         private Label            lblBuscar;
         private TextBox          txtBuscar;
         private GroupBox         grpDatos;
-        private Label            lblNombre;
-        private TextBox          txtNombre;
-        private CheckBox         chkActivo;
+        private Label            lblCancha;
+        private ComboBox         cmbCancha;
+        private Label            lblDia;
+        private ComboBox         cmbDia;
+        private Label            lblHoraInicio;
+        private TextBox          txtHoraInicio;
+        private Label            lblHoraFin;
+        private TextBox          txtHoraFin;
         private Button           Nuevo_Boton;
         private Button           Guardar_Boton;
         private Button           Eliminar_Boton;
         private Button           Cancelar_Boton;
         private Button           Volver_Boton;
-        private Label label1;
-        private TextBox textBox1;
     }
 }

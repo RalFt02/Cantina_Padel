@@ -15,13 +15,14 @@ namespace Cantina_Padel
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             gridProductos = new DataGridView();
             lblTitulo = new Label();
             lblBuscar = new Label();
             txtBuscar = new TextBox();
             grpDatos = new GroupBox();
+            label1 = new Label();
             lblCodigo = new Label();
             txtCodigo = new TextBox();
             lblNombre = new Label();
@@ -44,7 +45,7 @@ namespace Cantina_Padel
             Eliminar_Boton = new Button();
             Nuevo_Boton = new Button();
             Volver_Boton = new Button();
-            label1 = new Label();
+            textBox1 = new TextBox();
             ((System.ComponentModel.ISupportInitialize)gridProductos).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
@@ -54,23 +55,23 @@ namespace Cantina_Padel
             gridProductos.AllowUserToAddRows = false;
             gridProductos.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridProductos.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(51, 65, 85);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(163, 230, 53);
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            gridProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = Color.FromArgb(51, 65, 85);
+            dataGridViewCellStyle3.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            dataGridViewCellStyle3.ForeColor = Color.FromArgb(163, 230, 53);
+            dataGridViewCellStyle3.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = DataGridViewTriState.True;
+            gridProductos.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
             gridProductos.ColumnHeadersHeight = 29;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(30, 41, 59);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.White;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(163, 230, 53);
-            dataGridViewCellStyle2.SelectionForeColor = Color.Black;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            gridProductos.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle4.BackColor = Color.FromArgb(30, 41, 59);
+            dataGridViewCellStyle4.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle4.ForeColor = Color.White;
+            dataGridViewCellStyle4.SelectionBackColor = Color.FromArgb(163, 230, 53);
+            dataGridViewCellStyle4.SelectionForeColor = Color.Black;
+            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
+            gridProductos.DefaultCellStyle = dataGridViewCellStyle4;
             gridProductos.GridColor = Color.FromArgb(51, 65, 85);
             gridProductos.Location = new Point(20, 95);
             gridProductos.Name = "gridProductos";
@@ -114,6 +115,7 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
+            grpDatos.Controls.Add(textBox1);
             grpDatos.Controls.Add(label1);
             grpDatos.Controls.Add(lblCodigo);
             grpDatos.Controls.Add(txtCodigo);
@@ -143,6 +145,16 @@ namespace Cantina_Padel
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos del Producto";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.ForeColor = Color.White;
+            label1.Location = new Point(10, 281);
+            label1.Name = "label1";
+            label1.Size = new Size(111, 20);
+            label1.TabIndex = 20;
+            label1.Text = "% de Ganancia";
             // 
             // lblCodigo
             // 
@@ -256,7 +268,7 @@ namespace Cantina_Padel
             // 
             lblMarca.AutoSize = true;
             lblMarca.ForeColor = Color.White;
-            lblMarca.Location = new Point(10, 298);
+            lblMarca.Location = new Point(10, 301);
             lblMarca.Name = "lblMarca";
             lblMarca.Size = new Size(56, 20);
             lblMarca.TabIndex = 10;
@@ -267,7 +279,7 @@ namespace Cantina_Padel
             cmbMarca.BackColor = Color.FromArgb(51, 65, 85);
             cmbMarca.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMarca.ForeColor = Color.White;
-            cmbMarca.Location = new Point(10, 320);
+            cmbMarca.Location = new Point(10, 323);
             cmbMarca.Name = "cmbMarca";
             cmbMarca.Size = new Size(205, 28);
             cmbMarca.TabIndex = 11;
@@ -276,7 +288,7 @@ namespace Cantina_Padel
             // 
             lblCategoria.AutoSize = true;
             lblCategoria.ForeColor = Color.White;
-            lblCategoria.Location = new Point(235, 298);
+            lblCategoria.Location = new Point(235, 301);
             lblCategoria.Name = "lblCategoria";
             lblCategoria.Size = new Size(80, 20);
             lblCategoria.TabIndex = 12;
@@ -287,7 +299,7 @@ namespace Cantina_Padel
             cmbCategoria.BackColor = Color.FromArgb(51, 65, 85);
             cmbCategoria.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCategoria.ForeColor = Color.White;
-            cmbCategoria.Location = new Point(235, 320);
+            cmbCategoria.Location = new Point(235, 323);
             cmbCategoria.Name = "cmbCategoria";
             cmbCategoria.Size = new Size(215, 28);
             cmbCategoria.TabIndex = 13;
@@ -296,7 +308,7 @@ namespace Cantina_Padel
             // 
             lblProveedor.AutoSize = true;
             lblProveedor.ForeColor = Color.White;
-            lblProveedor.Location = new Point(10, 358);
+            lblProveedor.Location = new Point(10, 361);
             lblProveedor.Name = "lblProveedor";
             lblProveedor.Size = new Size(86, 20);
             lblProveedor.TabIndex = 14;
@@ -307,7 +319,7 @@ namespace Cantina_Padel
             cmbProveedor.BackColor = Color.FromArgb(51, 65, 85);
             cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbProveedor.ForeColor = Color.White;
-            cmbProveedor.Location = new Point(10, 380);
+            cmbProveedor.Location = new Point(10, 385);
             cmbProveedor.Name = "cmbProveedor";
             cmbProveedor.Size = new Size(440, 28);
             cmbProveedor.TabIndex = 15;
@@ -318,7 +330,7 @@ namespace Cantina_Padel
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
             chkActivo.ForeColor = Color.White;
-            chkActivo.Location = new Point(10, 420);
+            chkActivo.Location = new Point(10, 427);
             chkActivo.Name = "chkActivo";
             chkActivo.Size = new Size(141, 24);
             chkActivo.TabIndex = 16;
@@ -396,15 +408,16 @@ namespace Cantina_Padel
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
             // 
-            // label1
+            // textBox1
             // 
-            label1.AutoSize = true;
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(10, 276);
-            label1.Name = "label1";
-            label1.Size = new Size(201, 20);
-            label1.TabIndex = 20;
-            label1.Text = "(Se suma 15% de ganancia)";
+            textBox1.BackColor = Color.FromArgb(51, 65, 85);
+            textBox1.ForeColor = Color.White;
+            textBox1.Location = new Point(121, 279);
+            textBox1.MaxLength = 10;
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(40, 27);
+            textBox1.TabIndex = 21;
+            textBox1.Text = "0.00";
             // 
             // FormGestionProductos
             // 
@@ -459,5 +472,6 @@ namespace Cantina_Padel
         private Button           Cancelar_Boton;
         private Button           Volver_Boton;
         private Label label1;
+        private TextBox textBox1;
     }
 }

@@ -314,7 +314,7 @@ namespace Cantina_Padel
             using MySqlCommand cmd = new MySqlCommand(updateProducto, conn, tx);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * 15));
+            cmd.Parameters.AddWithValue("@p",    precio);
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
