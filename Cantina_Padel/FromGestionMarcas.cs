@@ -284,7 +284,7 @@ namespace Cantina_Padel
             gridMarcas.RowHeadersVisible = false;
             gridMarcas.RowHeadersWidth = 51;
             gridMarcas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridMarcas.Size = new Size(580, 490);
+            gridMarcas.Size = new Size(237, 490);
             gridMarcas.TabIndex = 3;
             gridMarcas.CellClick += gridMarcas_CellClick;
             // 

@@ -24,6 +24,19 @@ namespace Cantina_Padel
             }
         }
 
+        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
+        private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            var txt = (TextBox)sender;
+            if (char.IsControl(e.KeyChar)) return;
+
+            if (e.KeyChar == '.' && !txt.Text.Contains('.'))
+                return;
+
+            if (!char.IsDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
         // ─────────────────────────────────────────────
         //  CARGAR GRILLA
         // ─────────────────────────────────────────────
@@ -34,7 +47,7 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                string query = "SELECT id_categoria, nombre, activo FROM categoria ORDER BY nombre";
+                string query = "SELECT id_categoria, nombre, porcentaje_ganancia, activo FROM categoria ORDER BY nombre";
 
                 MySqlDataAdapter da = new MySqlDataAdapter(query, conn);
                 System.Data.DataTable dt = new System.Data.DataTable();
@@ -43,12 +56,14 @@ namespace Cantina_Padel
                 gridCategorias.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
                 gridCategorias.DataSource = dt;
 
-                gridCategorias.Columns["id_categoria"].HeaderText = "ID";
-                gridCategorias.Columns["nombre"].HeaderText        = "Nombre";
-                gridCategorias.Columns["activo"].HeaderText        = "Activo";
+                gridCategorias.Columns["id_categoria"].HeaderText         = "ID";
+                gridCategorias.Columns["nombre"].HeaderText                = "Nombre";
+                gridCategorias.Columns["porcentaje_ganancia"].HeaderText  = "% Ganancia";
+                gridCategorias.Columns["activo"].HeaderText                = "Activo";
 
                 gridCategorias.Columns["id_categoria"].Width = 40;
-                gridCategorias.Columns["nombre"].Width        = 240;
+                gridCategorias.Columns["nombre"].Width        = 180;
+                gridCategorias.Columns["porcentaje_ganancia"].Width = 90;
                 gridCategorias.Columns["activo"].Width         = 55;
             }
             catch (MySqlException ex)
@@ -79,6 +94,13 @@ namespace Cantina_Padel
                 return;
             }
 
+            if (!decimal.TryParse(txtPorcentaje.Text, out decimal porcentaje) || porcentaje < 0)
+            {
+                MessageBox.Show("El porcentaje de ganancia debe ser un número válido (0 o mayor).",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             bool esNuevo = _idSeleccionado == null;
 
             try
@@ -87,9 +109,9 @@ namespace Cantina_Padel
                 conn.Open();
 
                 if (esNuevo)
-                    CrearCategoria(conn);
+                    CrearCategoria(conn, porcentaje);
                 else
-                    EditarCategoria(conn);
+                    EditarCategoria(conn, porcentaje);
             }
             catch (MySqlException ex)
             {
@@ -98,7 +120,7 @@ namespace Cantina_Padel
             }
         }
 
-        private void CrearCategoria(MySqlConnection conn)
+        private void CrearCategoria(MySqlConnection conn, decimal porcentaje)
         {
             string checkQuery = "SELECT COUNT(*) FROM categoria WHERE nombre = @n";
             using (MySqlCommand check = new MySqlCommand(checkQuery, conn))
@@ -113,10 +135,11 @@ namespace Cantina_Padel
                 }
             }
 
-            string insert = "INSERT INTO categoria (nombre, activo) VALUES (@n, @a)";
+            string insert = "INSERT INTO categoria (nombre, porcentaje_ganancia, activo) VALUES (@n, @pg, @a)";
             using MySqlCommand cmd = new MySqlCommand(insert, conn);
-            cmd.Parameters.AddWithValue("@n", txtNombre.Text.Trim());
-            cmd.Parameters.AddWithValue("@a", chkActivo.Checked ? 1 : 0);
+            cmd.Parameters.AddWithValue("@n",  txtNombre.Text.Trim());
+            cmd.Parameters.AddWithValue("@pg", porcentaje);
+            cmd.Parameters.AddWithValue("@a",  chkActivo.Checked ? 1 : 0);
             cmd.ExecuteNonQuery();
 
             MessageBox.Show("Categoría creada con éxito.", "Éxito",
@@ -125,7 +148,7 @@ namespace Cantina_Padel
             LimpiarFormulario();
         }
 
-        private void EditarCategoria(MySqlConnection conn)
+        private void EditarCategoria(MySqlConnection conn, decimal porcentaje)
         {
             int id = _idSeleccionado!.Value;
 
@@ -165,9 +188,10 @@ namespace Cantina_Padel
                 }
             }
 
-            string update = "UPDATE categoria SET nombre = @n, activo = @a WHERE id_categoria = @id";
+            string update = "UPDATE categoria SET nombre = @n, porcentaje_ganancia = @pg, activo = @a WHERE id_categoria = @id";
             using MySqlCommand cmd = new MySqlCommand(update, conn);
             cmd.Parameters.AddWithValue("@n",  txtNombre.Text.Trim());
+            cmd.Parameters.AddWithValue("@pg", porcentaje);
             cmd.Parameters.AddWithValue("@a",  chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
@@ -241,6 +265,9 @@ namespace Cantina_Padel
 
             _idSeleccionado = Convert.ToInt32(row.Cells["id_categoria"].Value);
             txtNombre.Text = row.Cells["nombre"].Value?.ToString() ?? "";
+            txtPorcentaje.Text = row.Cells["porcentaje_ganancia"].Value != null
+                ? Convert.ToDecimal(row.Cells["porcentaje_ganancia"].Value).ToString("0.##")
+                : "0";
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             Guardar_Boton.Text = "Guardar Cambios";
         }
@@ -264,6 +291,7 @@ namespace Cantina_Padel
         {
             _idSeleccionado    = null;
             txtNombre.Text     = "";
+            txtPorcentaje.Text = "0";
             chkActivo.Checked  = true;
             Guardar_Boton.Text = "Crear Categoría";
         }

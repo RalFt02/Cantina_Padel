@@ -258,8 +258,10 @@ namespace Cantina_Padel
             textBox1.Location = new Point(211, 150);
             textBox1.MaxLength = 30;
             textBox1.Name = "textBox1";
+            textBox1.Text = "0.00";
             textBox1.Size = new Size(67, 27);
             textBox1.TabIndex = 8;
+            textBox1.KeyPress += Precio_KeyPress;
             // 
             // label1
             // 

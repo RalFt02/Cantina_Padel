@@ -18,6 +18,14 @@ namespace Cantina_Padel
 
         // Permite solo letras (incluye acentos y ñ), espacios, números y teclas de
         // control (backspace, etc.) — el nombre de cancha suele ser "Cancha 1", "Cancha 2A", etc.
+        private void Precio_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || e.KeyChar == '.')
+                return;
+
+            e.Handled = true;
+        }
+
         private void NombreCancha_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetterOrDigit(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -60,7 +68,7 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                string query = "SELECT id_cancha, nombre, estado, activo FROM cancha ORDER BY id_cancha";
+                string query = "SELECT id_cancha, nombre, estado, precio, activo FROM cancha ORDER BY id_cancha";
 
                 MySqlDataAdapter da = new MySqlDataAdapter(query, conn);
                 System.Data.DataTable dt = new System.Data.DataTable();
@@ -72,11 +80,13 @@ namespace Cantina_Padel
                 gridCanchas.Columns["id_cancha"].HeaderText = "ID";
                 gridCanchas.Columns["nombre"].HeaderText     = "Nombre";
                 gridCanchas.Columns["estado"].HeaderText     = "Estado";
+                gridCanchas.Columns["precio"].HeaderText     = "Precio";
                 gridCanchas.Columns["activo"].HeaderText     = "Activo";
 
                 gridCanchas.Columns["id_cancha"].Width = 40;
                 gridCanchas.Columns["nombre"].Width     = 150;
-                gridCanchas.Columns["estado"].Width     = 140;
+                gridCanchas.Columns["estado"].Width     = 120;
+                gridCanchas.Columns["precio"].Width     = 80;
                 gridCanchas.Columns["activo"].Width      = 55;
             }
             catch (MySqlException ex)
@@ -112,6 +122,14 @@ namespace Cantina_Padel
                 return;
             }
 
+            if (!decimal.TryParse(textBox1.Text, out decimal precio) || precio < 0)
+            {
+                MessageBox.Show("Ingresá un precio válido mayor o igual a 0.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                textBox1.Focus();
+                return;
+            }
+
             bool esNuevo = _idSeleccionado == null;
 
             try
@@ -141,10 +159,11 @@ namespace Cantina_Padel
             string estado = cmbEstado.SelectedItem!.ToString()!;
             bool activo = estado == "Activo" && chkActivo.Checked;
 
-            string insert = "INSERT INTO cancha (nombre, estado, activo) VALUES (@n, @e, @a)";
+            string insert = "INSERT INTO cancha (nombre, estado, precio, activo) VALUES (@n, @e, @p, @a)";
             using MySqlCommand cmd = new MySqlCommand(insert, conn);
             cmd.Parameters.AddWithValue("@n", txtNombre.Text);
             cmd.Parameters.AddWithValue("@e", estado);
+            cmd.Parameters.AddWithValue("@p", decimal.Parse(textBox1.Text));
             cmd.Parameters.AddWithValue("@a", activo ? 1 : 0);
             cmd.ExecuteNonQuery();
         }
@@ -154,10 +173,11 @@ namespace Cantina_Padel
             string estado = cmbEstado.SelectedItem!.ToString()!;
             bool activo = estado == "Activo" && chkActivo.Checked;
 
-            string update = "UPDATE cancha SET nombre = @n, estado = @e, activo = @a WHERE id_cancha = @id";
+            string update = "UPDATE cancha SET nombre = @n, estado = @e, precio = @p, activo = @a WHERE id_cancha = @id";
             using MySqlCommand cmd = new MySqlCommand(update, conn);
             cmd.Parameters.AddWithValue("@n",  txtNombre.Text);
             cmd.Parameters.AddWithValue("@e",  estado);
+            cmd.Parameters.AddWithValue("@p",  decimal.Parse(textBox1.Text));
             cmd.Parameters.AddWithValue("@a",  activo ? 1 : 0);
             cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
             cmd.ExecuteNonQuery();
@@ -214,6 +234,9 @@ namespace Cantina_Padel
             _idSeleccionado   = Convert.ToInt32(row.Cells["id_cancha"].Value);
             txtNombre.Text    = row.Cells["nombre"].Value?.ToString() ?? "";
             cmbEstado.SelectedItem = row.Cells["estado"].Value?.ToString() ?? "Activo";
+            textBox1.Text = row.Cells["precio"].Value == null || row.Cells["precio"].Value == DBNull.Value
+                ? "0.00"
+                : Convert.ToDecimal(row.Cells["precio"].Value).ToString("0.00");
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             AplicarReglaActivoSegunEstado();
             Guardar_Boton.Text = "Guardar Cambios";
@@ -239,6 +262,7 @@ namespace Cantina_Padel
             _idSeleccionado    = null;
             txtNombre.Text     = "";
             cmbEstado.SelectedIndex = 0; // "Activo" por defecto
+            textBox1.Text = "0.00";
             chkActivo.Checked  = true;
             Guardar_Boton.Text = "Crear Cancha";
         }

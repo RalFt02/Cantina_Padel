@@ -22,8 +22,8 @@ namespace Cantina_Padel
             lblBuscar = new Label();
             txtBuscar = new TextBox();
             grpDatos = new GroupBox();
-            label1 = new Label();
-            textBox1 = new TextBox();
+            lblPorcentaje = new Label();
+            txtPorcentaje = new TextBox();
             lblNombre = new Label();
             txtNombre = new TextBox();
             chkActivo = new CheckBox();
@@ -101,8 +101,8 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-            grpDatos.Controls.Add(label1);
-            grpDatos.Controls.Add(textBox1);
+            grpDatos.Controls.Add(lblPorcentaje);
+            grpDatos.Controls.Add(txtPorcentaje);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
             grpDatos.Controls.Add(chkActivo);
@@ -118,25 +118,27 @@ namespace Cantina_Padel
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos de la Categoría";
             // 
-            // label1
+            // lblPorcentaje
             // 
-            label1.AutoSize = true;
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(13, 90);
-            label1.Name = "label1";
-            label1.Size = new Size(115, 20);
-            label1.TabIndex = 9;
-            label1.Text = "% de Ganancia:";
+            lblPorcentaje.AutoSize = true;
+            lblPorcentaje.ForeColor = Color.White;
+            lblPorcentaje.Location = new Point(13, 90);
+            lblPorcentaje.Name = "lblPorcentaje";
+            lblPorcentaje.Size = new Size(115, 20);
+            lblPorcentaje.TabIndex = 9;
+            lblPorcentaje.Text = "% de Ganancia:";
             // 
-            // textBox1
+            // txtPorcentaje
             // 
-            textBox1.BackColor = Color.FromArgb(51, 65, 85);
-            textBox1.ForeColor = Color.White;
-            textBox1.Location = new Point(10, 115);
-            textBox1.MaxLength = 30;
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(280, 27);
-            textBox1.TabIndex = 8;
+            txtPorcentaje.BackColor = Color.FromArgb(51, 65, 85);
+            txtPorcentaje.ForeColor = Color.White;
+            txtPorcentaje.Location = new Point(10, 115);
+            txtPorcentaje.MaxLength = 6;
+            txtPorcentaje.Name = "txtPorcentaje";
+            txtPorcentaje.Size = new Size(280, 27);
+            txtPorcentaje.TabIndex = 8;
+            txtPorcentaje.Text = "0";
+            txtPorcentaje.KeyPress += SoloNumerosDecimal_KeyPress;
             // 
             // lblNombre
             // 
@@ -281,7 +283,7 @@ namespace Cantina_Padel
         private Button           Eliminar_Boton;
         private Button           Cancelar_Boton;
         private Button           Volver_Boton;
-        private Label label1;
-        private TextBox textBox1;
+        private Label lblPorcentaje;
+        private TextBox txtPorcentaje;
     }
 }
