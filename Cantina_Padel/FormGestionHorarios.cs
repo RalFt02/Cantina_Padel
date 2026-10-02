@@ -21,14 +21,13 @@ namespace Cantina_Padel
             if (fechaInicial.HasValue)
                 dtpFecha.Value = fechaInicial.Value < dtpFecha.MinDate ? dtpFecha.MinDate : fechaInicial.Value;
 
+            // Primero se cargan los turnos libres de esa cancha/fecha y recién después se elige el pedido.
+            CargarHorasOcupadas();
             if (horaInicial.HasValue)
             {
-                txtHoraInicio.Text = horaInicial.Value.ToString(@"hh\:mm");
-                TimeSpan fin = horaFinInicial ?? horaInicial.Value.Add(TimeSpan.FromHours(1));
-                if (fin.TotalHours >= 24) fin = fin.Subtract(TimeSpan.FromHours(24));
-                txtHoraFin.Text = fin.ToString(@"hh\:mm");
+                SeleccionarTurno(horaInicial.Value);
+                ActualizarEstadoHorario();
             }
-            CargarHorasOcupadas();
         }
 
         private void ConfigurarControles()
@@ -42,31 +41,6 @@ namespace Cantina_Padel
             txtHoraFin.TextChanged += Hora_TextChanged;
             txtHoraInicio.Leave += (_, _) => ActualizarEstadoHorario();
             txtHoraFin.Leave += (_, _) => ActualizarEstadoHorario();
-        }
-
-        private static void SoloHora_KeyPress(object? sender, KeyPressEventArgs e)
-        {
-            if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ':') return;
-            e.Handled = true;
-        }
-
-        private static void Hora_TextChanged(object? sender, EventArgs e)
-        {
-            if (sender is not TextBox txt || txt.Text.Contains(':')) return;
-
-            // Si se escriben cuatro dígitos (por ejemplo 2000), queda automáticamente 20:00.
-            if (txt.Text.Length == 4 && txt.Text.All(char.IsDigit))
-            {
-                int posicion = txt.SelectionStart;
-                txt.Text = txt.Text.Insert(2, ":");
-                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
-            }
-            else if (txt.Text.Length == 2 && txt.Text.All(char.IsDigit))
-            {
-                int posicion = txt.SelectionStart;
-                txt.Text += ":";
-                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
-            }
         }
 
         private void CargarClientes()
@@ -144,7 +118,6 @@ namespace Cantina_Padel
                       AND r.estado IN ('Pendiente','Confirmada')
                     ORDER BY h.hora_inicio";
                 using var cmd = new MySqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@cancha", idCancha);
                 cmd.Parameters.AddWithValue("@fecha", fecha);
 
                 var dt = new DataTable();
@@ -153,7 +126,10 @@ namespace Cantina_Padel
                 if (gridOcupados.Columns.Count > 0)
                 {
                     gridOcupados.Columns["id_reserva"].Visible = false;
+                    gridOcupados.Columns["id_cancha"].Visible = false;
+                    gridOcupados.Columns["cancha"].HeaderText = "Cancha";
                     gridOcupados.Columns["fecha"].HeaderText = "Fecha";
+                    gridOcupados.Columns["dia_semana"].HeaderText = "Dia";
                     gridOcupados.Columns["hora_inicio"].HeaderText = "Inicio";
                     gridOcupados.Columns["hora_fin"].HeaderText = "Fin";
                     gridOcupados.Columns["cliente"].HeaderText = "Cliente que reservó";
@@ -256,7 +232,6 @@ namespace Cantina_Padel
                 minutos = total + 24 * 60;
                 return true;
             }
-            return false;
         }
 
         private bool TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out int inicioTurno, out int finTurno)
@@ -580,8 +555,6 @@ namespace Cantina_Padel
                 }
 
                 dtpFecha.Value = fecha < dtpFecha.MinDate ? dtpFecha.MinDate : fecha;
-                txtHoraInicio.Text = inicio.ToString(@"hh\:mm");
-                txtHoraFin.Text = fin.ToString(@"hh\:mm");
                 CargarHorasOcupadas();
                 lblEstado.Text = "Hora liberada. Seleccioná el cliente y presioná Reservar.";
                 lblEstado.ForeColor = Color.FromArgb(163, 230, 53);
