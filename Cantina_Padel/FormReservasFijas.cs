@@ -57,7 +57,7 @@ namespace Cantina_Padel
             AjustarFechaHasta();
         }
 
-        private static void SoloHora_KeyPress(object? sender, KeyPressEventArgs e)
+        private static void SoloHora_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ':') return;
             e.Handled = true;
@@ -160,7 +160,7 @@ namespace Cantina_Padel
             try
             {
                 using var conn = Conexion.ObtenerConexion(); conn.Open();
-                const string sql = @"SELECT r.id_reserva,r.id_cliente,r.id_cancha,r.fecha,r.estado,r.reserva_fija,
+                const string sql = @"SELECT r.id_reserva,r.id_cliente,r.id_cancha,r.fecha,h.dia_semana,r.estado,r.reserva_fija,
                                             c.nombre cancha, CONCAT(p.apellido, ', ', p.nombre) cliente,
                                             h.hora_inicio,h.hora_fin
                                      FROM reserva r
@@ -174,7 +174,7 @@ namespace Cantina_Padel
                 if (gridFijas.Columns.Count > 0)
                 {
                     gridFijas.Columns["id_reserva"].Visible=false; gridFijas.Columns["id_cliente"].Visible=false; gridFijas.Columns["id_cancha"].Visible=false;
-                    gridFijas.Columns["reserva_fija"].HeaderText="Serie desde"; gridFijas.Columns["fecha"].HeaderText="Fecha"; gridFijas.Columns["estado"].HeaderText="Estado";
+                    gridFijas.Columns["reserva_fija"].HeaderText="Serie desde"; gridFijas.Columns["fecha"].HeaderText="Fecha"; gridFijas.Columns["dia_semana"].HeaderText = "Dia"; ; gridFijas.Columns["estado"].HeaderText="Estado";
                     gridFijas.Columns["cancha"].HeaderText="Cancha"; gridFijas.Columns["cliente"].HeaderText="Cliente"; gridFijas.Columns["hora_inicio"].HeaderText="Inicio"; gridFijas.Columns["hora_fin"].HeaderText="Fin";
                     gridFijas.Columns["fecha"].DefaultCellStyle.Format="dd/MM/yyyy"; gridFijas.Columns["hora_inicio"].DefaultCellStyle.Format=@"hh\:mm"; gridFijas.Columns["hora_fin"].DefaultCellStyle.Format=@"hh\:mm";
                     foreach (DataGridViewRow row in gridFijas.Rows)
@@ -234,37 +234,100 @@ namespace Cantina_Padel
 
         private static string NombreDia(DateTime d)=>d.DayOfWeek switch{DayOfWeek.Monday=>"Lunes",DayOfWeek.Tuesday=>"Martes",DayOfWeek.Wednesday=>"Miércoles",DayOfWeek.Thursday=>"Jueves",DayOfWeek.Friday=>"Viernes",DayOfWeek.Saturday=>"Sábado",_=>"Domingo"};
 
-        private void CrearFija_Boton_Click(object sender, EventArgs e)
+        private bool CrearReservaFija(int idCliente, int idCancha, string diaTexto, int diaIndex, string periodicidad, string horaInicioTxt, string horaFinTxt, DateTime desde, DateTime hasta, out string mensajeError, out int ocurrenciasGeneradas)
         {
-            if(!TryObtenerIdCombo(cmbCliente,out int idCliente)||!TryObtenerIdCombo(cmbCancha,out int idCancha)||cmbDia.SelectedItem==null){MessageBox.Show("Completá cliente, cancha y día.","Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
-            if(!TryObtenerRango(out TimeSpan inicio,out TimeSpan fin,out _,out _))return;
-            DateTime desde=dtpDesde.Value.Date,hasta=dtpHasta.Value.Date;
-            DateTime finAnioActual = new DateTime(DateTime.Today.Year, 12, 31);
-            if(desde.Year != DateTime.Today.Year || hasta.Year != DateTime.Today.Year)
-            {
-                MessageBox.Show($"Las reservas fijas solo pueden realizarse durante {DateTime.Today.Year}. No se permiten fechas de {DateTime.Today.Year + 1}.","Año no permitido",MessageBoxButtons.OK,MessageBoxIcon.Warning);
-                return;
+            mensajeError = string.Empty;
+            ocurrenciasGeneradas = 0;
+
+            if (!TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out _, out _))
+        {
+                // El mensaje de error ya lo muestra TryObtenerRango o se puede manejar acá
+                return false;
             }
-            if(hasta<desde){MessageBox.Show("La fecha final no puede ser anterior a la inicial.","Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
-            if(hasta>finAnioActual){MessageBox.Show($"La reserva fija no puede superar el {finAnioActual:dd/MM/yyyy}.","Fecha no permitida",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
-            DayOfWeek dia=(DayOfWeek)cmbDia.SelectedIndex; string periodicidad=cmbPeriodicidad.Text;
-            var fechas=GenerarFechas(desde,hasta,dia,periodicidad)
+
+            DateTime finAnioActual = new DateTime(DateTime.Today.Year, 12, 31);
+            if (desde.Year != DateTime.Today.Year || hasta.Year != DateTime.Today.Year)
+            {
+                mensajeError = $"Las reservas fijas solo pueden realizarse durante {DateTime.Today.Year}. No se permiten fechas de {DateTime.Today.Year + 1}.";
+                return false;
+            }
+            if (hasta < desde)
+            {
+                mensajeError = "La fecha final no puede ser anterior a la inicial.";
+                return false;
+            }
+            if (hasta > finAnioActual)
+            {
+                mensajeError = $"La reserva fija no puede superar el {finAnioActual:dd/MM/yyyy}.";
+                return false;
+            }
+
+            DayOfWeek dia = (DayOfWeek)((diaIndex + 1) % 7);
+            var fechas = GenerarFechas(desde, hasta, dia, periodicidad)
                 .Where(f => f.Year == DateTime.Today.Year)
                 .ToList();
-            if(fechas.Count==0){MessageBox.Show("No hay fechas que coincidan con el día seleccionado.","Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
+
+            if (fechas.Count == 0)
+            {
+                mensajeError = "No hay fechas que coincidan con el día seleccionado.";
+                return false;
+            }
+
             try
             {
-                using var conn=Conexion.ObtenerConexion();conn.Open();using var tx=conn.BeginTransaction();
-                foreach(DateTime fecha in fechas)
+                using var conn = Conexion.ObtenerConexion();
+                conn.Open();
+                using var tx = conn.BeginTransaction();
+
+                foreach (DateTime fecha in fechas)
                 {
-                    if(ExisteSolapamiento(conn,tx,fecha,idCancha,inicio,fin)){tx.Rollback();MessageBox.Show($"La fecha {fecha:dd/MM/yyyy} ya está ocupada. No se creó la reserva fija.","Solapamiento",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
-                    int idHorario=ObtenerOCrearHorario(conn,tx,idCancha,fecha,inicio,fin);
-                    const string ins=@"INSERT INTO reserva(fecha,reserva_fija,estado,id_cliente,id_cancha,id_horario,id_usuario) VALUES(@fecha,@serie,'Confirmada',@cliente,@cancha,@horario,@usuario)";
-                    using var cmd=new MySqlCommand(ins,conn,tx);cmd.Parameters.AddWithValue("@fecha",fecha);cmd.Parameters.AddWithValue("@serie",desde);cmd.Parameters.AddWithValue("@cliente",idCliente);cmd.Parameters.AddWithValue("@cancha",idCancha);cmd.Parameters.AddWithValue("@horario",idHorario);cmd.Parameters.AddWithValue("@usuario",1);cmd.ExecuteNonQuery();
+                    if (ExisteSolapamiento(conn, tx, fecha, idCancha, inicio, fin))
+                    {
+                        tx.Rollback();
+                        mensajeError = $"La fecha {fecha:dd/MM/yyyy} ya está ocupada. No se creó la reserva fija.";
+                        return false;
+                    }
+
+                    int idHorario = ObtenerOCrearHorario(conn, tx, idCancha, fecha, inicio, fin);
+                    const string ins = @"INSERT INTO reserva(fecha,reserva_fija,estado,id_cliente,id_cancha,id_horario,id_usuario) 
+                                VALUES(@fecha,@serie,'Confirmada',@cliente,@cancha,@horario,@usuario)";
+                    using var cmd = new MySqlCommand(ins, conn, tx);
+                    cmd.Parameters.AddWithValue("@fecha", fecha);
+                    cmd.Parameters.AddWithValue("@serie", desde);
+                    cmd.Parameters.AddWithValue("@cliente", idCliente);
+                    cmd.Parameters.AddWithValue("@cancha", idCancha);
+                    cmd.Parameters.AddWithValue("@horario", idHorario);
+                    cmd.Parameters.AddWithValue("@usuario", 1);
+                    cmd.ExecuteNonQuery();
                 }
-                tx.Commit();MessageBox.Show($"Reserva fija creada. Se generaron {fechas.Count} ocurrencias.","Éxito",MessageBoxButtons.OK,MessageBoxIcon.Information);CargarReservasFijas();
+
+                tx.Commit();
+                ocurrenciasGeneradas = fechas.Count;
+                return true;
             }
-            catch(MySqlException ex){MessageBox.Show("Error al crear reserva fija:\n"+ex.Message,"Error",MessageBoxButtons.OK,MessageBoxIcon.Error);}
+            catch (MySqlException ex)
+            {
+                mensajeError = "Error al crear reserva fija:\n" + ex.Message;
+                return false;
+            }
+        }
+        private void CrearFija_Boton_Click(object sender, EventArgs e)
+        {
+            if (!TryObtenerIdCombo(cmbCliente, out int idCliente) || !TryObtenerIdCombo(cmbCancha, out int idCancha) || cmbDia.SelectedItem == null)
+            {
+                MessageBox.Show("Completá cliente, cancha y día.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (CrearReservaFija(idCliente, idCancha, cmbDia.Text, cmbDia.SelectedIndex, cmbPeriodicidad.Text, txtHoraInicio.Text, txtHoraFin.Text, dtpDesde.Value.Date, dtpHasta.Value.Date, out string mensajeError, out int ocurrencias))
+                {
+                MessageBox.Show($"Reserva fija creada. Se generaron {ocurrencias} ocurrencias.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CargarReservasFijas();
+                }
+            else if (!string.IsNullOrEmpty(mensajeError))
+            {
+                MessageBox.Show(mensajeError, "Aviso / Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void Realquilar_Boton_Click(object sender,EventArgs e)
