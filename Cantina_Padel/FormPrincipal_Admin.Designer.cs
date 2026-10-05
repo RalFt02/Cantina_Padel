@@ -183,6 +183,7 @@
             Compras_Boton.TabIndex = 10;
             Compras_Boton.Text = "Compras";
             Compras_Boton.UseVisualStyleBackColor = false;
+            Compras_Boton.Click += Compras_Boton_Click;
             // 
             // Ventas_Boton
             // 

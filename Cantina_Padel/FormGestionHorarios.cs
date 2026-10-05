@@ -25,7 +25,7 @@ namespace Cantina_Padel
             CargarHorasOcupadas();
             if (horaInicial.HasValue)
             {
-                SeleccionarTurno(horaInicial.Value);
+                SeleccionarTurno(horaInicial.Value, horaFinInicial);
                 ActualizarEstadoHorario();
             }
         }
@@ -41,6 +41,39 @@ namespace Cantina_Padel
             txtHoraFin.TextChanged += Hora_TextChanged;
             txtHoraInicio.Leave += (_, _) => ActualizarEstadoHorario();
             txtHoraFin.Leave += (_, _) => ActualizarEstadoHorario();
+        }
+
+        private static void SoloHora_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ':') return;
+            e.Handled = true;
+        }
+
+        private static void Hora_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender is not TextBox txt || txt.Text.Contains(':')) return;
+
+            // Si se escriben cuatro dígitos (por ejemplo 2000), queda automáticamente 20:00.
+            if (txt.Text.Length == 4 && txt.Text.All(char.IsDigit))
+            {
+                int posicion = txt.SelectionStart;
+                txt.Text = txt.Text.Insert(2, ":");
+                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
+            }
+            else if (txt.Text.Length == 2 && txt.Text.All(char.IsDigit))
+            {
+                int posicion = txt.SelectionStart;
+                txt.Text += ":";
+                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
+            }
+        }
+
+        // Carga en los campos de hora el turno pedido. Si no viene la hora de fin, se asume 1 hora.
+        private void SeleccionarTurno(TimeSpan inicio, TimeSpan? fin = null)
+        {
+            TimeSpan horaFin = fin ?? TimeSpan.FromMinutes(((int)inicio.TotalMinutes + 60) % (24 * 60));
+            txtHoraInicio.Text = inicio.ToString(@"hh\:mm");
+            txtHoraFin.Text = horaFin.ToString(@"hh\:mm");
         }
 
         private void CargarClientes()
@@ -103,7 +136,10 @@ namespace Cantina_Padel
                 conn.Open();
                 const string sql = @"
                     SELECT r.id_reserva,
+                           r.id_cancha,
+                           ca.nombre AS cancha,
                            r.fecha,
+                           h.dia_semana,
                            h.hora_inicio,
                            h.hora_fin,
                            CONCAT(p.apellido, ', ', p.nombre, ' - DNI ', p.dni) AS cliente,
@@ -111,6 +147,7 @@ namespace Cantina_Padel
                            CASE WHEN r.reserva_fija IS NULL THEN 'No' ELSE 'Sí' END AS reserva_fija
                     FROM reserva r
                     INNER JOIN horario h ON h.id_horario = r.id_horario
+                    INNER JOIN cancha ca ON ca.id_cancha = r.id_cancha
                     INNER JOIN cliente cl ON cl.id_cliente = r.id_cliente
                     INNER JOIN persona p ON p.id_persona = cl.id_persona
                     WHERE r.id_cancha = @cancha
@@ -118,6 +155,7 @@ namespace Cantina_Padel
                       AND r.estado IN ('Pendiente','Confirmada')
                     ORDER BY h.hora_inicio";
                 using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@cancha", idCancha);
                 cmd.Parameters.AddWithValue("@fecha", fecha);
 
                 var dt = new DataTable();
@@ -232,6 +270,7 @@ namespace Cantina_Padel
                 minutos = total + 24 * 60;
                 return true;
             }
+            return false;
         }
 
         private bool TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out int inicioTurno, out int finTurno)

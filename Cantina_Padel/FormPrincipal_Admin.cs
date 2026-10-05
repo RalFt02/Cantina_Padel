@@ -45,6 +45,12 @@ namespace Cantina_Padel
             formProveedores.ShowDialog(this);
         }
 
+        private void Compras_Boton_Click(object sender, EventArgs e)
+        {
+            FormGestionCompras formCompras = new FormGestionCompras();
+            formCompras.ShowDialog(this);
+        }
+
         private void Marcas_Boton_Click(object sender, EventArgs e)
         {
             FormGestionMarcas formMarcas = new FormGestionMarcas();

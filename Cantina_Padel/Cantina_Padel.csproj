@@ -116,6 +116,16 @@
     </Compile>
   </ItemGroup>
 
+  <!-- FormGestionCompras -->
+  <ItemGroup>
+    <Compile Update="FormGestionCompras.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionCompras.Designer.cs">
+      <DependentUpon>FormGestionCompras.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <!-- FormCambiarPassword -->
   <ItemGroup>
     <Compile Update="FormCambiarPassword.cs">

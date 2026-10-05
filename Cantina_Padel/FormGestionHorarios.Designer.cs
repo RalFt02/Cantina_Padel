@@ -3,10 +3,9 @@ namespace Cantina_Padel
     partial class FormGestionHorarios
     {
         private System.ComponentModel.IContainer components = null;
-        protected override void Dispose(bool disposing) { if (disposing && components != null) components.Dispose(); base.Dispose(disposing); }
 
         protected override void Dispose(bool disposing)
-        {
+        {    
             if (disposing && (components != null))
                 components.Dispose();
             base.Dispose(disposing);
@@ -16,10 +15,8 @@ namespace Cantina_Padel
 
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
-            gridHorarios = new DataGridView();
             lblTitulo = new Label();
+
             lblCliente = new Label(); cmbCliente = new ComboBox();
             lblCancha = new Label(); cmbCancha = new ComboBox();
             lblFecha = new Label(); dtpFecha = new DateTimePicker();
@@ -70,6 +67,8 @@ namespace Cantina_Padel
             BackColor = Color.FromArgb(15,23,42); ClientSize = new Size(960,590); Controls.AddRange(new Control[] { lblTitulo,lblCliente,cmbCliente,lblCancha,cmbCancha,lblFecha,dtpFecha,lblHoraInicio,txtHoraInicio,lblHoraFin,txtHoraFin,lblInfo,lblEstado,Reservar_Boton,ReservasFijas_Boton,Limpiar_Boton,lblOcupados,gridOcupados,CancelarReserva_Boton,Realquilar_Boton,Volver_Boton }); Name = "FormGestionHorarios"; StartPosition = FormStartPosition.CenterScreen; Text = "Gestión de Reservas";
             ((System.ComponentModel.ISupportInitialize)gridOcupados).EndInit(); ResumeLayout(false); PerformLayout();
         }
+
+        #endregion
 
         private Label lblTitulo,lblCliente,lblCancha,lblFecha,lblHoraInicio,lblHoraFin,lblEstado,lblInfo,lblOcupados;
         private ComboBox cmbCliente,cmbCancha;
