@@ -9,10 +9,15 @@ namespace Cantina_Padel
         // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
         // ejecución ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
+        private decimal _precioBase;
+        private decimal _porcentajeCategoriaAnterior;
+        private bool _actualizandoFormulario;
+        private bool _precioEditadoManualmente;
 
         public FormGestionProductos()
         {
             InitializeComponent();
+            txtPrecio.TextChanged += txtPrecio_TextChanged;
             CargarCombos();
             CargarProductos();
         }
@@ -57,13 +62,16 @@ namespace Cantina_Padel
                 cmbMarca.DisplayMember = "nombre";
                 cmbMarca.ValueMember   = "id_marca";
 
-                // Categoria
-                var daCategoria = new MySqlDataAdapter("SELECT id_categoria, nombre FROM categoria WHERE activo = 1 ORDER BY nombre", conn);
+                // Categoria: se muestra solamente el nombre.
+                var daCategoria = new MySqlDataAdapter("SELECT id_categoria, nombre, porcentaje_ganancia FROM categoria WHERE activo = 1 ORDER BY nombre", conn);
                 var dtCategoria = new System.Data.DataTable();
                 daCategoria.Fill(dtCategoria);
+
                 cmbCategoria.DataSource    = dtCategoria;
                 cmbCategoria.DisplayMember = "nombre";
                 cmbCategoria.ValueMember   = "id_categoria";
+                cmbCategoria.SelectedIndexChanged += cmbCategoria_SelectedIndexChanged;
+                ActualizarPorcentajeGanancia();
 
                 // Proveedor (nombre a mostrar: razon social si tiene, si no nombre y apellido)
                 string queryProv = @"
@@ -174,6 +182,78 @@ namespace Cantina_Padel
         }
 
 
+
+        private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            decimal nuevoPorcentaje = ObtenerPorcentajeGananciaCategoria();
+
+            // Si se está editando un producto y el usuario no modificó manualmente
+            // el precio, recuperamos el precio base desde el precio de venta actual
+            // usando el porcentaje anterior. Así, cambiar de categoría no acumula
+            // porcentajes sobre porcentajes.
+            if (!_actualizandoFormulario)
+            {
+                if (_precioEditadoManualmente)
+                {
+                    // El usuario acaba de escribir un precio base.
+                    _precioBase = ObtenerPrecioMostrado();
+                }
+                else
+                {
+                    // El precio mostrado ya incluye el porcentaje anterior.
+                    // Lo revertimos para obtener el precio base antes de aplicar
+                    // el porcentaje de la nueva categoría.
+                    decimal factorAnterior = 1m + (_porcentajeCategoriaAnterior / 100m);
+                    if (factorAnterior > 0m)
+                    {
+                        _precioBase = ObtenerPrecioMostrado() / factorAnterior;
+                    }
+                }
+
+                MostrarPrecioConGanancia(_precioBase, nuevoPorcentaje);
+                _precioEditadoManualmente = false;
+            }
+
+            _porcentajeCategoriaAnterior = nuevoPorcentaje;
+            ActualizarPorcentajeGanancia();
+        }
+
+        private void txtPrecio_TextChanged(object sender, EventArgs e)
+        {
+            if (!_actualizandoFormulario)
+            {
+                _precioEditadoManualmente = true;
+            }
+        }
+
+        private decimal ObtenerPrecioMostrado()
+        {
+            return decimal.TryParse(txtPrecio.Text, out decimal precio) ? precio : 0m;
+        }
+
+        private void MostrarPrecioConGanancia(decimal precioBase, decimal porcentajeGanancia)
+        {
+            _actualizandoFormulario = true;
+            txtPrecio.Text = (precioBase + (precioBase * porcentajeGanancia / 100m)).ToString("0.00");
+            _actualizandoFormulario = false;
+        }
+
+        private void ActualizarPorcentajeGanancia()
+        {
+            textBox1.Text = ObtenerPorcentajeGananciaCategoria().ToString("0.##");
+        }
+
+        private decimal ObtenerPorcentajeGananciaCategoria()
+        {
+            if (cmbCategoria.SelectedItem is System.Data.DataRowView fila &&
+                fila["porcentaje_ganancia"] != DBNull.Value)
+            {
+                return Convert.ToDecimal(fila["porcentaje_ganancia"]);
+            }
+
+            return 0m;
+        }
+
         // ─────────────────────────────────────────────
         //  BOTÓN NUEVO
         // ─────────────────────────────────────────────
@@ -212,6 +292,18 @@ namespace Cantina_Padel
                 return;
             }
 
+            decimal porcentajeGanancia = ObtenerPorcentajeGananciaCategoria();
+            decimal precioBase = _precioEditadoManualmente ? precio : _precioBase;
+
+            string codigoIngresado = txtCodigo.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(codigoIngresado) &&
+                (codigoIngresado.Length < 6 || codigoIngresado.Length > 13 || !codigoIngresado.All(char.IsDigit)))
+            {
+                MessageBox.Show("El código de barras debe contener entre 6 y 13 dígitos.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             bool esNuevo = _idSeleccionado == null;
 
             try
@@ -221,9 +313,9 @@ namespace Cantina_Padel
                 using MySqlTransaction tx = conn.BeginTransaction();
 
                 if (esNuevo)
-                    CrearProducto(conn, tx, precio, stock);
+                    CrearProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado);
                 else
-                    EditarProducto(conn, tx, precio, stock);
+                    EditarProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado);
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -238,9 +330,11 @@ namespace Cantina_Padel
             }
         }
 
-        private void CrearProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock)
+        private void CrearProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
         {
-            string codigo = GenerarCodigoEan13Unico(conn, tx);
+            string codigo = string.IsNullOrWhiteSpace(codigoIngresado)
+                ? GenerarCodigoEan13Unico(conn, tx)
+                : codigoIngresado;
 
             string insertProducto = @"
                 INSERT INTO producto (codigo, nombre, descripcion, precio_venta, stock, activo, id_marca, id_categoria, id_proveedor)
@@ -250,7 +344,7 @@ namespace Cantina_Padel
             cmd.Parameters.AddWithValue("@cod",  codigo);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * 15));
+            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * porcentajeGanancia));
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
@@ -295,13 +389,14 @@ namespace Cantina_Padel
             }
         }
 
-        private void EditarProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock)
+        private void EditarProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
         {
             int id = _idSeleccionado!.Value;
 
             string updateProducto = @"
                 UPDATE producto
-                SET nombre        = @n,
+                SET codigo        = @cod,
+                    nombre        = @n,
                     descripcion   = @desc,
                     precio_venta  = @p,
                     stock         = @s,
@@ -312,9 +407,10 @@ namespace Cantina_Padel
                 WHERE id_producto = @id";
 
             using MySqlCommand cmd = new MySqlCommand(updateProducto, conn, tx);
+            cmd.Parameters.AddWithValue("@cod",  codigoIngresado);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * 15));
+            cmd.Parameters.AddWithValue("@p",    precio + (precio * porcentajeGanancia / 100m));
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
@@ -377,15 +473,23 @@ namespace Cantina_Padel
             txtNombre.Text      = row.Cells["nombre"].Value?.ToString() ?? "";
             txtDescripcion.Text = row.Cells["descripcion"].Value?.ToString() ?? "";
 
-            decimal precio = row.Cells["precio_venta"].Value != null
+            decimal precioVenta = row.Cells["precio_venta"].Value != null
                 ? Convert.ToDecimal(row.Cells["precio_venta"].Value)
                 : 0m;
-            txtPrecio.Text = precio.ToString("0.00");
-
             txtStock.Text = row.Cells["stock"].Value?.ToString() ?? "0";
 
             cmbMarca.SelectedValue     = row.Cells["id_marca"].Value;
+
+            _actualizandoFormulario = true;
             cmbCategoria.SelectedValue = row.Cells["id_categoria"].Value;
+            _actualizandoFormulario = false;
+
+            _porcentajeCategoriaAnterior = ObtenerPorcentajeGananciaCategoria();
+            decimal factor = 1m + (_porcentajeCategoriaAnterior / 100m);
+            _precioBase = factor > 0m ? precioVenta / factor : precioVenta;
+            _precioEditadoManualmente = false;
+            MostrarPrecioConGanancia(_precioBase, _porcentajeCategoriaAnterior);
+            ActualizarPorcentajeGanancia();
             cmbProveedor.SelectedValue = row.Cells["id_proveedor"].Value;
 
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
@@ -410,8 +514,11 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void LimpiarFormulario()
         {
+            _actualizandoFormulario = true;
             _idSeleccionado     = null;
-            txtCodigo.Text      = "(se genera al guardar)";
+            _precioBase         = 0m;
+            _precioEditadoManualmente = false;
+            txtCodigo.Text      = "";
             txtNombre.Text      = "";
             txtDescripcion.Text = "";
             txtPrecio.Text      = "0.00";
@@ -420,6 +527,9 @@ namespace Cantina_Padel
             if (cmbCategoria.Items.Count > 0) cmbCategoria.SelectedIndex = 0;
             if (cmbProveedor.Items.Count > 0) cmbProveedor.SelectedIndex = 0;
             chkActivo.Checked   = true;
+            _actualizandoFormulario = false;
+            _porcentajeCategoriaAnterior = ObtenerPorcentajeGananciaCategoria();
+            ActualizarPorcentajeGanancia();
             Guardar_Boton.Text  = "Crear Producto";
         }
 

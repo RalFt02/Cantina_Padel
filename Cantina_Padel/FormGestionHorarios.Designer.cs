@@ -3,6 +3,7 @@ namespace Cantina_Padel
     partial class FormGestionHorarios
     {
         private System.ComponentModel.IContainer components = null;
+        protected override void Dispose(bool disposing) { if (disposing && components != null) components.Dispose(); base.Dispose(disposing); }
 
         protected override void Dispose(bool disposing)
         {
@@ -19,326 +20,62 @@ namespace Cantina_Padel
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             gridHorarios = new DataGridView();
             lblTitulo = new Label();
-            lblBuscar = new Label();
-            txtBuscar = new TextBox();
-            grpDatos = new GroupBox();
-            lblCancha = new Label();
-            txtCancha = new TextBox();
-            lblDia = new Label();
-            cmbDia = new ComboBox();
-            lblHoraInicio = new Label();
-            txtHoraInicio = new TextBox();
-            lblHoraFin = new Label();
-            txtHoraFin = new TextBox();
-            chkActivo = new CheckBox();
-            Guardar_Boton = new Button();
-            Cancelar_Boton = new Button();
-            Eliminar_Boton = new Button();
-            Nuevo_Boton = new Button();
-            Volver_Boton = new Button();
-            ((System.ComponentModel.ISupportInitialize)gridHorarios).BeginInit();
-            grpDatos.SuspendLayout();
+            lblCliente = new Label(); cmbCliente = new ComboBox();
+            lblCancha = new Label(); cmbCancha = new ComboBox();
+            lblFecha = new Label(); dtpFecha = new DateTimePicker();
+            lblHoraInicio = new Label(); txtHoraInicio = new TextBox();
+            lblHoraFin = new Label(); txtHoraFin = new TextBox();
+            lblEstado = new Label(); lblInfo = new Label();
+            Reservar_Boton = new Button(); ReservasFijas_Boton = new Button();
+            CancelarReserva_Boton = new Button(); Realquilar_Boton = new Button();
+            Limpiar_Boton = new Button(); Volver_Boton = new Button();
+            lblOcupados = new Label(); gridOcupados = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)gridOcupados).BeginInit();
             SuspendLayout();
-            // 
-            // gridHorarios
-            // 
-            gridHorarios.AllowUserToAddRows = false;
-            gridHorarios.BackgroundColor = Color.FromArgb(30, 41, 59);
-            gridHorarios.BorderStyle = BorderStyle.None;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = Color.FromArgb(51, 65, 85);
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            dataGridViewCellStyle1.ForeColor = Color.FromArgb(163, 230, 53);
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            gridHorarios.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
-            gridHorarios.ColumnHeadersHeight = 29;
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle2.BackColor = Color.FromArgb(30, 41, 59);
-            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle2.ForeColor = Color.White;
-            dataGridViewCellStyle2.SelectionBackColor = Color.FromArgb(163, 230, 53);
-            dataGridViewCellStyle2.SelectionForeColor = Color.Black;
-            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
-            gridHorarios.DefaultCellStyle = dataGridViewCellStyle2;
-            gridHorarios.GridColor = Color.FromArgb(51, 65, 85);
-            gridHorarios.Location = new Point(20, 95);
-            gridHorarios.Name = "gridHorarios";
-            gridHorarios.ReadOnly = true;
-            gridHorarios.RowHeadersVisible = false;
-            gridHorarios.RowHeadersWidth = 51;
-            gridHorarios.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridHorarios.Size = new Size(400, 370);
-            gridHorarios.TabIndex = 3;
-            gridHorarios.CellClick += gridHorarios_CellClick;
-            // 
-            // lblTitulo
-            // 
-            lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
-            lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
-            lblTitulo.Location = new Point(20, 15);
-            lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(367, 37);
-            lblTitulo.TabIndex = 0;
-            lblTitulo.Text = "GESTIÓN DE HORARIOS DE JUEGO";
-            // 
-            // lblBuscar
-            // 
-            lblBuscar.AutoSize = true;
-            lblBuscar.ForeColor = Color.White;
-            lblBuscar.Location = new Point(20, 60);
-            lblBuscar.Name = "lblBuscar";
-            lblBuscar.Size = new Size(55, 20);
-            lblBuscar.TabIndex = 1;
-            lblBuscar.Text = "Buscar:";
-            // 
-            // txtBuscar
-            // 
-            txtBuscar.Location = new Point(80, 57);
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(250, 27);
-            txtBuscar.TabIndex = 2;
-            txtBuscar.TextChanged += txtBuscar_TextChanged;
-            // 
-            // grpDatos
-            // 
-            grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-            grpDatos.Controls.Add(lblCancha);
-            grpDatos.Controls.Add(txtCancha);
-            grpDatos.Controls.Add(lblDia);
-            grpDatos.Controls.Add(cmbDia);
-            grpDatos.Controls.Add(lblHoraInicio);
-            grpDatos.Controls.Add(txtHoraInicio);
-            grpDatos.Controls.Add(lblHoraFin);
-            grpDatos.Controls.Add(txtHoraFin);
-            grpDatos.Controls.Add(chkActivo);
-            grpDatos.Controls.Add(Guardar_Boton);
-            grpDatos.Controls.Add(Cancelar_Boton);
-            grpDatos.Controls.Add(Eliminar_Boton);
-            grpDatos.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            grpDatos.ForeColor = Color.FromArgb(163, 230, 53);
-            grpDatos.Location = new Point(440, 95);
-            grpDatos.Name = "grpDatos";
-            grpDatos.Size = new Size(300, 370);
-            grpDatos.TabIndex = 4;
-            grpDatos.TabStop = false;
-            grpDatos.Text = "Datos del Horario";
-            // 
-            // lblCancha
-            // 
-            lblCancha.AutoSize = true;
-            lblCancha.ForeColor = Color.White;
-            lblCancha.Location = new Point(10, 25);
-            lblCancha.Name = "lblCancha";
-            lblCancha.Size = new Size(97, 20);
-            lblCancha.TabIndex = 0;
-            lblCancha.Text = "N° de Cancha:";
-            // 
-            // txtCancha
-            // 
-            txtCancha.BackColor = Color.FromArgb(51, 65, 85);
-            txtCancha.ForeColor = Color.White;
-            txtCancha.Location = new Point(10, 47);
-            txtCancha.MaxLength = 2;
-            txtCancha.Name = "txtCancha";
-            txtCancha.Size = new Size(130, 27);
-            txtCancha.TabIndex = 1;
-            txtCancha.KeyPress += SoloNumeros_KeyPress;
-            // 
-            // lblDia
-            // 
-            lblDia.AutoSize = true;
-            lblDia.ForeColor = Color.White;
-            lblDia.Location = new Point(155, 25);
-            lblDia.Name = "lblDia";
-            lblDia.Size = new Size(33, 20);
-            lblDia.TabIndex = 2;
-            lblDia.Text = "Día:";
-            // 
-            // cmbDia
-            // 
-            cmbDia.BackColor = Color.FromArgb(51, 65, 85);
-            cmbDia.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbDia.ForeColor = Color.White;
-            cmbDia.Items.AddRange(new object[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" });
-            cmbDia.Location = new Point(155, 47);
-            cmbDia.Name = "cmbDia";
-            cmbDia.Size = new Size(135, 28);
-            cmbDia.TabIndex = 3;
-            // 
-            // lblHoraInicio
-            // 
-            lblHoraInicio.AutoSize = true;
-            lblHoraInicio.ForeColor = Color.White;
-            lblHoraInicio.Location = new Point(10, 90);
-            lblHoraInicio.Name = "lblHoraInicio";
-            lblHoraInicio.Size = new Size(140, 20);
-            lblHoraInicio.TabIndex = 4;
-            lblHoraInicio.Text = "Hora Inicio (HH:mm):";
-            // 
-            // txtHoraInicio
-            // 
-            txtHoraInicio.BackColor = Color.FromArgb(51, 65, 85);
-            txtHoraInicio.ForeColor = Color.White;
-            txtHoraInicio.Location = new Point(10, 112);
-            txtHoraInicio.MaxLength = 5;
-            txtHoraInicio.Name = "txtHoraInicio";
-            txtHoraInicio.PlaceholderText = "08:00";
-            txtHoraInicio.Size = new Size(130, 27);
-            txtHoraInicio.TabIndex = 5;
-            txtHoraInicio.KeyPress += SoloHora_KeyPress;
-            // 
-            // lblHoraFin
-            // 
-            lblHoraFin.AutoSize = true;
-            lblHoraFin.ForeColor = Color.White;
-            lblHoraFin.Location = new Point(155, 90);
-            lblHoraFin.Name = "lblHoraFin";
-            lblHoraFin.Size = new Size(123, 20);
-            lblHoraFin.TabIndex = 6;
-            lblHoraFin.Text = "Hora Fin (HH:mm):";
-            // 
-            // txtHoraFin
-            // 
-            txtHoraFin.BackColor = Color.FromArgb(51, 65, 85);
-            txtHoraFin.ForeColor = Color.White;
-            txtHoraFin.Location = new Point(155, 112);
-            txtHoraFin.MaxLength = 5;
-            txtHoraFin.Name = "txtHoraFin";
-            txtHoraFin.PlaceholderText = "09:30";
-            txtHoraFin.Size = new Size(135, 27);
-            txtHoraFin.TabIndex = 7;
-            txtHoraFin.KeyPress += SoloHora_KeyPress;
-            // 
-            // chkActivo
-            // 
-            chkActivo.AutoSize = true;
-            chkActivo.Checked = true;
-            chkActivo.CheckState = CheckState.Checked;
-            chkActivo.ForeColor = Color.White;
-            chkActivo.Location = new Point(10, 155);
-            chkActivo.Name = "chkActivo";
-            chkActivo.Size = new Size(120, 24);
-            chkActivo.TabIndex = 8;
-            chkActivo.Text = "Horario activo";
-            // 
-            // Guardar_Boton
-            // 
-            Guardar_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Guardar_Boton.FlatAppearance.BorderSize = 0;
-            Guardar_Boton.FlatStyle = FlatStyle.Flat;
-            Guardar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            Guardar_Boton.ForeColor = Color.Black;
-            Guardar_Boton.Location = new Point(10, 195);
-            Guardar_Boton.Name = "Guardar_Boton";
-            Guardar_Boton.Size = new Size(280, 38);
-            Guardar_Boton.TabIndex = 9;
-            Guardar_Boton.Text = "Crear Horario";
-            Guardar_Boton.UseVisualStyleBackColor = false;
-            Guardar_Boton.Click += Guardar_Boton_Click;
-            // 
-            // Eliminar_Boton
-            // 
-            Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
-            Eliminar_Boton.FlatAppearance.BorderSize = 0;
-            Eliminar_Boton.FlatStyle = FlatStyle.Flat;
-            Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.Location = new Point(10, 245);
-            Eliminar_Boton.Name = "Eliminar_Boton";
-            Eliminar_Boton.Size = new Size(280, 35);
-            Eliminar_Boton.TabIndex = 10;
-            Eliminar_Boton.Text = "Desactivar Horario";
-            Eliminar_Boton.UseVisualStyleBackColor = false;
-            Eliminar_Boton.Click += Eliminar_Boton_Click;
-            // 
-            // Cancelar_Boton
-            // 
-            Cancelar_Boton.BackColor = Color.FromArgb(71, 85, 105);
-            Cancelar_Boton.FlatAppearance.BorderSize = 0;
-            Cancelar_Boton.FlatStyle = FlatStyle.Flat;
-            Cancelar_Boton.ForeColor = Color.White;
-            Cancelar_Boton.Location = new Point(10, 291);
-            Cancelar_Boton.Name = "Cancelar_Boton";
-            Cancelar_Boton.Size = new Size(280, 38);
-            Cancelar_Boton.TabIndex = 11;
-            Cancelar_Boton.Text = "Limpiar";
-            Cancelar_Boton.UseVisualStyleBackColor = false;
-            Cancelar_Boton.Click += Cancelar_Boton_Click;
-            // 
-            // Nuevo_Boton
-            // 
-            Nuevo_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Nuevo_Boton.FlatAppearance.BorderSize = 0;
-            Nuevo_Boton.FlatStyle = FlatStyle.Flat;
-            Nuevo_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            Nuevo_Boton.ForeColor = Color.Black;
-            Nuevo_Boton.Location = new Point(348, 54);
-            Nuevo_Boton.Name = "Nuevo_Boton";
-            Nuevo_Boton.Size = new Size(160, 32);
-            Nuevo_Boton.TabIndex = 5;
-            Nuevo_Boton.Text = "+ Nuevo Horario";
-            Nuevo_Boton.UseVisualStyleBackColor = false;
-            Nuevo_Boton.Click += Nuevo_Boton_Click;
-            // 
-            // Volver_Boton
-            // 
-            Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
-            Volver_Boton.FlatAppearance.BorderSize = 0;
-            Volver_Boton.FlatStyle = FlatStyle.Flat;
-            Volver_Boton.ForeColor = Color.White;
-            Volver_Boton.Location = new Point(650, 55);
-            Volver_Boton.Name = "Volver_Boton";
-            Volver_Boton.Size = new Size(110, 32);
-            Volver_Boton.TabIndex = 6;
-            Volver_Boton.Text = "← Volver";
-            Volver_Boton.UseVisualStyleBackColor = false;
-            Volver_Boton.Click += Volver_Boton_Click;
-            // 
-            // FormGestionHorarios
-            // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(15, 23, 42);
-            ClientSize = new Size(780, 500);
-            Controls.Add(lblTitulo);
-            Controls.Add(lblBuscar);
-            Controls.Add(txtBuscar);
-            Controls.Add(gridHorarios);
-            Controls.Add(grpDatos);
-            Controls.Add(Nuevo_Boton);
-            Controls.Add(Volver_Boton);
-            Name = "FormGestionHorarios";
-            StartPosition = FormStartPosition.CenterScreen;
-            Text = "Gestión de Horarios de Juego";
-            ((System.ComponentModel.ISupportInitialize)gridHorarios).EndInit();
-            grpDatos.ResumeLayout(false);
-            grpDatos.PerformLayout();
-            ResumeLayout(false);
-            PerformLayout();
+
+            lblTitulo.AutoSize = true; lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold); lblTitulo.ForeColor = Color.FromArgb(163,230,53); lblTitulo.Location = new Point(25,18); lblTitulo.Text = "GESTIÓN DE RESERVAS";
+
+            lblCliente.AutoSize = true; lblCliente.ForeColor = Color.White; lblCliente.Location = new Point(25,70); lblCliente.Text = "Cliente:";
+            cmbCliente.BackColor = Color.FromArgb(51,65,85); cmbCliente.ForeColor = Color.White; cmbCliente.DropDownStyle = ComboBoxStyle.DropDownList; cmbCliente.Location = new Point(25,95); cmbCliente.Size = new Size(300,28); cmbCliente.TabIndex = 1;
+
+            lblCancha.AutoSize = true; lblCancha.ForeColor = Color.White; lblCancha.Location = new Point(345,70); lblCancha.Text = "Cancha:";
+            cmbCancha.BackColor = Color.FromArgb(51,65,85); cmbCancha.ForeColor = Color.White; cmbCancha.DropDownStyle = ComboBoxStyle.DropDownList; cmbCancha.Location = new Point(345,95); cmbCancha.Size = new Size(190,28); cmbCancha.TabIndex = 2;
+
+            lblFecha.AutoSize = true; lblFecha.ForeColor = Color.White; lblFecha.Location = new Point(555,70); lblFecha.Text = "Fecha:";
+            dtpFecha.Format = DateTimePickerFormat.Short; dtpFecha.Location = new Point(555,95); dtpFecha.Size = new Size(145,28); dtpFecha.TabIndex = 3;
+
+            lblHoraInicio.AutoSize = true; lblHoraInicio.ForeColor = Color.White; lblHoraInicio.Location = new Point(720,70); lblHoraInicio.Text = "Hora inicio:";
+            txtHoraInicio.BackColor = Color.FromArgb(51,65,85); txtHoraInicio.ForeColor = Color.White; txtHoraInicio.Location = new Point(720,95); txtHoraInicio.MaxLength = 5; txtHoraInicio.PlaceholderText = "17:30"; txtHoraInicio.Size = new Size(100,27); txtHoraInicio.TabIndex = 4;
+
+            lblHoraFin.AutoSize = true; lblHoraFin.ForeColor = Color.White; lblHoraFin.Location = new Point(830,70); lblHoraFin.Text = "Hora fin:";
+            txtHoraFin.BackColor = Color.FromArgb(51,65,85); txtHoraFin.ForeColor = Color.White; txtHoraFin.Location = new Point(830,95); txtHoraFin.MaxLength = 5; txtHoraFin.PlaceholderText = "18:30"; txtHoraFin.Size = new Size(100,27); txtHoraFin.TabIndex = 5;
+
+            lblInfo.AutoSize = true; lblInfo.ForeColor = Color.LightGray; lblInfo.Location = new Point(25,140); lblInfo.Text = "Rango permitido: 08:00 a 03:00 del día siguiente. Las horas se ingresan manualmente en HH:mm.";
+            lblEstado.AutoSize = true; lblEstado.ForeColor = Color.FromArgb(163,230,53); lblEstado.Location = new Point(25,165); lblEstado.Text = "";
+
+            Reservar_Boton.BackColor = Color.FromArgb(163,230,53); Reservar_Boton.FlatStyle = FlatStyle.Flat; Reservar_Boton.ForeColor = Color.Black; Reservar_Boton.Location = new Point(25,195); Reservar_Boton.Size = new Size(180,38); Reservar_Boton.Text = "Reservar"; Reservar_Boton.Click += Reservar_Boton_Click;
+            ReservasFijas_Boton.BackColor = Color.FromArgb(59,130,246); ReservasFijas_Boton.FlatStyle = FlatStyle.Flat; ReservasFijas_Boton.ForeColor = Color.White; ReservasFijas_Boton.Location = new Point(220,195); ReservasFijas_Boton.Size = new Size(200,38); ReservasFijas_Boton.Text = "Reservas Fijas"; ReservasFijas_Boton.Click += ReservasFijas_Boton_Click;
+            CancelarReserva_Boton.BackColor = Color.FromArgb(239,68,68); CancelarReserva_Boton.FlatStyle = FlatStyle.Flat; CancelarReserva_Boton.ForeColor = Color.White; CancelarReserva_Boton.Location = new Point(25,535); CancelarReserva_Boton.Size = new Size(180,35); CancelarReserva_Boton.Text = "Cancelar reserva"; CancelarReserva_Boton.Click += CancelarReserva_Boton_Click;
+            Realquilar_Boton.BackColor = Color.FromArgb(245,158,11); Realquilar_Boton.FlatStyle = FlatStyle.Flat; Realquilar_Boton.ForeColor = Color.Black; Realquilar_Boton.Location = new Point(220,535); Realquilar_Boton.Size = new Size(180,35); Realquilar_Boton.Text = "Realquilar hora"; Realquilar_Boton.Click += Realquilar_Boton_Click;
+            Limpiar_Boton.BackColor = Color.FromArgb(71,85,105); Limpiar_Boton.FlatStyle = FlatStyle.Flat; Limpiar_Boton.ForeColor = Color.White; Limpiar_Boton.Location = new Point(435,195); Limpiar_Boton.Size = new Size(150,38); Limpiar_Boton.Text = "Limpiar"; Limpiar_Boton.Click += Limpiar_Boton_Click;
+
+            lblOcupados.AutoSize = true; lblOcupados.Font = new Font("Segoe UI", 10F, FontStyle.Bold); lblOcupados.ForeColor = Color.LightGray; lblOcupados.Location = new Point(25,255); lblOcupados.Text = "Horarios ocupados / bloqueados";
+            gridOcupados.BackgroundColor = Color.FromArgb(30,41,59); gridOcupados.BorderStyle = BorderStyle.None; gridOcupados.Location = new Point(25,280); gridOcupados.Name = "gridOcupados"; gridOcupados.ReadOnly = true; gridOcupados.RowHeadersVisible = false; gridOcupados.SelectionMode = DataGridViewSelectionMode.FullRowSelect; gridOcupados.Size = new Size(905,235); gridOcupados.TabIndex = 10;
+            gridOcupados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            gridOcupados.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(51,65,85), ForeColor = Color.FromArgb(163,230,53), Font = new Font("Segoe UI",9F,FontStyle.Bold) };
+            gridOcupados.DefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.FromArgb(71,71,71), ForeColor = Color.LightGray, SelectionBackColor = Color.FromArgb(100,100,100), SelectionForeColor = Color.White };
+
+            Volver_Boton.BackColor = Color.FromArgb(71,85,105); Volver_Boton.FlatStyle = FlatStyle.Flat; Volver_Boton.ForeColor = Color.White; Volver_Boton.Location = new Point(790,535); Volver_Boton.Size = new Size(140,35); Volver_Boton.Text = "← Volver"; Volver_Boton.Click += Volver_Boton_Click;
+
+            BackColor = Color.FromArgb(15,23,42); ClientSize = new Size(960,590); Controls.AddRange(new Control[] { lblTitulo,lblCliente,cmbCliente,lblCancha,cmbCancha,lblFecha,dtpFecha,lblHoraInicio,txtHoraInicio,lblHoraFin,txtHoraFin,lblInfo,lblEstado,Reservar_Boton,ReservasFijas_Boton,Limpiar_Boton,lblOcupados,gridOcupados,CancelarReserva_Boton,Realquilar_Boton,Volver_Boton }); Name = "FormGestionHorarios"; StartPosition = FormStartPosition.CenterScreen; Text = "Gestión de Reservas";
+            ((System.ComponentModel.ISupportInitialize)gridOcupados).EndInit(); ResumeLayout(false); PerformLayout();
         }
 
-        #endregion
-
-        private DataGridView     gridHorarios;
-        private Label            lblTitulo;
-        private Label            lblBuscar;
-        private TextBox          txtBuscar;
-        private GroupBox         grpDatos;
-        private Label            lblCancha;
-        private TextBox          txtCancha;
-        private Label            lblDia;
-        private ComboBox         cmbDia;
-        private Label            lblHoraInicio;
-        private TextBox          txtHoraInicio;
-        private Label            lblHoraFin;
-        private TextBox          txtHoraFin;
-        private CheckBox         chkActivo;
-        private Button           Nuevo_Boton;
-        private Button           Guardar_Boton;
-        private Button           Eliminar_Boton;
-        private Button           Cancelar_Boton;
-        private Button           Volver_Boton;
+        private Label lblTitulo,lblCliente,lblCancha,lblFecha,lblHoraInicio,lblHoraFin,lblEstado,lblInfo,lblOcupados;
+        private ComboBox cmbCliente,cmbCancha;
+        private DateTimePicker dtpFecha;
+        private TextBox txtHoraInicio,txtHoraFin;
+        private Button Reservar_Boton,ReservasFijas_Boton,CancelarReserva_Boton,Realquilar_Boton,Limpiar_Boton,Volver_Boton;
+        private DataGridView gridOcupados;
     }
 }

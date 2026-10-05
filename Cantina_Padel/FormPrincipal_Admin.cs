@@ -51,6 +51,19 @@ namespace Cantina_Padel
             formMarcas.ShowDialog(this);
         }
 
+        private void Canchas_Reservas_Click(object sender, EventArgs e)
+        {
+            FormGestionCanchas formCanchas = new FormGestionCanchas();
+            formCanchas.ShowDialog(this);
+        }
+
+        private void Reservas_Boton_Click(object sender, EventArgs e)
+        {
+            FormGestionHorarios formhorarios = new FormGestionHorarios();
+            formhorarios.ShowDialog(this);
+        }
+
+
         private bool _volviendoAlLogin = false;
         private void Volver_Menu_Click(object sender, EventArgs e)
         {
