@@ -21,11 +21,15 @@ namespace Cantina_Padel
             if (fechaInicial.HasValue)
                 dtpFecha.Value = fechaInicial.Value < dtpFecha.MinDate ? dtpFecha.MinDate : fechaInicial.Value;
 
-            // Primero se cargan los turnos libres de esa cancha/fecha y recién después se elige el pedido.
             CargarHorasOcupadas();
+
             if (horaInicial.HasValue)
             {
-                SeleccionarTurno(horaInicial.Value);
+                // FIX: SeleccionarTurno reemplazado por asignación directa a los TextBox
+                txtHoraInicio.Text = horaInicial.Value.ToString(@"hh\:mm");
+                TimeSpan fin = horaFinInicial ?? horaInicial.Value.Add(TimeSpan.FromHours(1));
+                if (fin.TotalHours >= 24) fin = fin.Subtract(TimeSpan.FromHours(24));
+                txtHoraFin.Text = fin.ToString(@"hh\:mm");
                 ActualizarEstadoHorario();
             }
         }
@@ -41,6 +45,31 @@ namespace Cantina_Padel
             txtHoraFin.TextChanged += Hora_TextChanged;
             txtHoraInicio.Leave += (_, _) => ActualizarEstadoHorario();
             txtHoraFin.Leave += (_, _) => ActualizarEstadoHorario();
+        }
+
+        // FIX: no static para que el Designer pueda suscribirlos como event handlers
+        private void SoloHora_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ':') return;
+            e.Handled = true;
+        }
+
+        private void Hora_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender is not TextBox txt || txt.Text.Contains(':')) return;
+
+            if (txt.Text.Length == 4 && txt.Text.All(char.IsDigit))
+            {
+                int posicion = txt.SelectionStart;
+                txt.Text = txt.Text.Insert(2, ":");
+                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
+            }
+            else if (txt.Text.Length == 2 && txt.Text.All(char.IsDigit))
+            {
+                int posicion = txt.SelectionStart;
+                txt.Text += ":";
+                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
+            }
         }
 
         private void CargarClientes()
@@ -118,6 +147,7 @@ namespace Cantina_Padel
                       AND r.estado IN ('Pendiente','Confirmada')
                     ORDER BY h.hora_inicio";
                 using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@cancha", idCancha);
                 cmd.Parameters.AddWithValue("@fecha", fecha);
 
                 var dt = new DataTable();
@@ -126,10 +156,7 @@ namespace Cantina_Padel
                 if (gridOcupados.Columns.Count > 0)
                 {
                     gridOcupados.Columns["id_reserva"].Visible = false;
-                    gridOcupados.Columns["id_cancha"].Visible = false;
-                    gridOcupados.Columns["cancha"].HeaderText = "Cancha";
                     gridOcupados.Columns["fecha"].HeaderText = "Fecha";
-                    gridOcupados.Columns["dia_semana"].HeaderText = "Dia";
                     gridOcupados.Columns["hora_inicio"].HeaderText = "Inicio";
                     gridOcupados.Columns["hora_fin"].HeaderText = "Fin";
                     gridOcupados.Columns["cliente"].HeaderText = "Cliente que reservó";
@@ -208,7 +235,6 @@ namespace Cantina_Padel
                     }
                 }
             }
-
             try { combo.SelectedValue = id; } catch { }
         }
 
@@ -217,7 +243,7 @@ namespace Cantina_Padel
             return TimeSpan.TryParseExact(texto.Trim(), new[] { @"hh\:mm", @"h\:mm" }, CultureInfo.InvariantCulture, out hora);
         }
 
-        // Convierte la hora al eje del turno: 08:00 = 480 y 00:00-03:00 = 1440-1620.
+        // FIX: agregado return false al final que faltaba
         private static bool TryObtenerMinutosTurno(TimeSpan hora, out int minutos)
         {
             minutos = 0;
@@ -232,6 +258,7 @@ namespace Cantina_Padel
                 minutos = total + 24 * 60;
                 return true;
             }
+            return false;
         }
 
         private bool TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out int inicioTurno, out int finTurno)
@@ -295,7 +322,6 @@ namespace Cantina_Padel
                 DateTime existenteInicio = FechaHoraNormalizada(fechaExistente, inicioExistente);
                 DateTime existenteFin = FechaHoraNormalizada(fechaExistente, finExistente);
                 if (existenteFin <= existenteInicio) existenteFin = existenteFin.AddDays(1);
-
                 if (nuevoInicio < existenteFin && nuevoFin > existenteInicio) return true;
             }
             return false;
@@ -316,7 +342,8 @@ namespace Cantina_Padel
                 cmd.Parameters.AddWithValue("@inicio", inicio);
                 cmd.Parameters.AddWithValue("@fin", fin);
                 object? value = cmd.ExecuteScalar();
-                if (value != null && value != DBNull.Value) return Convert.ToInt32(value, CultureInfo.InvariantCulture);
+                if (value != null && value != DBNull.Value)
+                    return Convert.ToInt32(value, CultureInfo.InvariantCulture);
             }
 
             const string insert = @"
@@ -345,8 +372,16 @@ namespace Cantina_Padel
         private bool ValidarSeleccion(out int idCliente, out int idCancha, out TimeSpan inicio, out TimeSpan fin)
         {
             idCliente = 0; idCancha = 0; inicio = default; fin = default;
-            if (!TryObtenerIdCombo(cmbCliente, out idCliente)) { MessageBox.Show("Seleccioná un cliente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return false; }
-            if (!TryObtenerIdCombo(cmbCancha, out idCancha)) { MessageBox.Show("Seleccioná una cancha.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return false; }
+            if (!TryObtenerIdCombo(cmbCliente, out idCliente))
+            {
+                MessageBox.Show("Seleccioná un cliente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+            if (!TryObtenerIdCombo(cmbCancha, out idCancha))
+            {
+                MessageBox.Show("Seleccioná una cancha.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
             return TryObtenerRango(out inicio, out fin, out _, out _);
         }
 
@@ -436,19 +471,22 @@ namespace Cantina_Padel
 
         private void ActualizarEstadoHorario()
         {
-            if (!TryParseHora(txtHoraInicio.Text, out TimeSpan inicio) || !TryParseHora(txtHoraFin.Text, out TimeSpan fin))
+            if (!TryParseHora(txtHoraInicio.Text, out TimeSpan inicio) ||
+                !TryParseHora(txtHoraFin.Text, out TimeSpan fin))
             {
                 lblEstado.Text = "Ingresá inicio y fin (HH:mm)";
                 lblEstado.ForeColor = Color.LightGray;
                 return;
             }
 
-            if (!TryObtenerMinutosTurno(inicio, out _) || !TryObtenerMinutosTurno(fin, out _) || !TryObtenerMinutosTurno(inicio, out int ini) || !TryObtenerMinutosTurno(fin, out int f))
+            if (!TryObtenerMinutosTurno(inicio, out int ini) ||
+                !TryObtenerMinutosTurno(fin, out int f))
             {
                 lblEstado.Text = "Fuera del rango 08:00 - 03:00";
                 lblEstado.ForeColor = Color.IndianRed;
                 return;
             }
+
             if (f <= ini)
             {
                 lblEstado.Text = "La hora de fin debe ser posterior";
@@ -456,10 +494,13 @@ namespace Cantina_Padel
                 return;
             }
 
-            if (TryObtenerIdCombo(cmbCancha, out int cancha) && ExisteSolapamiento(dtpFecha.Value.Date, cancha, inicio, fin))
+            if (TryObtenerIdCombo(cmbCancha, out int cancha) &&
+                ExisteSolapamiento(dtpFecha.Value.Date, cancha, inicio, fin))
             {
                 string cliente = ObtenerClienteDelSolapamiento(dtpFecha.Value.Date, cancha, inicio, fin);
-                lblEstado.Text = string.IsNullOrWhiteSpace(cliente) ? "Ocupado / bloqueado" : $"Ocupado por: {cliente}";
+                lblEstado.Text = string.IsNullOrWhiteSpace(cliente)
+                    ? "Ocupado / bloqueado"
+                    : $"Ocupado por: {cliente}";
                 lblEstado.ForeColor = Color.LightGray;
             }
             else
@@ -471,10 +512,7 @@ namespace Cantina_Padel
 
         private bool ObtenerReservaSeleccionada(out int idReserva, out DateTime fecha, out TimeSpan inicio, out TimeSpan fin)
         {
-            idReserva = 0;
-            fecha = DateTime.MinValue;
-            inicio = default;
-            fin = default;
+            idReserva = 0; fecha = DateTime.MinValue; inicio = default; fin = default;
 
             if (gridOcupados.CurrentRow == null || gridOcupados.CurrentRow.IsNewRow)
             {
@@ -501,10 +539,9 @@ namespace Cantina_Padel
         {
             if (!ObtenerReservaSeleccionada(out int idReserva, out _, out _, out _)) return;
 
-            DialogResult confirmar = MessageBox.Show(
+            if (MessageBox.Show(
                 "¿Querés cancelar la reserva seleccionada?\nLa hora quedará disponible para volver a alquilarla.",
-                "Cancelar reserva", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirmar != DialogResult.Yes) return;
+                "Cancelar reserva", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             try
             {
@@ -534,10 +571,9 @@ namespace Cantina_Padel
         {
             if (!ObtenerReservaSeleccionada(out int idReserva, out DateTime fecha, out TimeSpan inicio, out TimeSpan fin)) return;
 
-            DialogResult confirmar = MessageBox.Show(
+            if (MessageBox.Show(
                 "Se cancelará la reserva seleccionada y se cargará su fecha y horario para poder alquilarlo nuevamente.\n\n¿Continuar?",
-                "Realquilar hora", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirmar != DialogResult.Yes) return;
+                "Realquilar hora", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
             try
             {
@@ -555,6 +591,8 @@ namespace Cantina_Padel
                 }
 
                 dtpFecha.Value = fecha < dtpFecha.MinDate ? dtpFecha.MinDate : fecha;
+                txtHoraInicio.Text = inicio.ToString(@"hh\:mm");
+                txtHoraFin.Text = fin.ToString(@"hh\:mm");
                 CargarHorasOcupadas();
                 lblEstado.Text = "Hora liberada. Seleccioná el cliente y presioná Reservar.";
                 lblEstado.ForeColor = Color.FromArgb(163, 230, 53);

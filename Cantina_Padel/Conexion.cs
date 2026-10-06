@@ -5,7 +5,7 @@ namespace Cantina_Padel
     public class Conexion
     {
         private static readonly string connectionString =
-            "Server=localhost;Database=cantina_padel;Uid=root;Pwd=987654321a";
+            "Server=localhost;Database=cantina_padel;Uid=root;Pwd=154558080";
 
         public static MySqlConnection ObtenerConexion()
         {

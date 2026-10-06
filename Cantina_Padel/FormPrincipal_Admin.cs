@@ -82,5 +82,16 @@ namespace Cantina_Padel
                 Application.Exit(); // con esto cerramos toda la app
             }
         }
+
+
+        private void Caja_Boton_Click(object sender, EventArgs e)
+        {
+            FormGestionCaja formCaja = new FormGestionCaja(1);
+            formCaja.ShowDialog(this);
+        }
+
+
+
+      
     }
 }
