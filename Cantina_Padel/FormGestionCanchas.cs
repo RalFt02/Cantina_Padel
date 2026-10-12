@@ -190,8 +190,7 @@ namespace Cantina_Padel
         {
             if (_idSeleccionado == null)
             {
-                MessageBox.Show("Seleccioná una cancha de la lista.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Seleccioná una cancha de la lista.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -199,8 +198,15 @@ namespace Cantina_Padel
                 $"¿Desactivar la cancha '{txtNombre.Text}'?\n(No se eliminará permanentemente)",
                 "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            if (confirm != DialogResult.Yes) return;
+            if (confirm == DialogResult.Yes)
+            {
+                DesactivarCancha(_idSeleccionado.Value);
+            }
+        }
 
+        // Este es el método de lógica que pones en la planilla de testing
+        private void DesactivarCancha(int id)
+        {
             try
             {
                 using MySqlConnection conn = Conexion.ObtenerConexion();
@@ -208,18 +214,16 @@ namespace Cantina_Padel
 
                 string query = "UPDATE cancha SET activo = 0 WHERE id_cancha = @id";
                 using MySqlCommand cmd = new MySqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
+                cmd.Parameters.AddWithValue("@id", id);
                 cmd.ExecuteNonQuery();
 
-                MessageBox.Show("Cancha desactivada.", "Listo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Cancha desactivada.", "Listo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarCanchas();
                 LimpiarFormulario();
             }
             catch (MySqlException ex)
             {
-                MessageBox.Show("Error:\n" + ex.Message, "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

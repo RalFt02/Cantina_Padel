@@ -7,6 +7,7 @@ namespace Cantina_Padel
     public partial class FormGestionHorarios : Form
     {
         private readonly HashSet<string> _horasOcupadas = new();
+        private readonly List<Ocupacion> _ocupaciones = new();
         private bool _cargando;
 
         public FormGestionHorarios(int? clienteInicial = null, int? canchaInicial = null, DateTime? fechaInicial = null, TimeSpan? horaInicial = null, TimeSpan? horaFinInicial = null)
@@ -35,12 +36,8 @@ namespace Cantina_Padel
             dtpFecha.MinDate = DateTime.Today;
             dtpFecha.ValueChanged += (_, _) => { if (!_cargando) CargarHorasOcupadas(); };
             cmbCancha.SelectedIndexChanged += (_, _) => { if (!_cargando) CargarHorasOcupadas(); };
-            txtHoraInicio.KeyPress += SoloHora_KeyPress;
-            txtHoraFin.KeyPress += SoloHora_KeyPress;
-            txtHoraInicio.TextChanged += Hora_TextChanged;
-            txtHoraFin.TextChanged += Hora_TextChanged;
-            txtHoraInicio.Leave += (_, _) => ActualizarEstadoHorario();
-            txtHoraFin.Leave += (_, _) => ActualizarEstadoHorario();
+            cmbHorario.SelectedIndexChanged += (_, _) => { if (!_cargando) ActualizarEstadoHorario(); };
+            RefrescarTurnosDisponibles();
         }
 
         private void CargarClientes()
@@ -97,13 +94,17 @@ namespace Cantina_Padel
             try
             {
                 _horasOcupadas.Clear();
+                _ocupaciones.Clear();
                 DateTime fecha = dtpFecha.Value.Date;
 
                 using var conn = Conexion.ObtenerConexion();
                 conn.Open();
                 const string sql = @"
                     SELECT r.id_reserva,
+                           r.id_cancha,
+                           c.nombre AS cancha,
                            r.fecha,
+                           h.dia_semana,
                            h.hora_inicio,
                            h.hora_fin,
                            CONCAT(p.apellido, ', ', p.nombre, ' - DNI ', p.dni) AS cliente,
@@ -113,10 +114,10 @@ namespace Cantina_Padel
                     INNER JOIN horario h ON h.id_horario = r.id_horario
                     INNER JOIN cliente cl ON cl.id_cliente = r.id_cliente
                     INNER JOIN persona p ON p.id_persona = cl.id_persona
-                    WHERE r.id_cancha = @cancha
-                      AND r.fecha = @fecha
+                    INNER JOIN cancha c ON c.id_cancha = r.id_cancha
+                    WHERE r.fecha = @fecha
                       AND r.estado IN ('Pendiente','Confirmada')
-                    ORDER BY h.hora_inicio";
+                    ORDER BY r.fecha, h.hora_inicio, c.nombre";
                 using var cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@fecha", fecha);
 
@@ -147,11 +148,18 @@ namespace Cantina_Padel
 
                 foreach (DataRow row in dt.Rows)
                 {
+                    int canchaReserva = Convert.ToInt32(row["id_cancha"], CultureInfo.InvariantCulture);
+                    if (canchaReserva != idCancha)
+                        continue;
+
                     DateTime fechaReserva = Convert.ToDateTime(row["fecha"]).Date;
                     TimeSpan inicio = (TimeSpan)row["hora_inicio"];
                     TimeSpan fin = (TimeSpan)row["hora_fin"];
                     _horasOcupadas.Add(ClaveReserva(fechaReserva, inicio, fin));
+                    _ocupaciones.Add(new Ocupacion(fechaReserva, inicio, fin));
                 }
+
+                RefrescarTurnosDisponibles();
             }
             catch (MySqlException ex)
             {
@@ -212,50 +220,56 @@ namespace Cantina_Padel
             try { combo.SelectedValue = id; } catch { }
         }
 
-        private static bool TryParseHora(string texto, out TimeSpan hora)
+        // Arma la lista del desplegable con los turnos que NO están ocupados en la fecha elegida.
+        // Usa HorariosTurnos (lógica pura), así que se puede testear sin abrir el formulario.
+        private void RefrescarTurnosDisponibles()
         {
-            return TimeSpan.TryParseExact(texto.Trim(), new[] { @"hh\:mm", @"h\:mm" }, CultureInfo.InvariantCulture, out hora);
+            Turno? previo = cmbHorario.SelectedItem is Turno t ? t : null;
+
+            List<Turno> disponibles = HorariosTurnos.FiltrarDisponibles(
+                HorariosTurnos.GenerarTurnos(),
+                new[] { dtpFecha.Value.Date },
+                _ocupaciones,
+                DateTime.Now);
+
+            bool cargandoAntes = _cargando;
+            _cargando = true;
+            try
+            {
+                cmbHorario.DataSource = disponibles;
+                cmbHorario.SelectedIndex = previo.HasValue ? disponibles.IndexOf(previo.Value) : -1;
+            }
+            finally
+            {
+                _cargando = cargandoAntes;
+            }
         }
 
-        // Convierte la hora al eje del turno: 08:00 = 480 y 00:00-03:00 = 1440-1620.
-        private static bool TryObtenerMinutosTurno(TimeSpan hora, out int minutos)
+        private bool SeleccionarTurno(TimeSpan inicio)
         {
-            minutos = 0;
-            int total = (int)hora.TotalMinutes;
-            if (total >= 8 * 60 && total <= 23 * 60 + 59)
+            for (int i = 0; i < cmbHorario.Items.Count; i++)
             {
-                minutos = total;
-                return true;
+                if (cmbHorario.Items[i] is Turno turno && turno.Inicio == inicio)
+                {
+                    cmbHorario.SelectedIndex = i;
+                    return true;
+                }
             }
-            if (total >= 0 && total <= 3 * 60)
-            {
-                minutos = total + 24 * 60;
-                return true;
-            }
+            return false;
         }
 
-        private bool TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out int inicioTurno, out int finTurno)
+        private bool TryObtenerTurnoSeleccionado(out TimeSpan inicio, out TimeSpan fin)
         {
-            inicio = default; fin = default; inicioTurno = 0; finTurno = 0;
+            inicio = default; fin = default;
 
-            if (!TryParseHora(txtHoraInicio.Text, out inicio) || !TryParseHora(txtHoraFin.Text, out fin))
+            if (cmbHorario.SelectedItem is not Turno turno)
             {
-                MessageBox.Show("Las horas deben tener formato HH:mm. Ejemplo: 17:30", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Seleccioná un horario.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
-            if (!TryObtenerMinutosTurno(inicio, out inicioTurno) || !TryObtenerMinutosTurno(fin, out finTurno))
-            {
-                MessageBox.Show("Las horas permitidas son de 08:00 a 03:00 del día siguiente.", "Horario fuera de rango", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            if (finTurno <= inicioTurno)
-            {
-                MessageBox.Show("La hora de fin debe ser posterior a la hora de inicio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
+            inicio = turno.Inicio;
+            fin = turno.Fin;
             return true;
         }
 
@@ -347,7 +361,7 @@ namespace Cantina_Padel
             idCliente = 0; idCancha = 0; inicio = default; fin = default;
             if (!TryObtenerIdCombo(cmbCliente, out idCliente)) { MessageBox.Show("Seleccioná un cliente.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return false; }
             if (!TryObtenerIdCombo(cmbCancha, out idCancha)) { MessageBox.Show("Seleccioná una cancha.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning); return false; }
-            return TryObtenerRango(out inicio, out fin, out _, out _);
+            return TryObtenerTurnoSeleccionado(out inicio, out fin);
         }
 
         private string ObtenerClienteDelSolapamiento(DateTime fecha, int idCancha, TimeSpan inicio, TimeSpan fin)
@@ -390,7 +404,17 @@ namespace Cantina_Padel
         private void Reservar_Boton_Click(object sender, EventArgs e)
         {
             if (!ValidarSeleccion(out int idCliente, out int idCancha, out TimeSpan inicio, out TimeSpan fin)) return;
+
             DateTime fecha = dtpFecha.Value.Date;
+
+            // El reloj sigue corriendo con el formulario abierto: se revalida al reservar.
+            if (HorariosTurnos.YaPaso(fecha, new Turno(inicio, fin), DateTime.Now))
+            {
+                MessageBox.Show("Ese horario ya pasó. Elegí uno posterior.", "Horario vencido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                RefrescarTurnosDisponibles();
+                ActualizarEstadoHorario();
+                return;
+            }
 
             if (ExisteSolapamiento(fecha, idCancha, inicio, fin))
             {
@@ -398,24 +422,33 @@ namespace Cantina_Padel
                 CargarHorasOcupadas();
                 return;
             }
+            CrearReserva(idCliente, idCancha, fecha, inicio, fin);
+        }
 
+        private void CrearReserva(int idCliente, int idCancha, DateTime fecha, TimeSpan inicio, TimeSpan fin)
+        {
             try
             {
                 using var conn = Conexion.ObtenerConexion();
                 conn.Open();
                 using var tx = conn.BeginTransaction();
+
                 int idHorario = ObtenerOCrearHorario(conn, tx, idCancha, fecha, inicio, fin);
+
                 const string sql = @"
-                    INSERT INTO reserva (fecha, reserva_fija, estado, id_cliente, id_cancha, id_horario, id_usuario)
-                    VALUES (@fecha, NULL, 'Confirmada', @cliente, @cancha, @horario, @usuario)";
+            INSERT INTO reserva (fecha, reserva_fija, estado, id_cliente, id_cancha, id_horario, id_usuario)
+            VALUES (@fecha, NULL, 'Confirmada', @cliente, @cancha, @horario, @usuario)";
+
                 using var cmd = new MySqlCommand(sql, conn, tx);
                 cmd.Parameters.AddWithValue("@fecha", fecha);
                 cmd.Parameters.AddWithValue("@cliente", idCliente);
                 cmd.Parameters.AddWithValue("@cancha", idCancha);
                 cmd.Parameters.AddWithValue("@horario", idHorario);
                 cmd.Parameters.AddWithValue("@usuario", ObtenerUsuarioActual());
+
                 cmd.ExecuteNonQuery();
                 tx.Commit();
+
                 MessageBox.Show("Reserva creada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarHorasOcupadas();
             }
@@ -436,25 +469,21 @@ namespace Cantina_Padel
 
         private void ActualizarEstadoHorario()
         {
-            if (!TryParseHora(txtHoraInicio.Text, out TimeSpan inicio) || !TryParseHora(txtHoraFin.Text, out TimeSpan fin))
+            if (cmbHorario.Items.Count == 0)
             {
-                lblEstado.Text = "Ingresá inicio y fin (HH:mm)";
-                lblEstado.ForeColor = Color.LightGray;
+                lblEstado.Text = "No quedan horarios disponibles para esta fecha";
+                lblEstado.ForeColor = Color.IndianRed;
                 return;
             }
 
-            if (!TryObtenerMinutosTurno(inicio, out _) || !TryObtenerMinutosTurno(fin, out _) || !TryObtenerMinutosTurno(inicio, out int ini) || !TryObtenerMinutosTurno(fin, out int f))
+            if (cmbHorario.SelectedItem is not Turno turno)
             {
-                lblEstado.Text = "Fuera del rango 08:00 - 03:00";
-                lblEstado.ForeColor = Color.IndianRed;
+                lblEstado.Text = "Seleccioná un horario";
+                lblEstado.ForeColor = Color.LightGray;
                 return;
             }
-            if (f <= ini)
-            {
-                lblEstado.Text = "La hora de fin debe ser posterior";
-                lblEstado.ForeColor = Color.IndianRed;
-                return;
-            }
+            TimeSpan inicio = turno.Inicio;
+            TimeSpan fin = turno.Fin;
 
             if (TryObtenerIdCombo(cmbCancha, out int cancha) && ExisteSolapamiento(dtpFecha.Value.Date, cancha, inicio, fin))
             {
@@ -556,6 +585,7 @@ namespace Cantina_Padel
 
                 dtpFecha.Value = fecha < dtpFecha.MinDate ? dtpFecha.MinDate : fecha;
                 CargarHorasOcupadas();
+                SeleccionarTurno(inicio);
                 lblEstado.Text = "Hora liberada. Seleccioná el cliente y presioná Reservar.";
                 lblEstado.ForeColor = Color.FromArgb(163, 230, 53);
                 cmbCliente.Focus();
@@ -571,8 +601,7 @@ namespace Cantina_Padel
             if (cmbCliente.Items.Count > 0) cmbCliente.SelectedIndex = 0;
             if (cmbCancha.Items.Count > 0) cmbCancha.SelectedIndex = 0;
             dtpFecha.Value = DateTime.Today;
-            txtHoraInicio.Clear();
-            txtHoraFin.Clear();
+            cmbHorario.SelectedIndex = -1;
             lblEstado.Text = "";
             CargarHorasOcupadas();
         }

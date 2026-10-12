@@ -9,42 +9,54 @@ namespace Cantina_Padel
         public FormReservasFijas()
         {
             InitializeComponent();
-            DateTime finAnioActual = new DateTime(DateTime.Today.Year, 12, 31);
             dtpDesde.MinDate = DateTime.Today;
-            dtpDesde.MaxDate = finAnioActual;
-            dtpHasta.MinDate = DateTime.Today;
-            dtpHasta.MaxDate = finAnioActual;
+            dtpHasta.MinDate = DateTime.Today.AddDays(7);
             dtpHasta.Enabled = false;
             dtpDesde.ValueChanged += (_, _) => AjustarFechaHasta();
             AjustarFechaHasta();
-            txtHoraInicio.TextChanged += Hora_TextChanged;
-            txtHoraFin.TextChanged += Hora_TextChanged;
+            cmbCancha.SelectedIndexChanged += (_, _) => RefrescarTurnosDisponibles();
             CargarClientes();
             CargarCanchas();
             CargarReservasFijas();
         }
 
+        /// <summary>
+        /// Calcula la fecha final de la serie.
+        /// Mensual = 30 días desde la fecha de inicio.
+        /// Anual = 1 año desde la fecha de inicio.
+        /// </summary>
+        /// <summary>
+        /// Obtiene la fecha real de inicio de la serie aplicando una semana de anticipación.
+        /// Ejemplo: si se solicita el 22/09/2026, la primera reserva será el 29/09/2026.
+        /// </summary>
+        private DateTime ObtenerFechaInicioReserva()
+        {
+            return dtpDesde.Value.Date.AddDays(7);
+        }
+
+        /// <summary>
+        /// Calcula la fecha final de la serie a partir de la fecha real de inicio.
+        /// Mensual = 30 días desde el inicio efectivo.
+        /// Anual = 1 año desde el inicio efectivo.
+        /// </summary>
         private void AjustarFechaHasta()
         {
-            DateTime finAnioActual = new DateTime(DateTime.Today.Year, 12, 31);
-            dtpHasta.MinDate = dtpDesde.Value.Date;
-            dtpHasta.MaxDate = finAnioActual;
+            DateTime inicioReserva = ObtenerFechaInicioReserva();
+            dtpHasta.MinDate = inicioReserva;
             dtpHasta.Enabled = false;
 
             if (cmbPeriodicidad.Text == "Mensual")
             {
-                DateTime limite = dtpDesde.Value.Date.AddMonths(1);
-                if (limite.Year != DateTime.Today.Year)
-                    limite = finAnioActual;
-
-                dtpHasta.Value = limite > dtpHasta.MaxDate ? dtpHasta.MaxDate : limite;
-                lblInfo.Text = $"Mensual: todos los {cmbDia.Text} desde {dtpDesde.Value:dd/MM/yyyy} hasta {dtpHasta.Value:dd/MM/yyyy}.";
+                dtpHasta.Value = inicioReserva.AddDays(30);
+                lblInfo.Text = $"Solicitud: {dtpDesde.Value:dd/MM/yyyy}. Reserva desde {inicioReserva:dd/MM/yyyy} hasta {dtpHasta.Value:dd/MM/yyyy} (30 días).";
             }
             else
             {
-                dtpHasta.Value = finAnioActual;
-                lblInfo.Text = $"Anual: todos los {cmbDia.Text} desde {dtpDesde.Value:dd/MM/yyyy} hasta {finAnioActual:dd/MM/yyyy}.";
+                dtpHasta.Value = inicioReserva.AddYears(1);
+                lblInfo.Text = $"Solicitud: {dtpDesde.Value:dd/MM/yyyy}. Reserva desde {inicioReserva:dd/MM/yyyy} hasta {dtpHasta.Value:dd/MM/yyyy} (1 año).";
             }
+
+            RefrescarTurnosDisponibles();
         }
 
         private void cmbPeriodicidad_SelectedIndexChanged(object? sender, EventArgs e)
@@ -57,62 +69,64 @@ namespace Cantina_Padel
             AjustarFechaHasta();
         }
 
-        private static void SoloHora_KeyPress(object sender, KeyPressEventArgs e)
+        private bool TryObtenerTurnoSeleccionado(out Turno turno)
         {
-            if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ':') return;
-            e.Handled = true;
-        }
-
-        private static void Hora_TextChanged(object? sender, EventArgs e)
-        {
-            if (sender is not TextBox txt || txt.Text.Contains(':')) return;
-
-            // Si se escriben cuatro dígitos (por ejemplo 2000), queda automáticamente 20:00.
-            if (txt.Text.Length == 4 && txt.Text.All(char.IsDigit))
+            if (cmbHorario.SelectedItem is Turno seleccionado)
             {
-                int posicion = txt.SelectionStart;
-                txt.Text = txt.Text.Insert(2, ":");
-                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
+                turno = seleccionado;
+                return true;
             }
-            else if (txt.Text.Length == 2 && txt.Text.All(char.IsDigit))
-            {
-                int posicion = txt.SelectionStart;
-                txt.Text += ":";
-                txt.SelectionStart = Math.Min(posicion + 1, txt.Text.Length);
-            }
-        }
 
-        private static bool TryParseHora(string texto, out TimeSpan hora)
-            => TimeSpan.TryParseExact(texto.Trim(), new[] { @"hh\:mm", @"h\:mm" }, CultureInfo.InvariantCulture, out hora);
-
-        private static bool TryObtenerMinutosTurno(TimeSpan hora, out int minutos)
-        {
-            minutos = 0;
-            int total = (int)hora.TotalMinutes;
-            if (total >= 8 * 60 && total <= 23 * 60 + 59) { minutos = total; return true; }
-            if (total >= 0 && total <= 3 * 60) { minutos = total + 24 * 60; return true; }
+            turno = default;
+            MessageBox.Show("Seleccioná un horario.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return false;
         }
 
-        private bool TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out int inicioTurno, out int finTurno)
+        // Reservas activas de la cancha en el período de la serie (se usan para ocultar turnos ocupados).
+        private List<Ocupacion> CargarOcupaciones(int idCancha, DateTime desde, DateTime hasta)
         {
-            inicio = default; fin = default; inicioTurno = 0; finTurno = 0;
-            if (!TryParseHora(txtHoraInicio.Text, out inicio) || !TryParseHora(txtHoraFin.Text, out fin))
+            var lista = new List<Ocupacion>();
+            try
             {
-                MessageBox.Show("Las horas deben tener formato HH:mm. Ejemplo: 17:30", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
+                using var conn = Conexion.ObtenerConexion(); conn.Open();
+                const string sql = @"SELECT r.fecha, h.hora_inicio, h.hora_fin
+                                     FROM reserva r INNER JOIN horario h ON h.id_horario = r.id_horario
+                                     WHERE r.id_cancha = @cancha AND r.fecha BETWEEN @desde AND @hasta
+                                       AND r.estado IN ('Pendiente','Confirmada')";
+                using var cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@cancha", idCancha);
+                cmd.Parameters.AddWithValue("@desde", desde.AddDays(-1));
+                cmd.Parameters.AddWithValue("@hasta", hasta.AddDays(1));
+                using var rd = cmd.ExecuteReader();
+                while (rd.Read())
+                    lista.Add(new Ocupacion(rd.GetDateTime("fecha").Date, rd.GetTimeSpan("hora_inicio"), rd.GetTimeSpan("hora_fin")));
             }
-            if (!TryObtenerMinutosTurno(inicio, out inicioTurno) || !TryObtenerMinutosTurno(fin, out finTurno))
+            catch (MySqlException ex) { MessageBox.Show("Error al consultar reservas:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            return lista;
+        }
+
+        // Arma el desplegable con los turnos libres en TODAS las fechas de la serie (cancha + día + período).
+        // Si todavía no hay cancha o día elegidos, muestra todos los turnos.
+        private void RefrescarTurnosDisponibles()
+        {
+            Turno? previo = cmbHorario.SelectedItem is Turno t ? t : null;
+            List<Turno> disponibles = HorariosTurnos.GenerarTurnos().ToList();
+
+            if (cmbDia.SelectedIndex >= 0 && TryObtenerIdCombo(cmbCancha, out int idCancha))
             {
-                MessageBox.Show("Las horas permitidas son de 08:00 a 03:00 del día siguiente.", "Horario fuera de rango", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
+                DayOfWeek dia = (DayOfWeek)((cmbDia.SelectedIndex + 1) % 7);
+                DateTime inicioReserva = ObtenerFechaInicioReserva();
+                List<DateTime> fechas = GenerarFechas(inicioReserva, dtpHasta.Value.Date, dia, cmbPeriodicidad.Text)
+                    .ToList();
+
+                disponibles = HorariosTurnos.FiltrarDisponibles(
+                    HorariosTurnos.GenerarTurnos(),
+                    fechas,
+                    CargarOcupaciones(idCancha, dtpDesde.Value.Date, dtpHasta.Value.Date));
             }
-            if (finTurno <= inicioTurno)
-            {
-                MessageBox.Show("La hora de fin debe ser posterior a la hora de inicio.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-            return true;
+
+            cmbHorario.DataSource = disponibles;
+            cmbHorario.SelectedIndex = previo.HasValue ? disponibles.IndexOf(previo.Value) : -1;
         }
 
         private void CargarClientes()
@@ -155,11 +169,16 @@ namespace Cantina_Padel
             catch { return false; }
         }
 
+        /// <summary>
+        /// Carga las reservas fijas ordenadas por fecha, hora y cancha.
+        /// </summary>
         private void CargarReservasFijas()
         {
             try
             {
-                using var conn = Conexion.ObtenerConexion(); conn.Open();
+                using var conn = Conexion.ObtenerConexion();
+                conn.Open();
+
                 const string sql = @"SELECT r.id_reserva,r.id_cliente,r.id_cancha,r.fecha,h.dia_semana,r.estado,r.reserva_fija,
                                             c.nombre cancha, CONCAT(p.apellido, ', ', p.nombre) cliente,
                                             h.hora_inicio,h.hora_fin
@@ -169,24 +188,52 @@ namespace Cantina_Padel
                                      INNER JOIN cancha c ON c.id_cancha=r.id_cancha
                                      INNER JOIN horario h ON h.id_horario=r.id_horario
                                      WHERE r.reserva_fija IS NOT NULL
-                                     ORDER BY r.fecha,h.hora_inicio";
-                var dt = new DataTable(); using var da = new MySqlDataAdapter(sql, conn); da.Fill(dt); gridFijas.DataSource = dt;
-                if (gridFijas.Columns.Count > 0)
-                {
-                    gridFijas.Columns["id_reserva"].Visible=false; gridFijas.Columns["id_cliente"].Visible=false; gridFijas.Columns["id_cancha"].Visible=false;
-                    gridFijas.Columns["reserva_fija"].HeaderText="Serie desde"; gridFijas.Columns["fecha"].HeaderText="Fecha"; gridFijas.Columns["dia_semana"].HeaderText = "Dia"; ; gridFijas.Columns["estado"].HeaderText="Estado";
-                    gridFijas.Columns["cancha"].HeaderText="Cancha"; gridFijas.Columns["cliente"].HeaderText="Cliente"; gridFijas.Columns["hora_inicio"].HeaderText="Inicio"; gridFijas.Columns["hora_fin"].HeaderText="Fin";
-                    gridFijas.Columns["fecha"].DefaultCellStyle.Format="dd/MM/yyyy"; gridFijas.Columns["hora_inicio"].DefaultCellStyle.Format=@"hh\:mm"; gridFijas.Columns["hora_fin"].DefaultCellStyle.Format=@"hh\:mm";
-                    foreach (DataGridViewRow row in gridFijas.Rows)
-                        if (Convert.ToString(row.Cells["estado"].Value) == "Cancelada") row.DefaultCellStyle.ForeColor = Color.Gray;
-                }
+                                     ORDER BY r.fecha,h.hora_inicio,c.nombre";
+
+                var dt = new DataTable();
+                using var da = new MySqlDataAdapter(sql, conn);
+                da.Fill(dt);
+                gridFijas.DataSource = dt;
+                ConfigurarGridReservasFijas();
             }
-            catch (MySqlException ex) { MessageBox.Show("Error al cargar reservas fijas:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show("Error al cargar reservas fijas:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            RefrescarTurnosDisponibles();
         }
 
+        /// <summary>
+        /// Configura las columnas visibles y el formato del grid de reservas fijas.
+        /// </summary>
+        private void ConfigurarGridReservasFijas()
+        {
+            if (gridFijas.Columns.Count == 0) return;
+
+            gridFijas.Columns["id_reserva"].Visible = false;
+            gridFijas.Columns["id_cliente"].Visible = false;
+            gridFijas.Columns["id_cancha"].Visible = false;
+            gridFijas.Columns["reserva_fija"].HeaderText = "Serie desde";
+            gridFijas.Columns["fecha"].HeaderText = "Fecha";
+            gridFijas.Columns["dia_semana"].HeaderText = "Día";
+            gridFijas.Columns["estado"].HeaderText = "Estado";
+            gridFijas.Columns["cancha"].HeaderText = "Cancha";
+            gridFijas.Columns["cliente"].HeaderText = "Cliente";
+            gridFijas.Columns["hora_inicio"].HeaderText = "Inicio";
+            gridFijas.Columns["hora_fin"].HeaderText = "Fin";
+            gridFijas.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy";
+            gridFijas.Columns["hora_inicio"].DefaultCellStyle.Format = @"hh\:mm";
+            gridFijas.Columns["hora_fin"].DefaultCellStyle.Format = @"hh\:mm";
+        }
+
+        /// <summary>
+        /// Genera todas las fechas que coinciden con el día de la semana elegido.
+        /// </summary>
         private IEnumerable<DateTime> GenerarFechas(DateTime desde, DateTime hasta, DayOfWeek dia, string periodicidad)
         {
             DateTime d = desde.Date;
+
             while (d.DayOfWeek != dia)
                 d = d.AddDays(1);
 
@@ -234,38 +281,66 @@ namespace Cantina_Padel
 
         private static string NombreDia(DateTime d)=>d.DayOfWeek switch{DayOfWeek.Monday=>"Lunes",DayOfWeek.Tuesday=>"Martes",DayOfWeek.Wednesday=>"Miércoles",DayOfWeek.Thursday=>"Jueves",DayOfWeek.Friday=>"Viernes",DayOfWeek.Saturday=>"Sábado",_=>"Domingo"};
 
-        private bool CrearReservaFija(int idCliente, int idCancha, string diaTexto, int diaIndex, string periodicidad, string horaInicioTxt, string horaFinTxt, DateTime desde, DateTime hasta, out string mensajeError, out int ocurrenciasGeneradas)
+        /// <summary>
+        /// Calcula el inicio efectivo de una reserva fija a partir de la fecha de solicitud.
+        /// </summary>
+        private DateTime CalcularFechaInicioReserva(DateTime fechaSolicitud)
+        {
+            return fechaSolicitud.Date.AddDays(7);
+        }
+
+        /// <summary>
+        /// Calcula el final de la serie según la periodicidad.
+        /// </summary>
+        private DateTime CalcularFechaFinReserva(DateTime inicioReserva, string periodicidad)
+        {
+            return periodicidad == "Mensual"
+                ? inicioReserva.Date.AddDays(30)
+                : inicioReserva.Date.AddYears(1);
+        }
+
+        /// <summary>
+        /// Valida que la fecha de solicitud no sea anterior a hoy.
+        /// La reserva efectiva se genera una semana después.
+        /// </summary>
+        private bool ValidarAnticipacion(DateTime fechaSolicitud, out string mensajeError)
+        {
+            mensajeError = string.Empty;
+
+            if (fechaSolicitud.Date < DateTime.Today)
+            {
+                mensajeError = "La fecha de solicitud no puede ser anterior a hoy.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool CrearReservaFija(int idCliente, int idCancha, string diaTexto, int diaIndex, string periodicidad, TimeSpan inicio, TimeSpan fin, DateTime desde, DateTime hasta, out string mensajeError, out int ocurrenciasGeneradas)
         {
             mensajeError = string.Empty;
             ocurrenciasGeneradas = 0;
 
-            if (!TryObtenerRango(out TimeSpan inicio, out TimeSpan fin, out _, out _))
-        {
-                // El mensaje de error ya lo muestra TryObtenerRango o se puede manejar acá
+            if (!HorariosTurnos.EsTurnoValido(new Turno(inicio, fin)))
+            {
+                mensajeError = "El horario debe ser un turno de 1 hora entre las 08:00 y las 03:00 del día siguiente.";
                 return false;
             }
 
-            DateTime finAnioActual = new DateTime(DateTime.Today.Year, 12, 31);
-            if (desde.Year != DateTime.Today.Year || hasta.Year != DateTime.Today.Year)
-            {
-                mensajeError = $"Las reservas fijas solo pueden realizarse durante {DateTime.Today.Year}. No se permiten fechas de {DateTime.Today.Year + 1}.";
+            if (!ValidarAnticipacion(desde, out mensajeError))
                 return false;
-            }
-            if (hasta < desde)
+
+            DateTime inicioReserva = CalcularFechaInicioReserva(desde);
+            DateTime finReserva = CalcularFechaFinReserva(inicioReserva, periodicidad);
+
+            if (finReserva < inicioReserva)
             {
                 mensajeError = "La fecha final no puede ser anterior a la inicial.";
                 return false;
             }
-            if (hasta > finAnioActual)
-            {
-                mensajeError = $"La reserva fija no puede superar el {finAnioActual:dd/MM/yyyy}.";
-                return false;
-            }
 
             DayOfWeek dia = (DayOfWeek)((diaIndex + 1) % 7);
-            var fechas = GenerarFechas(desde, hasta, dia, periodicidad)
-                .Where(f => f.Year == DateTime.Today.Year)
-                .ToList();
+            var fechas = GenerarFechas(inicioReserva, finReserva, dia, periodicidad).ToList();
 
             if (fechas.Count == 0)
             {
@@ -293,7 +368,7 @@ namespace Cantina_Padel
                                 VALUES(@fecha,@serie,'Confirmada',@cliente,@cancha,@horario,@usuario)";
                     using var cmd = new MySqlCommand(ins, conn, tx);
                     cmd.Parameters.AddWithValue("@fecha", fecha);
-                    cmd.Parameters.AddWithValue("@serie", desde);
+                    cmd.Parameters.AddWithValue("@serie", inicioReserva);
                     cmd.Parameters.AddWithValue("@cliente", idCliente);
                     cmd.Parameters.AddWithValue("@cancha", idCancha);
                     cmd.Parameters.AddWithValue("@horario", idHorario);
@@ -319,31 +394,154 @@ namespace Cantina_Padel
                 return;
             }
 
-            if (CrearReservaFija(idCliente, idCancha, cmbDia.Text, cmbDia.SelectedIndex, cmbPeriodicidad.Text, txtHoraInicio.Text, txtHoraFin.Text, dtpDesde.Value.Date, dtpHasta.Value.Date, out string mensajeError, out int ocurrencias))
-                {
+            if (!TryObtenerTurnoSeleccionado(out Turno turno)) return;
+
+            if (CrearReservaFija(idCliente, idCancha, cmbDia.Text, cmbDia.SelectedIndex, cmbPeriodicidad.Text, turno.Inicio, turno.Fin, dtpDesde.Value.Date, dtpHasta.Value.Date, out string mensajeError, out int ocurrencias))
+            {
                 MessageBox.Show($"Reserva fija creada. Se generaron {ocurrencias} ocurrencias.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarReservasFijas();
-                }
+            }
             else if (!string.IsNullOrEmpty(mensajeError))
             {
                 MessageBox.Show(mensajeError, "Aviso / Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
-        private void Realquilar_Boton_Click(object sender,EventArgs e)
+        private void Cancelar_Boton_Click(object sender, EventArgs e)
         {
-            if(gridFijas.CurrentRow==null)return;
-            string estado=Convert.ToString(gridFijas.CurrentRow.Cells["estado"].Value)??"";
-            if(estado!="Cancelada"){MessageBox.Show("Primero cancelá la ocurrencia seleccionada para poder realquilarla.","Aviso",MessageBoxButtons.OK,MessageBoxIcon.Warning);return;}
-            int cliente=Convert.ToInt32(gridFijas.CurrentRow.Cells["id_cliente"].Value);int cancha=Convert.ToInt32(gridFijas.CurrentRow.Cells["id_cancha"].Value);DateTime fecha=Convert.ToDateTime(gridFijas.CurrentRow.Cells["fecha"].Value);TimeSpan inicio=(TimeSpan)gridFijas.CurrentRow.Cells["hora_inicio"].Value;TimeSpan fin=(TimeSpan)gridFijas.CurrentRow.Cells["hora_fin"].Value;
-            using var form=new FormGestionHorarios(cliente,cancha,fecha,inicio,fin);form.ShowDialog(this);CargarReservasFijas();
+            if (gridFijas.CurrentRow == null || gridFijas.CurrentRow.IsNewRow)
+            {
+                MessageBox.Show("Seleccioná una reserva fija de la tabla.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                DataGridViewRow fila = gridFijas.CurrentRow;
+
+                if (fila.Cells["reserva_fija"].Value == null || fila.Cells["reserva_fija"].Value == DBNull.Value)
+                {
+                    MessageBox.Show("La fila seleccionada no pertenece a una reserva fija.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                DateTime fechaSeleccionada = Convert.ToDateTime(fila.Cells["fecha"].Value).Date;
+                DateTime serie = Convert.ToDateTime(fila.Cells["reserva_fija"].Value).Date;
+                string estado = Convert.ToString(fila.Cells["estado"].Value) ?? string.Empty;
+
+                if (fechaSeleccionada < DateTime.Today)
+                {
+                    MessageBox.Show("No se puede cancelar desde una fecha que ya pasó. Las ocurrencias anteriores quedan en el historial.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (estado == "Cancelada")
+                {
+                    MessageBox.Show("La ocurrencia seleccionada ya está cancelada.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                DialogResult confirmar = MessageBox.Show(
+                    $"Se cancelarán todas las fechas futuras de la reserva fija iniciada el {serie:dd/MM/yyyy}.\n\nLas fechas anteriores quedarán en el historial.\n\n¿Continuar?",
+                    "Cancelar reserva fija",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirmar != DialogResult.Yes) return;
+
+                int cantidadCancelada;
+
+                using (MySqlConnection conn = Conexion.ObtenerConexion())
+                {
+                    conn.Open();
+
+                    const string sql = @"
+                        UPDATE reserva
+                        SET estado = 'Cancelada'
+                        WHERE reserva_fija = @serie
+                          AND fecha >= @hoy
+                          AND estado IN ('Pendiente', 'Confirmada')";
+
+                    using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.Add("@serie", MySqlDbType.Date).Value = serie;
+                        cmd.Parameters.Add("@hoy", MySqlDbType.Date).Value = DateTime.Today;
+                        cantidadCancelada = cmd.ExecuteNonQuery();
+                    }
+                }
+
+                if (cantidadCancelada == 0)
+                {
+                    MessageBox.Show(
+                        $"No se encontró ninguna ocurrencia futura activa para la serie {serie:dd/MM/yyyy}.\n\nRevisá que estés ejecutando la aplicación contra la misma base de datos del dump.",
+                        "Sin cambios",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                MessageBox.Show(
+                    $"Reserva fija cancelada correctamente.\n\nOcurrencias futuras canceladas: {cantidadCancelada}\nLas fechas anteriores permanecen en el historial.",
+                    "Reserva cancelada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+
+                CargarReservasFijas();
+            }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show("Error de MySQL al cancelar la reserva fija:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al cancelar la reserva fija:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void Cancelar_Boton_Click(object sender,EventArgs e)
+        private void Realquilar_Boton_Click(object sender, EventArgs e)
         {
-            if(gridFijas.CurrentRow==null)return;int id=Convert.ToInt32(gridFijas.CurrentRow.Cells["id_reserva"].Value);
-            using var conn=Conexion.ObtenerConexion();conn.Open();using var cmd=new MySqlCommand("UPDATE reserva SET estado='Cancelada' WHERE id_reserva=@id",conn);cmd.Parameters.AddWithValue("@id",id);cmd.ExecuteNonQuery();CargarReservasFijas();
+            if (gridFijas.CurrentRow == null || gridFijas.CurrentRow.IsNewRow)
+            {
+                MessageBox.Show("Seleccioná una reserva fija de la tabla.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                DataGridViewRow fila = gridFijas.CurrentRow;
+                string estado = Convert.ToString(fila.Cells["estado"].Value) ?? string.Empty;
+
+                if (estado != "Cancelada")
+                {
+                    MessageBox.Show("Primero cancelá la ocurrencia para poder realquilarla.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int cliente = Convert.ToInt32(fila.Cells["id_cliente"].Value);
+                int cancha = Convert.ToInt32(fila.Cells["id_cancha"].Value);
+                DateTime fecha = Convert.ToDateTime(fila.Cells["fecha"].Value).Date;
+                TimeSpan inicio = (TimeSpan)fila.Cells["hora_inicio"].Value;
+                TimeSpan fin = (TimeSpan)fila.Cells["hora_fin"].Value;
+
+                if (fecha < DateTime.Today)
+                {
+                    MessageBox.Show("Una fecha pasada queda solamente en el historial y no puede realquilarse.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                using (FormGestionHorarios form = new FormGestionHorarios(cliente, cancha, fecha, inicio, fin))
+                {
+                    form.ShowDialog(this);
+                }
+
+                CargarReservasFijas();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al preparar el realquiler:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
         private void Volver_Boton_Click(object sender,EventArgs e)=>Close();
     }
 }

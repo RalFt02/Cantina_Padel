@@ -33,19 +33,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
-        private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            var txt = (TextBox)sender;
-            if (char.IsControl(e.KeyChar)) return;
-
-            if (e.KeyChar == '.' && !txt.Text.Contains('.'))
-                return;
-
-            if (!char.IsDigit(e.KeyChar))
-                e.Handled = true;
-        }
-
         // ─────────────────────────────────────────────
         //  CARGAR GRILLA
         // ─────────────────────────────────────────────
@@ -66,11 +53,9 @@ namespace Cantina_Padel
                            p.direccion,
                            p.cuit,
                            p.razon_social,
-                           IFNULL(cc.saldo, 0) AS saldo,
                            p.activo
                     FROM cliente c
                     JOIN persona p ON p.id_persona = c.id_persona
-                    LEFT JOIN cuenta_corriente cc ON cc.id_cliente = c.id_cliente
                     ORDER BY c.id_cliente";
 
                 MySqlDataAdapter da = new MySqlDataAdapter(query, conn);
@@ -90,7 +75,6 @@ namespace Cantina_Padel
                 gridClientes.Columns["direccion"].HeaderText     = "Dirección";
                 gridClientes.Columns["cuit"].HeaderText          = "CUIT";
                 gridClientes.Columns["razon_social"].HeaderText  = "Razón Social";
-                gridClientes.Columns["saldo"].HeaderText         = "Cuenta Corriente";
                 gridClientes.Columns["activo"].HeaderText        = "Activo";
 
                 gridClientes.Columns["id_cliente"].Width  = 40;
@@ -102,8 +86,6 @@ namespace Cantina_Padel
                 gridClientes.Columns["direccion"].Width    = 140;
                 gridClientes.Columns["cuit"].Width         = 90;
                 gridClientes.Columns["razon_social"].Width = 120;
-                gridClientes.Columns["saldo"].Width        = 110;
-                gridClientes.Columns["saldo"].DefaultCellStyle.Format = "C2";
                 gridClientes.Columns["activo"].Width       = 55;
             }
             catch (MySqlException ex)
@@ -136,13 +118,6 @@ namespace Cantina_Padel
                 return;
             }
 
-            if (!decimal.TryParse(txtSaldo.Text, out decimal saldo))
-            {
-                MessageBox.Show("El saldo de cuenta corriente debe ser un número válido.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
             bool esNuevo = _idSeleccionado == null;
 
             try
@@ -152,9 +127,9 @@ namespace Cantina_Padel
                 using MySqlTransaction tx = conn.BeginTransaction();
 
                 if (esNuevo)
-                    CrearCliente(conn, tx, saldo);
+                    CrearCliente(conn, tx);
                 else
-                    EditarCliente(conn, tx, saldo);
+                    EditarCliente(conn, tx);
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -169,7 +144,7 @@ namespace Cantina_Padel
             }
         }
 
-        private void CrearCliente(MySqlConnection conn, MySqlTransaction tx, decimal saldo)
+        private void CrearCliente(MySqlConnection conn, MySqlTransaction tx)
         {
             // Verificar DNI duplicado
             string checkQuery = "SELECT COUNT(*) FROM persona WHERE dni = @d";
@@ -229,26 +204,13 @@ namespace Cantina_Padel
 
             string insertCliente = @"
                 INSERT INTO cliente (fecha_alta, id_persona)
-                VALUES (CURDATE(), @idp);
-                SELECT LAST_INSERT_ID();";
-
-            int idCliente;
-            using (MySqlCommand cmd = new MySqlCommand(insertCliente, conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@idp", idPersona);
-                idCliente = Convert.ToInt32(cmd.ExecuteScalar());
-            }
-
-            string insertCuenta = @"
-                INSERT INTO cuenta_corriente (saldo, id_cliente)
-                VALUES (@s, @idc)";
-            using MySqlCommand cmdCuenta = new MySqlCommand(insertCuenta, conn, tx);
-            cmdCuenta.Parameters.AddWithValue("@s",   saldo);
-            cmdCuenta.Parameters.AddWithValue("@idc", idCliente);
-            cmdCuenta.ExecuteNonQuery();
+                VALUES (CURDATE(), @idp)";
+            using MySqlCommand cmdCliente = new MySqlCommand(insertCliente, conn, tx);
+            cmdCliente.Parameters.AddWithValue("@idp", idPersona);
+            cmdCliente.ExecuteNonQuery();
         }
 
-        private void EditarCliente(MySqlConnection conn, MySqlTransaction tx, decimal saldo)
+        private void EditarCliente(MySqlConnection conn, MySqlTransaction tx)
         {
             int id = _idSeleccionado!.Value;
 
@@ -289,30 +251,18 @@ namespace Cantina_Padel
                     p.activo        = @a
                 WHERE c.id_cliente = @id";
 
-            using (MySqlCommand cmd = new MySqlCommand(updatePersona, conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@n",   txtNombre.Text.Trim());
-                cmd.Parameters.AddWithValue("@ap",  txtApellido.Text.Trim());
-                cmd.Parameters.AddWithValue("@t",   txtTelefono.Text.Trim());
-                cmd.Parameters.AddWithValue("@d",   txtDni.Text.Trim());
-                cmd.Parameters.AddWithValue("@e",   emailValue);
-                cmd.Parameters.AddWithValue("@dir", string.IsNullOrWhiteSpace(txtDireccion.Text) ? DBNull.Value : txtDireccion.Text.Trim());
-                cmd.Parameters.AddWithValue("@cu",  string.IsNullOrWhiteSpace(txtCuit.Text) ? DBNull.Value : txtCuit.Text.Trim());
-                cmd.Parameters.AddWithValue("@rs",  string.IsNullOrWhiteSpace(txtRazonSocial.Text) ? DBNull.Value : txtRazonSocial.Text.Trim());
-                cmd.Parameters.AddWithValue("@a",   chkActivo.Checked ? 1 : 0);
-                cmd.Parameters.AddWithValue("@id",  id);
-                cmd.ExecuteNonQuery();
-            }
-
-            // La cuenta corriente puede no existir todavía (por datos viejos) -> upsert
-            string upsertCuenta = @"
-                INSERT INTO cuenta_corriente (saldo, id_cliente)
-                VALUES (@s, @id)
-                ON DUPLICATE KEY UPDATE saldo = @s";
-            using MySqlCommand cmdCuenta = new MySqlCommand(upsertCuenta, conn, tx);
-            cmdCuenta.Parameters.AddWithValue("@s",  saldo);
-            cmdCuenta.Parameters.AddWithValue("@id", id);
-            cmdCuenta.ExecuteNonQuery();
+            using MySqlCommand cmd = new MySqlCommand(updatePersona, conn, tx);
+            cmd.Parameters.AddWithValue("@n",   txtNombre.Text.Trim());
+            cmd.Parameters.AddWithValue("@ap",  txtApellido.Text.Trim());
+            cmd.Parameters.AddWithValue("@t",   txtTelefono.Text.Trim());
+            cmd.Parameters.AddWithValue("@d",   txtDni.Text.Trim());
+            cmd.Parameters.AddWithValue("@e",   emailValue);
+            cmd.Parameters.AddWithValue("@dir", string.IsNullOrWhiteSpace(txtDireccion.Text) ? DBNull.Value : txtDireccion.Text.Trim());
+            cmd.Parameters.AddWithValue("@cu",  string.IsNullOrWhiteSpace(txtCuit.Text) ? DBNull.Value : txtCuit.Text.Trim());
+            cmd.Parameters.AddWithValue("@rs",  string.IsNullOrWhiteSpace(txtRazonSocial.Text) ? DBNull.Value : txtRazonSocial.Text.Trim());
+            cmd.Parameters.AddWithValue("@a",   chkActivo.Checked ? 1 : 0);
+            cmd.Parameters.AddWithValue("@id",  id);
+            cmd.ExecuteNonQuery();
         }
 
         // ─────────────────────────────────────────────
@@ -377,11 +327,6 @@ namespace Cantina_Padel
             txtCuit.Text       = row.Cells["cuit"].Value?.ToString() ?? "";
             txtRazonSocial.Text = row.Cells["razon_social"].Value?.ToString() ?? "";
 
-            decimal saldo = row.Cells["saldo"].Value != null
-                ? Convert.ToDecimal(row.Cells["saldo"].Value)
-                : 0m;
-            txtSaldo.Text = saldo.ToString("0.00");
-
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             Guardar_Boton.Text = "Guardar Cambios";
         }
@@ -414,7 +359,6 @@ namespace Cantina_Padel
             txtDireccion.Text    = "";
             txtCuit.Text         = "";
             txtRazonSocial.Text  = "";
-            txtSaldo.Text        = "0.00";
             chkActivo.Checked    = true;
             Guardar_Boton.Text   = "Crear Cliente";
         }

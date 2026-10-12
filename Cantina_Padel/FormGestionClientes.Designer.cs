@@ -38,15 +38,12 @@ namespace Cantina_Padel
             txtCuit = new TextBox();
             lblRazonSocial = new Label();
             txtRazonSocial = new TextBox();
-            lblSaldo = new Label();
-            txtSaldo = new TextBox();
             chkActivo = new CheckBox();
             Guardar_Boton = new Button();
             Cancelar_Boton = new Button();
             Eliminar_Boton = new Button();
             Nuevo_Boton = new Button();
             Volver_Boton = new Button();
-            Cuenta_Corriente = new Button();
             ((System.ComponentModel.ISupportInitialize)gridClientes).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
@@ -116,7 +113,6 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
-            grpDatos.Controls.Add(Cuenta_Corriente);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
             grpDatos.Controls.Add(lblApellido);
@@ -133,8 +129,6 @@ namespace Cantina_Padel
             grpDatos.Controls.Add(txtCuit);
             grpDatos.Controls.Add(lblRazonSocial);
             grpDatos.Controls.Add(txtRazonSocial);
-            grpDatos.Controls.Add(lblSaldo);
-            grpDatos.Controls.Add(txtSaldo);
             grpDatos.Controls.Add(chkActivo);
             grpDatos.Controls.Add(Guardar_Boton);
             grpDatos.Controls.Add(Cancelar_Boton);
@@ -313,35 +307,13 @@ namespace Cantina_Padel
             txtRazonSocial.Size = new Size(205, 27);
             txtRazonSocial.TabIndex = 17;
             // 
-            // lblSaldo
-            // 
-            lblSaldo.AutoSize = true;
-            lblSaldo.ForeColor = Color.White;
-            lblSaldo.Location = new Point(10, 308);
-            lblSaldo.Name = "lblSaldo";
-            lblSaldo.Size = new Size(156, 20);
-            lblSaldo.TabIndex = 18;
-            lblSaldo.Text = "Cuenta Corriente ($):";
-            // 
-            // txtSaldo
-            // 
-            txtSaldo.BackColor = Color.FromArgb(51, 65, 85);
-            txtSaldo.ForeColor = Color.White;
-            txtSaldo.Location = new Point(10, 330);
-            txtSaldo.MaxLength = 10;
-            txtSaldo.Name = "txtSaldo";
-            txtSaldo.Size = new Size(205, 27);
-            txtSaldo.TabIndex = 19;
-            txtSaldo.Text = "0.00";
-            txtSaldo.KeyPress += SoloNumerosDecimal_KeyPress;
-            // 
             // chkActivo
             // 
             chkActivo.AutoSize = true;
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
             chkActivo.ForeColor = Color.White;
-            chkActivo.Location = new Point(10, 372);
+            chkActivo.Location = new Point(10, 312);
             chkActivo.Name = "chkActivo";
             chkActivo.Size = new Size(125, 24);
             chkActivo.TabIndex = 20;
@@ -354,9 +326,9 @@ namespace Cantina_Padel
             Guardar_Boton.FlatStyle = FlatStyle.Flat;
             Guardar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Guardar_Boton.ForeColor = Color.Black;
-            Guardar_Boton.Location = new Point(10, 410);
+            Guardar_Boton.Location = new Point(6, 356);
             Guardar_Boton.Name = "Guardar_Boton";
-            Guardar_Boton.Size = new Size(215, 39);
+            Guardar_Boton.Size = new Size(215, 52);
             Guardar_Boton.TabIndex = 21;
             Guardar_Boton.Text = "Crear Cliente";
             Guardar_Boton.UseVisualStyleBackColor = false;
@@ -368,9 +340,9 @@ namespace Cantina_Padel
             Cancelar_Boton.FlatAppearance.BorderSize = 0;
             Cancelar_Boton.FlatStyle = FlatStyle.Flat;
             Cancelar_Boton.ForeColor = Color.White;
-            Cancelar_Boton.Location = new Point(240, 460);
+            Cancelar_Boton.Location = new Point(6, 457);
             Cancelar_Boton.Name = "Cancelar_Boton";
-            Cancelar_Boton.Size = new Size(205, 38);
+            Cancelar_Boton.Size = new Size(439, 47);
             Cancelar_Boton.TabIndex = 22;
             Cancelar_Boton.Text = "Limpiar";
             Cancelar_Boton.UseVisualStyleBackColor = false;
@@ -382,9 +354,9 @@ namespace Cantina_Padel
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
             Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.Location = new Point(240, 410);
+            Eliminar_Boton.Location = new Point(240, 356);
             Eliminar_Boton.Name = "Eliminar_Boton";
-            Eliminar_Boton.Size = new Size(205, 39);
+            Eliminar_Boton.Size = new Size(205, 52);
             Eliminar_Boton.TabIndex = 23;
             Eliminar_Boton.Text = "Desactivar Cliente";
             Eliminar_Boton.UseVisualStyleBackColor = false;
@@ -418,19 +390,6 @@ namespace Cantina_Padel
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            // 
-            // Cuenta_Corriente
-            // 
-            Cuenta_Corriente.BackColor = Color.SteelBlue;
-            Cuenta_Corriente.FlatAppearance.BorderSize = 0;
-            Cuenta_Corriente.FlatStyle = FlatStyle.Flat;
-            Cuenta_Corriente.ForeColor = Color.White;
-            Cuenta_Corriente.Location = new Point(10, 460);
-            Cuenta_Corriente.Name = "Cuenta_Corriente";
-            Cuenta_Corriente.Size = new Size(215, 38);
-            Cuenta_Corriente.TabIndex = 24;
-            Cuenta_Corriente.Text = "Cuenta Corriente";
-            Cuenta_Corriente.UseVisualStyleBackColor = false;
             // 
             // FormGestionClientes
             // 
@@ -478,14 +437,11 @@ namespace Cantina_Padel
         private TextBox          txtCuit;
         private Label            lblRazonSocial;
         private TextBox          txtRazonSocial;
-        private Label            lblSaldo;
-        private TextBox          txtSaldo;
         private CheckBox         chkActivo;
         private Button           Nuevo_Boton;
         private Button           Guardar_Boton;
         private Button           Eliminar_Boton;
         private Button           Cancelar_Boton;
         private Button           Volver_Boton;
-        private Button Cuenta_Corriente;
     }
 }
