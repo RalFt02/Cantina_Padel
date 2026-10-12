@@ -72,6 +72,7 @@
             Caja_Boton.TabIndex = 2;
             Caja_Boton.Text = "Caja";
             Caja_Boton.UseVisualStyleBackColor = false;
+            Caja_Boton.Click += Caja_Boton_Click;
             // 
             // Ventas_Boton
             // 
@@ -96,6 +97,7 @@
             Reservas_Boton.TabIndex = 5;
             Reservas_Boton.Text = "Reservas";
             Reservas_Boton.UseVisualStyleBackColor = false;
+            Reservas_Boton.Click += Reservas_Boton_Click;
             // 
             // Volver_Menu
             // 
@@ -106,7 +108,7 @@
             Volver_Menu.Name = "Volver_Menu";
             Volver_Menu.Size = new Size(216, 56);
             Volver_Menu.TabIndex = 6;
-            Volver_Menu.Text = "Volver al Menu";
+            Volver_Menu.Text = "Volver al Inicio";
             Volver_Menu.UseVisualStyleBackColor = false;
             Volver_Menu.Click += Volver_Menu_Click;
             // 
