@@ -85,6 +85,7 @@
             Ventas_Boton.TabIndex = 3;
             Ventas_Boton.Text = "Ventas";
             Ventas_Boton.UseVisualStyleBackColor = false;
+            Ventas_Boton.Click += Ventas_Boton_Click;
             // 
             // Reservas_Boton
             // 

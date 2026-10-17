@@ -176,7 +176,7 @@ namespace Cantina_Padel
                 FROM venta v
                 INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
                 WHERE v.id_sesion = @sesion
-                  AND v.medio_pago = 'Efectivo'";
+                  AND v.medio_pago <> 'Cuenta Corriente'";
             using MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@sesion", idSesion);
             object? result = cmd.ExecuteScalar();
@@ -244,7 +244,7 @@ namespace Cantina_Padel
                         + (SELECT COALESCE(SUM(dv.total), 0)
                            FROM venta v
                            INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
-                           WHERE v.id_sesion = c.id_sesion AND v.medio_pago = 'Efectivo')
+                           WHERE v.id_sesion = c.id_sesion AND v.medio_pago <> 'Cuenta Corriente')
                         - (SELECT COALESCE(SUM(r.monto), 0)
                            FROM retiro_efectivo r
                            WHERE r.id_sesion = c.id_sesion)

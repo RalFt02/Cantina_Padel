@@ -118,4 +118,47 @@
     </Compile>
   </ItemGroup>
 
+  <!-- FormGestionVentas -->
+  <ItemGroup>
+    <Compile Update="FormGestionVentas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormGestionVentas.Designer.cs">
+      <DependentUpon>FormGestionVentas.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="FormGestionVentas.resx">
+      <DependentUpon>FormGestionVentas.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormCobroCanchas -->
+  <ItemGroup>
+    <Compile Update="FormCobroCanchas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormCobroCanchas.Designer.cs">
+      <DependentUpon>FormCobroCanchas.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- FormCobroCuentaCorriente -->
+  <ItemGroup>
+    <Compile Update="FormCobroCuentaCorriente.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormCobroCuentaCorriente.Designer.cs">
+      <DependentUpon>FormCobroCuentaCorriente.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <!-- FormEnviarMail -->
+  <ItemGroup>
+    <Compile Update="FormEnviarMail.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormEnviarMail.Designer.cs">
+      <DependentUpon>FormEnviarMail.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

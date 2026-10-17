@@ -75,6 +75,19 @@ namespace Cantina_Padel
             formCompras.ShowDialog(this);
         }
 
+        private void Ventas_Boton_Click(object sender, EventArgs e)
+        {
+            int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario);
+            if (!idSesion.HasValue)
+            {
+                MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            FormGestionVentas formVentas = new FormGestionVentas(SesionActual.IdUsuario, idSesion.Value);
+            formVentas.ShowDialog(this);
+        }
 
         private bool _volviendoAlLogin = false;
         private void Volver_Menu_Click(object sender, EventArgs e)

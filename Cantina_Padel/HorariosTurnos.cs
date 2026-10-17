@@ -56,8 +56,13 @@ namespace Cantina_Padel
         /// Ej.: son las 15:45 -> el turno 15:00-16:00 y todos los anteriores ya pasaron.
         /// Los turnos de 00:00 a 03:00 cuentan como del día siguiente (ver Normalizar).
         /// </summary>
+        /// <summary>
+        /// ¿El turno de esa fecha ya empezó respecto de "ahora"?
+        /// Se otorga un margen de 15 minutos después de la hora en punto para que la cancha
+        /// siga apareciendo en el desplegable (ej. a las 16:00 permanece disponible hasta las 16:15).
+        /// </summary>
         public static bool YaPaso(DateTime fecha, Turno turno, DateTime ahora)
-            => Normalizar(fecha, turno.Inicio) <= ahora;
+            => Normalizar(fecha, turno.Inicio).AddMinutes(15) <= ahora;
 
         /// <summary>
         /// Devuelve solo los turnos libres en TODAS las fechas indicadas.

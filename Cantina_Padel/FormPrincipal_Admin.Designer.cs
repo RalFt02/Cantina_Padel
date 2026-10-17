@@ -197,6 +197,7 @@
             Ventas_Boton.TabIndex = 11;
             Ventas_Boton.Text = "Ventas";
             Ventas_Boton.UseVisualStyleBackColor = false;
+            Ventas_Boton.Click += Ventas_Boton_Click;
             // 
             // Reportes_Boton
             // 

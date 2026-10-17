@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -31,6 +31,20 @@ namespace Cantina_Padel
         {
             FormGestionCaja formCaja = new FormGestionCaja(SesionActual.IdUsuario);
             formCaja.ShowDialog(this);
+        }
+
+        private void Ventas_Boton_Click(object sender, EventArgs e)
+        {
+            int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario);
+            if (!idSesion.HasValue)
+            {
+                MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            FormGestionVentas formVentas = new FormGestionVentas(SesionActual.IdUsuario, idSesion.Value);
+            formVentas.ShowDialog(this);
         }
 
         private bool _volviendoAlLogin = false;

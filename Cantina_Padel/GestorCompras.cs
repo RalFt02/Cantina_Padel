@@ -157,14 +157,23 @@ namespace Cantina_Padel
 
         private static void SumarStock(MySqlConnection conn, MySqlTransaction tx, LineaCompra linea)
         {
+            // El precio de venta se actualiza solo si es superior y el stock es mayor a 0
+            decimal nuevoPrecioVenta = Math.Round(linea.PrecioUnitario * (1 + linea.PorcentajeGanancia / 100m), 2);
+
             const string query = @"
                 UPDATE producto
-                SET producto.stock = producto.stock + @cant
+                SET producto.stock = producto.stock + @cant,
+                    producto.precio_venta = CASE 
+                        WHEN @nuevoPrecio > producto.precio_venta AND (producto.stock + @cant) > 0 
+                        THEN @nuevoPrecio 
+                        ELSE producto.precio_venta 
+                    END
                 WHERE producto.id_producto = @prod";
 
             using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
             cmd.Parameters.AddWithValue("@cant", linea.Cantidad);
             cmd.Parameters.AddWithValue("@prod", linea.IdProducto);
+            cmd.Parameters.AddWithValue("@nuevoPrecio", nuevoPrecioVenta);
 
             if (cmd.ExecuteNonQuery() == 0)
                 throw new InvalidOperationException($"El producto '{linea.Nombre}' ya no existe.");
@@ -327,6 +336,7 @@ namespace Cantina_Padel
             const string query = @"
                 SELECT producto.id_producto,
                        producto.id_proveedor,
+                       producto.codigo,
                        producto.nombre,
                        CONCAT(producto.nombre, ' (stock: ', producto.stock, ')') AS descripcion,
                        categoria.porcentaje_ganancia
