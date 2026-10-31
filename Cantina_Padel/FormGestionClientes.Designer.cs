@@ -18,6 +18,8 @@ namespace Cantina_Padel
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             gridClientes = new DataGridView();
+            lblCondicionFiscal = new Label();
+            cmbCondicionFiscal = new ComboBox();
             lblTitulo = new Label();
             lblBuscar = new Label();
             txtBuscar = new TextBox();
@@ -113,6 +115,8 @@ namespace Cantina_Padel
             // grpDatos
             // 
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
+            grpDatos.Controls.Add(lblCondicionFiscal);
+            grpDatos.Controls.Add(cmbCondicionFiscal);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
             grpDatos.Controls.Add(lblApellido);
@@ -141,12 +145,39 @@ namespace Cantina_Padel
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos del Cliente";
+                        // 
+            // lblCondicionFiscal
+            // 
+            lblCondicionFiscal.AutoSize = true;
+            lblCondicionFiscal.ForeColor = Color.White;
+            lblCondicionFiscal.Location = new Point(10, 22);
+            lblCondicionFiscal.Name = "lblCondicionFiscal";
+            lblCondicionFiscal.Size = new Size(160, 20);
+            lblCondicionFiscal.TabIndex = 0;
+            lblCondicionFiscal.Text = "Condición Fiscal / IVA:";
+            // 
+            // cmbCondicionFiscal
+            // 
+            cmbCondicionFiscal.BackColor = Color.FromArgb(51, 65, 85);
+            cmbCondicionFiscal.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCondicionFiscal.FlatStyle = FlatStyle.Flat;
+            cmbCondicionFiscal.ForeColor = Color.White;
+            cmbCondicionFiscal.FormattingEnabled = true;
+            cmbCondicionFiscal.Items.AddRange(new object[] {
+            "Consumidor Final",
+            "Monotributista",
+            "Responsable Inscripto"});
+            cmbCondicionFiscal.Location = new Point(10, 44);
+            cmbCondicionFiscal.Name = "cmbCondicionFiscal";
+            cmbCondicionFiscal.Size = new Size(430, 28);
+            cmbCondicionFiscal.TabIndex = 1;
+            cmbCondicionFiscal.SelectedIndexChanged += cmbCondicionFiscal_SelectedIndexChanged;
             // 
             // lblNombre
             // 
             lblNombre.AutoSize = true;
             lblNombre.ForeColor = Color.White;
-            lblNombre.Location = new Point(10, 68);
+            lblNombre.Location = new Point(10, 80);
             lblNombre.Name = "lblNombre";
             lblNombre.Size = new Size(71, 20);
             lblNombre.TabIndex = 2;
@@ -156,7 +187,7 @@ namespace Cantina_Padel
             // 
             txtNombre.BackColor = Color.FromArgb(51, 65, 85);
             txtNombre.ForeColor = Color.White;
-            txtNombre.Location = new Point(10, 90);
+            txtNombre.Location = new Point(10, 102);
             txtNombre.MaxLength = 30;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(205, 27);
@@ -167,7 +198,7 @@ namespace Cantina_Padel
             // 
             lblApellido.AutoSize = true;
             lblApellido.ForeColor = Color.White;
-            lblApellido.Location = new Point(235, 68);
+            lblApellido.Location = new Point(235, 80);
             lblApellido.Name = "lblApellido";
             lblApellido.Size = new Size(71, 20);
             lblApellido.TabIndex = 4;
@@ -177,7 +208,7 @@ namespace Cantina_Padel
             // 
             txtApellido.BackColor = Color.FromArgb(51, 65, 85);
             txtApellido.ForeColor = Color.White;
-            txtApellido.Location = new Point(235, 90);
+            txtApellido.Location = new Point(235, 102);
             txtApellido.MaxLength = 30;
             txtApellido.Name = "txtApellido";
             txtApellido.Size = new Size(205, 27);
@@ -188,7 +219,7 @@ namespace Cantina_Padel
             // 
             lblTelefono.AutoSize = true;
             lblTelefono.ForeColor = Color.White;
-            lblTelefono.Location = new Point(10, 128);
+            lblTelefono.Location = new Point(10, 138);
             lblTelefono.Name = "lblTelefono";
             lblTelefono.Size = new Size(74, 20);
             lblTelefono.TabIndex = 6;
@@ -198,7 +229,7 @@ namespace Cantina_Padel
             // 
             txtTelefono.BackColor = Color.FromArgb(51, 65, 85);
             txtTelefono.ForeColor = Color.White;
-            txtTelefono.Location = new Point(10, 150);
+            txtTelefono.Location = new Point(10, 160);
             txtTelefono.MaxLength = 10;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new Size(205, 27);
@@ -209,7 +240,7 @@ namespace Cantina_Padel
             // 
             lblDni.AutoSize = true;
             lblDni.ForeColor = Color.White;
-            lblDni.Location = new Point(235, 128);
+            lblDni.Location = new Point(235, 138);
             lblDni.Name = "lblDni";
             lblDni.Size = new Size(41, 20);
             lblDni.TabIndex = 8;
@@ -219,7 +250,7 @@ namespace Cantina_Padel
             // 
             txtDni.BackColor = Color.FromArgb(51, 65, 85);
             txtDni.ForeColor = Color.White;
-            txtDni.Location = new Point(235, 150);
+            txtDni.Location = new Point(235, 160);
             txtDni.MaxLength = 9;
             txtDni.Name = "txtDni";
             txtDni.Size = new Size(205, 27);
@@ -230,7 +261,7 @@ namespace Cantina_Padel
             // 
             lblEmail.AutoSize = true;
             lblEmail.ForeColor = Color.White;
-            lblEmail.Location = new Point(10, 188);
+            lblEmail.Location = new Point(10, 196);
             lblEmail.Name = "lblEmail";
             lblEmail.Size = new Size(51, 20);
             lblEmail.TabIndex = 10;
@@ -240,7 +271,7 @@ namespace Cantina_Padel
             // 
             txtEmail.BackColor = Color.FromArgb(51, 65, 85);
             txtEmail.ForeColor = Color.White;
-            txtEmail.Location = new Point(10, 210);
+            txtEmail.Location = new Point(10, 218);
             txtEmail.MaxLength = 30;
             txtEmail.Name = "txtEmail";
             txtEmail.Size = new Size(205, 27);
@@ -250,7 +281,7 @@ namespace Cantina_Padel
             // 
             lblDireccion.AutoSize = true;
             lblDireccion.ForeColor = Color.White;
-            lblDireccion.Location = new Point(235, 188);
+            lblDireccion.Location = new Point(235, 196);
             lblDireccion.Name = "lblDireccion";
             lblDireccion.Size = new Size(78, 20);
             lblDireccion.TabIndex = 12;
@@ -260,7 +291,7 @@ namespace Cantina_Padel
             // 
             txtDireccion.BackColor = Color.FromArgb(51, 65, 85);
             txtDireccion.ForeColor = Color.White;
-            txtDireccion.Location = new Point(235, 210);
+            txtDireccion.Location = new Point(235, 218);
             txtDireccion.MaxLength = 50;
             txtDireccion.Name = "txtDireccion";
             txtDireccion.Size = new Size(205, 27);
@@ -270,7 +301,7 @@ namespace Cantina_Padel
             // 
             lblCuit.AutoSize = true;
             lblCuit.ForeColor = Color.White;
-            lblCuit.Location = new Point(10, 248);
+            lblCuit.Location = new Point(10, 254);
             lblCuit.Name = "lblCuit";
             lblCuit.Size = new Size(47, 20);
             lblCuit.TabIndex = 14;
@@ -280,7 +311,7 @@ namespace Cantina_Padel
             // 
             txtCuit.BackColor = Color.FromArgb(51, 65, 85);
             txtCuit.ForeColor = Color.White;
-            txtCuit.Location = new Point(10, 270);
+            txtCuit.Location = new Point(10, 276);
             txtCuit.MaxLength = 11;
             txtCuit.Name = "txtCuit";
             txtCuit.Size = new Size(205, 27);
@@ -291,7 +322,7 @@ namespace Cantina_Padel
             // 
             lblRazonSocial.AutoSize = true;
             lblRazonSocial.ForeColor = Color.White;
-            lblRazonSocial.Location = new Point(235, 248);
+            lblRazonSocial.Location = new Point(235, 254);
             lblRazonSocial.Name = "lblRazonSocial";
             lblRazonSocial.Size = new Size(100, 20);
             lblRazonSocial.TabIndex = 16;
@@ -301,7 +332,7 @@ namespace Cantina_Padel
             // 
             txtRazonSocial.BackColor = Color.FromArgb(51, 65, 85);
             txtRazonSocial.ForeColor = Color.White;
-            txtRazonSocial.Location = new Point(235, 270);
+            txtRazonSocial.Location = new Point(235, 276);
             txtRazonSocial.MaxLength = 50;
             txtRazonSocial.Name = "txtRazonSocial";
             txtRazonSocial.Size = new Size(205, 27);
@@ -437,6 +468,8 @@ namespace Cantina_Padel
         private TextBox          txtCuit;
         private Label            lblRazonSocial;
         private TextBox          txtRazonSocial;
+        private Label            lblCondicionFiscal;
+        private ComboBox         cmbCondicionFiscal;
         private CheckBox         chkActivo;
         private Button           Nuevo_Boton;
         private Button           Guardar_Boton;

@@ -25,13 +25,7 @@ namespace Cantina_Padel
             gridReservas = new DataGridView();
             grpCobro = new GroupBox();
             lblTotal = new Label();
-            lblMedioPago = new Label();
-            cmbMedioPago = new ComboBox();
-            lblComprobante = new Label();
-            cmbComprobante = new ComboBox();
-            btnRegistrarCobro = new Button();
-            btnImprimir = new Button();
-            btnEnviarMail = new Button();
+            btnEnviarAVentas = new Button();
             btnCerrar = new Button();
             ((System.ComponentModel.ISupportInitialize)gridReservas).BeginInit();
             grpCobro.SuspendLayout();
@@ -135,22 +129,16 @@ namespace Cantina_Padel
             // grpCobro
             // 
             grpCobro.BackColor = Color.FromArgb(30, 41, 59);
-            grpCobro.Controls.Add(btnEnviarMail);
-            grpCobro.Controls.Add(btnImprimir);
-            grpCobro.Controls.Add(btnRegistrarCobro);
-            grpCobro.Controls.Add(cmbComprobante);
-            grpCobro.Controls.Add(lblComprobante);
-            grpCobro.Controls.Add(cmbMedioPago);
-            grpCobro.Controls.Add(lblMedioPago);
+            grpCobro.Controls.Add(btnEnviarAVentas);
             grpCobro.Controls.Add(lblTotal);
             grpCobro.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             grpCobro.ForeColor = Color.FromArgb(163, 230, 53);
             grpCobro.Location = new Point(650, 140);
             grpCobro.Name = "grpCobro";
-            grpCobro.Size = new Size(340, 380);
+            grpCobro.Size = new Size(340, 200);
             grpCobro.TabIndex = 7;
             grpCobro.TabStop = false;
-            grpCobro.Text = "Cobro de Turno(s)";
+            grpCobro.Text = "Acción de Cobro";
             // 
             // lblTotal
             // 
@@ -163,94 +151,20 @@ namespace Cantina_Padel
             lblTotal.TabIndex = 0;
             lblTotal.Text = "Total: $ 0,00";
             // 
-            // lblMedioPago
+            // btnEnviarAVentas
             // 
-            lblMedioPago.AutoSize = true;
-            lblMedioPago.ForeColor = Color.White;
-            lblMedioPago.Location = new Point(20, 80);
-            lblMedioPago.Name = "lblMedioPago";
-            lblMedioPago.Size = new Size(128, 21);
-            lblMedioPago.TabIndex = 1;
-            lblMedioPago.Text = "Medio de cobro:";
-            // 
-            // cmbMedioPago
-            // 
-            cmbMedioPago.BackColor = Color.FromArgb(51, 65, 85);
-            cmbMedioPago.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbMedioPago.FlatStyle = FlatStyle.Flat;
-            cmbMedioPago.ForeColor = Color.White;
-            cmbMedioPago.FormattingEnabled = true;
-            cmbMedioPago.Location = new Point(20, 105);
-            cmbMedioPago.Name = "cmbMedioPago";
-            cmbMedioPago.Size = new Size(300, 29);
-            cmbMedioPago.TabIndex = 2;
-            // 
-            // lblComprobante
-            // 
-            lblComprobante.AutoSize = true;
-            lblComprobante.ForeColor = Color.White;
-            lblComprobante.Location = new Point(20, 145);
-            lblComprobante.Name = "lblComprobante";
-            lblComprobante.Size = new Size(174, 21);
-            lblComprobante.TabIndex = 3;
-            lblComprobante.Text = "Tipo de Comprobante:";
-            // 
-            // cmbComprobante
-            // 
-            cmbComprobante.BackColor = Color.FromArgb(51, 65, 85);
-            cmbComprobante.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbComprobante.FlatStyle = FlatStyle.Flat;
-            cmbComprobante.ForeColor = Color.White;
-            cmbComprobante.FormattingEnabled = true;
-            cmbComprobante.Location = new Point(20, 170);
-            cmbComprobante.Name = "cmbComprobante";
-            cmbComprobante.Size = new Size(300, 29);
-            cmbComprobante.TabIndex = 4;
-            // 
-            // btnRegistrarCobro
-            // 
-            btnRegistrarCobro.BackColor = Color.FromArgb(163, 230, 53);
-            btnRegistrarCobro.FlatAppearance.BorderSize = 0;
-            btnRegistrarCobro.FlatStyle = FlatStyle.Flat;
-            btnRegistrarCobro.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-            btnRegistrarCobro.ForeColor = Color.Black;
-            btnRegistrarCobro.Location = new Point(20, 220);
-            btnRegistrarCobro.Name = "btnRegistrarCobro";
-            btnRegistrarCobro.Size = new Size(300, 45);
-            btnRegistrarCobro.TabIndex = 5;
-            btnRegistrarCobro.Text = "✔ Registrar Cobro";
-            btnRegistrarCobro.UseVisualStyleBackColor = false;
-            btnRegistrarCobro.Click += btnRegistrarCobro_Click;
-            // 
-            // btnImprimir
-            // 
-            btnImprimir.BackColor = Color.FromArgb(59, 130, 246);
-            btnImprimir.FlatAppearance.BorderSize = 0;
-            btnImprimir.FlatStyle = FlatStyle.Flat;
-            btnImprimir.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnImprimir.ForeColor = Color.White;
-            btnImprimir.Location = new Point(20, 275);
-            btnImprimir.Name = "btnImprimir";
-            btnImprimir.Size = new Size(300, 38);
-            btnImprimir.TabIndex = 6;
-            btnImprimir.Text = "🖨 Imprimir Comprobante";
-            btnImprimir.UseVisualStyleBackColor = false;
-            btnImprimir.Click += btnImprimir_Click;
-            // 
-            // btnEnviarMail
-            // 
-            btnEnviarMail.BackColor = Color.FromArgb(16, 185, 129);
-            btnEnviarMail.FlatAppearance.BorderSize = 0;
-            btnEnviarMail.FlatStyle = FlatStyle.Flat;
-            btnEnviarMail.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnEnviarMail.ForeColor = Color.White;
-            btnEnviarMail.Location = new Point(20, 322);
-            btnEnviarMail.Name = "btnEnviarMail";
-            btnEnviarMail.Size = new Size(300, 38);
-            btnEnviarMail.TabIndex = 7;
-            btnEnviarMail.Text = "✉ Enviar por Email";
-            btnEnviarMail.UseVisualStyleBackColor = false;
-            btnEnviarMail.Click += btnEnviarMail_Click;
+            btnEnviarAVentas.BackColor = Color.FromArgb(163, 230, 53);
+            btnEnviarAVentas.FlatAppearance.BorderSize = 0;
+            btnEnviarAVentas.FlatStyle = FlatStyle.Flat;
+            btnEnviarAVentas.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            btnEnviarAVentas.ForeColor = Color.Black;
+            btnEnviarAVentas.Location = new Point(20, 100);
+            btnEnviarAVentas.Name = "btnEnviarAVentas";
+            btnEnviarAVentas.Size = new Size(300, 55);
+            btnEnviarAVentas.TabIndex = 5;
+            btnEnviarAVentas.Text = "🛒 Enviar Turno(s) a Ventas";
+            btnEnviarAVentas.UseVisualStyleBackColor = false;
+            btnEnviarAVentas.Click += btnEnviarAVentas_Click;
             // 
             // FormCobroCanchas
             // 
@@ -289,12 +203,6 @@ namespace Cantina_Padel
         private DataGridView gridReservas;
         private GroupBox grpCobro;
         private Label lblTotal;
-        private Label lblMedioPago;
-        private ComboBox cmbMedioPago;
-        private Label lblComprobante;
-        private ComboBox cmbComprobante;
-        private Button btnRegistrarCobro;
-        private Button btnImprimir;
-        private Button btnEnviarMail;
+        private Button btnEnviarAVentas;
     }
 }

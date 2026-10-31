@@ -12,6 +12,8 @@ namespace Cantina_Padel
         public FormGestionClientes()
         {
             InitializeComponent();
+            cmbCondicionFiscal.SelectedIndex = 0;
+            ActualizarVisibilidadCamposFiscales();
             CargarClientes();
         }
 
@@ -42,6 +44,7 @@ namespace Cantina_Padel
             {
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
+                AsegurarColumnaCondicionFiscal(conn);
 
                 string query = @"
                     SELECT c.id_cliente,
@@ -53,6 +56,7 @@ namespace Cantina_Padel
                            p.direccion,
                            p.cuit,
                            p.razon_social,
+                           COALESCE(p.condicion_fiscal, CASE WHEN p.razon_social IS NOT NULL AND p.razon_social <> '' THEN 'Responsable Inscripto' ELSE 'Consumidor Final' END) AS condicion_fiscal,
                            p.activo
                     FROM cliente c
                     JOIN persona p ON p.id_persona = c.id_persona
@@ -75,6 +79,7 @@ namespace Cantina_Padel
                 gridClientes.Columns["direccion"].HeaderText     = "Dirección";
                 gridClientes.Columns["cuit"].HeaderText          = "CUIT";
                 gridClientes.Columns["razon_social"].HeaderText  = "Razón Social";
+                gridClientes.Columns["condicion_fiscal"].HeaderText = "Condición";
                 gridClientes.Columns["activo"].HeaderText        = "Activo";
 
                 gridClientes.Columns["id_cliente"].Width  = 40;
@@ -86,6 +91,7 @@ namespace Cantina_Padel
                 gridClientes.Columns["direccion"].Width    = 140;
                 gridClientes.Columns["cuit"].Width         = 90;
                 gridClientes.Columns["razon_social"].Width = 120;
+                gridClientes.Columns["condicion_fiscal"].Width = 110;
                 gridClientes.Columns["activo"].Width       = 55;
             }
             catch (MySqlException ex)
@@ -183,8 +189,8 @@ namespace Cantina_Padel
             }
 
             string insertPersona = @"
-                INSERT INTO persona (nombre, apellido, telefono, dni, email, direccion, cuit, razon_social, activo)
-                VALUES (@n, @ap, @t, @d, @e, @dir, @cu, @rs, @a);
+                INSERT INTO persona (nombre, apellido, telefono, dni, email, direccion, cuit, razon_social, condicion_fiscal, activo)
+                VALUES (@n, @ap, @t, @d, @e, @dir, @cu, @rs, @cf, @a);
                 SELECT LAST_INSERT_ID();";
 
             int idPersona;
@@ -198,6 +204,7 @@ namespace Cantina_Padel
                 cmd.Parameters.AddWithValue("@dir", string.IsNullOrWhiteSpace(txtDireccion.Text) ? DBNull.Value : txtDireccion.Text.Trim());
                 cmd.Parameters.AddWithValue("@cu",  string.IsNullOrWhiteSpace(txtCuit.Text) ? DBNull.Value : txtCuit.Text.Trim());
                 cmd.Parameters.AddWithValue("@rs",  string.IsNullOrWhiteSpace(txtRazonSocial.Text) ? DBNull.Value : txtRazonSocial.Text.Trim());
+                cmd.Parameters.AddWithValue("@cf",  cmbCondicionFiscal.SelectedItem?.ToString() ?? "Consumidor Final");
                 cmd.Parameters.AddWithValue("@a",   chkActivo.Checked ? 1 : 0);
                 idPersona = Convert.ToInt32(cmd.ExecuteScalar());
             }
@@ -248,6 +255,7 @@ namespace Cantina_Padel
                     p.direccion     = @dir,
                     p.cuit          = @cu,
                     p.razon_social  = @rs,
+                    p.condicion_fiscal = @cf,
                     p.activo        = @a
                 WHERE c.id_cliente = @id";
 
@@ -260,6 +268,7 @@ namespace Cantina_Padel
             cmd.Parameters.AddWithValue("@dir", string.IsNullOrWhiteSpace(txtDireccion.Text) ? DBNull.Value : txtDireccion.Text.Trim());
             cmd.Parameters.AddWithValue("@cu",  string.IsNullOrWhiteSpace(txtCuit.Text) ? DBNull.Value : txtCuit.Text.Trim());
             cmd.Parameters.AddWithValue("@rs",  string.IsNullOrWhiteSpace(txtRazonSocial.Text) ? DBNull.Value : txtRazonSocial.Text.Trim());
+            cmd.Parameters.AddWithValue("@cf",  cmbCondicionFiscal.SelectedItem?.ToString() ?? "Consumidor Final");
             cmd.Parameters.AddWithValue("@a",   chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@id",  id);
             cmd.ExecuteNonQuery();
@@ -327,6 +336,15 @@ namespace Cantina_Padel
             txtCuit.Text       = row.Cells["cuit"].Value?.ToString() ?? "";
             txtRazonSocial.Text = row.Cells["razon_social"].Value?.ToString() ?? "";
 
+            string cond = row.Cells["condicion_fiscal"].Value?.ToString() ?? "";
+            if (string.IsNullOrWhiteSpace(cond))
+            {
+                string rs = row.Cells["razon_social"].Value?.ToString() ?? "";
+                cond = !string.IsNullOrWhiteSpace(rs) ? "Responsable Inscripto" : "Consumidor Final";
+            }
+            cmbCondicionFiscal.SelectedItem = cond;
+            ActualizarVisibilidadCamposFiscales();
+
             chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
             Guardar_Boton.Text = "Guardar Cambios";
         }
@@ -341,7 +359,7 @@ namespace Cantina_Padel
                 string filtro = txtBuscar.Text.Replace("'", "''");
                 dt.DefaultView.RowFilter =
                     $"nombre LIKE '%{filtro}%' OR apellido LIKE '%{filtro}%' OR dni LIKE '%{filtro}%' " +
-                    $"OR telefono LIKE '%{filtro}%' OR email LIKE '%{filtro}%' OR razon_social LIKE '%{filtro}%'";
+                    $"OR telefono LIKE '%{filtro}%' OR email LIKE '%{filtro}%' OR razon_social LIKE '%{filtro}%' OR condicion_fiscal LIKE '%{filtro}%'";
             }
         }
 
@@ -359,6 +377,8 @@ namespace Cantina_Padel
             txtDireccion.Text    = "";
             txtCuit.Text         = "";
             txtRazonSocial.Text  = "";
+            cmbCondicionFiscal.SelectedIndex = 0;
+            ActualizarVisibilidadCamposFiscales();
             chkActivo.Checked    = true;
             Guardar_Boton.Text   = "Crear Cliente";
         }
@@ -371,6 +391,37 @@ namespace Cantina_Padel
         private void Volver_Boton_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+        private void cmbCondicionFiscal_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ActualizarVisibilidadCamposFiscales();
+        }
+
+        private void ActualizarVisibilidadCamposFiscales()
+        {
+            string seleccion = cmbCondicionFiscal.SelectedItem?.ToString() ?? "Consumidor Final";
+            bool requiereDatosFiscales = seleccion == "Monotributista" || seleccion == "Responsable Inscripto";
+
+            lblCuit.Visible = requiereDatosFiscales;
+            txtCuit.Visible = requiereDatosFiscales;
+            lblRazonSocial.Visible = requiereDatosFiscales;
+            txtRazonSocial.Visible = requiereDatosFiscales;
+
+            if (!requiereDatosFiscales)
+            {
+                txtCuit.Text = "";
+                txtRazonSocial.Text = "";
+            }
+        }
+
+        private void AsegurarColumnaCondicionFiscal(MySqlConnection conn)
+        {
+            try
+            {
+                using MySqlCommand cmd = new MySqlCommand("ALTER TABLE persona ADD COLUMN condicion_fiscal VARCHAR(50) DEFAULT 'Consumidor Final'", conn);
+                cmd.ExecuteNonQuery();
+            }
+            catch { }
         }
     }
 }

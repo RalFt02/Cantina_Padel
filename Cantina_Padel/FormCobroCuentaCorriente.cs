@@ -116,6 +116,11 @@ namespace Cantina_Padel
 
                 txtSaldoAFavor.Text = _saldoFavorActual.ToString("C2");
 
+                // Requerimiento: mostrar monto con el saldo a favor ya restado (para no calcular a mano)
+                decimal saldoNeto = Math.Max(0m, _saldoDeudorActual - _saldoFavorActual);
+                lblSaldoNetoValor.Text = saldoNeto.ToString("C2");
+                lblSaldoNetoValor.ForeColor = saldoNeto > 0 ? Color.FromArgb(250, 204, 21) : Color.FromArgb(163, 230, 53);
+
                 // Cargar cargos pendientes ordenados DE MENOR A MAYOR COSTO
                 DataTable dtCargos = GestorVentas.ObtenerCargosPendientes(idCliente);
                 gridMovimientos.DataSource = dtCargos;
@@ -148,7 +153,7 @@ namespace Cantina_Padel
                     gridMovimientos.Columns["estado"].Width = 70;
                 }
 
-                txtMonto.Text = "";
+                txtMonto.Text = saldoNeto > 0 ? saldoNeto.ToString("0.00", CultureInfo.InvariantCulture) : "0.00";
             }
             catch (Exception ex)
             {

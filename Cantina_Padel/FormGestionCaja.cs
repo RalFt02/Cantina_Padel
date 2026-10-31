@@ -129,6 +129,17 @@ namespace Cantina_Padel
             decimal extracciones = CajaService.ObtenerTotalRetiros(_idSesionActual.Value);
             lblTotalExtracciones.Text      = $"$ {extracciones:N2}";
             lblTotalExtracciones.ForeColor = Color.White;
+
+            // Requerimiento: distintos campos que muestran cuánto se factura en efectivo, débito, crédito y billetera virtual
+            decimal factEfectivo = CajaService.ObtenerTotalVentasPorMedioPago(_idSesionActual.Value, "Efectivo");
+            decimal factDebito = CajaService.ObtenerTotalVentasPorMedioPago(_idSesionActual.Value, "Tarjeta de Débito");
+            decimal factCredito = CajaService.ObtenerTotalVentasPorMedioPago(_idSesionActual.Value, "Tarjeta de Crédito");
+            decimal factBilletera = CajaService.ObtenerTotalVentasPorMedioPago(_idSesionActual.Value, "Billetera Virtual");
+
+            lblFactEfectivoValor.Text = factEfectivo.ToString("C2");
+            lblFactDebitoValor.Text = factDebito.ToString("C2");
+            lblFactCreditoValor.Text = factCredito.ToString("C2");
+            lblFactBilleteraValor.Text = factBilletera.ToString("C2");
         }
 
         /// <summary>Deja el monto de cierre en su estado vacío ("Cerrada").</summary>
@@ -139,6 +150,11 @@ namespace Cantina_Padel
 
             lblTotalExtracciones.Text      = "Cerrada";
             lblTotalExtracciones.ForeColor = Color.Gray;
+
+            lblFactEfectivoValor.Text = "-";
+            lblFactDebitoValor.Text = "-";
+            lblFactCreditoValor.Text = "-";
+            lblFactBilleteraValor.Text = "-";
         }
 
         private decimal ObtenerMontoInicio()

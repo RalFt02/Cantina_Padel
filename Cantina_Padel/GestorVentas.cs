@@ -14,6 +14,7 @@ namespace Cantina_Padel
         public decimal PrecioUnitario { get; set; }
         public int StockDisponible { get; set; }
         public decimal Subtotal => Cantidad * PrecioUnitario;
+        public int? IdReserva { get; set; }
     }
 
     public class CargoPendiente
@@ -58,6 +59,7 @@ namespace Cantina_Padel
                 EjecutarSqlSeguro(conn, "ALTER TABLE movimiento_cuenta_corriente ADD COLUMN id_producto INT NULL");
                 EjecutarSqlSeguro(conn, "ALTER TABLE movimiento_cuenta_corriente ADD COLUMN id_venta INT NULL");
                 EjecutarSqlSeguro(conn, "ALTER TABLE movimiento_cuenta_corriente ADD COLUMN medio_pago VARCHAR(50) NULL");
+                EjecutarSqlSeguro(conn, "ALTER TABLE persona ADD COLUMN condicion_fiscal VARCHAR(50) DEFAULT 'Consumidor Final'");
 
                 // 3. Crear cuenta corriente para clientes que no la tengan
                 const string sqlCrearCC = @"
@@ -136,10 +138,7 @@ namespace Cantina_Padel
                 return "Seleccioná un producto.";
             if (cantidad <= 0)
                 return "La cantidad debe ser mayor a 0.";
-            if (stockDisponible <= 0)
-                return "El producto no tiene stock disponible.";
-            if (cantidad > stockDisponible)
-                return $"Stock insuficiente. Solo hay {stockDisponible} unidades disponibles.";
+            // La restricción de stock fue eliminada para permitir ventas con stock negativo
             if (precioUnitario <= 0)
                 return "El precio del producto debe ser mayor a 0.";
             if (precioUnitario > PRECIO_MAXIMO || cantidad * precioUnitario > PRECIO_MAXIMO)
@@ -253,16 +252,45 @@ namespace Cantina_Padel
                         cmdDet.ExecuteNonQuery();
                     }
 
-                    const string queryStock = @"
-                        UPDATE producto
-                        SET stock = stock - @cant
-                        WHERE id_producto = @prod AND stock >= @cant";
-                    using (MySqlCommand cmdStock = new MySqlCommand(queryStock, conn, tx))
+                    // Descontar stock (permite stock negativo según requerimiento)
+                    if (linea.IdProducto != 998 && linea.IdProducto != 999)
                     {
-                        cmdStock.Parameters.AddWithValue("@cant", linea.Cantidad);
-                        cmdStock.Parameters.AddWithValue("@prod", linea.IdProducto);
-                        if (cmdStock.ExecuteNonQuery() == 0)
-                            throw new InvalidOperationException($"Stock insuficiente para '{linea.Nombre}'.");
+                        const string queryStock = @"
+                            UPDATE producto
+                            SET stock = stock - @cant
+                            WHERE id_producto = @prod";
+                        using (MySqlCommand cmdStock = new MySqlCommand(queryStock, conn, tx))
+                        {
+                            cmdStock.Parameters.AddWithValue("@cant", linea.Cantidad);
+                            cmdStock.Parameters.AddWithValue("@prod", linea.IdProducto);
+                            cmdStock.ExecuteNonQuery();
+                        }
+                    }
+
+                    // Si la línea corresponde a una reserva de cancha, marcarla como pagada
+                    if (linea.IdReserva.HasValue)
+                    {
+                        const string sqlInsRP = "INSERT IGNORE INTO reserva_pagada (id_reserva, id_venta, id_usuario) VALUES (@id, @idVenta, @usu)";
+                        using (MySqlCommand cmdRP = new MySqlCommand(sqlInsRP, conn, tx))
+                        {
+                            cmdRP.Parameters.AddWithValue("@id", linea.IdReserva.Value);
+                            cmdRP.Parameters.AddWithValue("@idVenta", idVenta);
+                            cmdRP.Parameters.AddWithValue("@usu", idUsuario);
+                            cmdRP.ExecuteNonQuery();
+                        }
+
+                        try
+                        {
+                            using MySqlCommand cmdUpdRes = new MySqlCommand("UPDATE reserva SET estado = 'Pagada' WHERE id_reserva = @id", conn, tx);
+                            cmdUpdRes.Parameters.AddWithValue("@id", linea.IdReserva.Value);
+                            cmdUpdRes.ExecuteNonQuery();
+                        }
+                        catch
+                        {
+                            using MySqlCommand cmdUpdRes2 = new MySqlCommand("UPDATE reserva SET estado = 'Confirmada' WHERE id_reserva = @id", conn, tx);
+                            cmdUpdRes2.Parameters.AddWithValue("@id", linea.IdReserva.Value);
+                            cmdUpdRes2.ExecuteNonQuery();
+                        }
                     }
                 }
 
@@ -660,7 +688,8 @@ namespace Cantina_Padel
                 INNER JOIN persona p ON p.id_persona = cl.id_persona
                 INNER JOIN cancha c ON c.id_cancha = r.id_cancha
                 WHERE r.estado NOT IN ('Cancelada', 'Pagada')
-                  AND r.id_reserva NOT IN (SELECT id_reserva FROM reserva_pagada)";
+                  AND r.id_reserva NOT IN (SELECT id_reserva FROM reserva_pagada)
+                  AND r.fecha = CURDATE()";
 
             if (idCliente.HasValue && idCliente.Value > 0)
             {
@@ -944,9 +973,9 @@ namespace Cantina_Padel
                        producto.nombre,
                        producto.precio_venta,
                        producto.stock,
-                       CONCAT(producto.nombre, ' (Stock: ', producto.stock, ' - $', producto.precio_venta, ')') AS descripcion
+                       producto.nombre AS descripcion
                 FROM producto
-                WHERE producto.activo = 1 AND producto.stock > 0 AND producto.id_producto NOT IN (998, 999)
+                WHERE producto.activo = 1 AND producto.id_producto NOT IN (998, 999)
                 ORDER BY producto.nombre";
 
             return LlenarTabla(query);
@@ -962,7 +991,9 @@ namespace Cantina_Padel
                        CONCAT(p.apellido, ', ', p.nombre, ' (DNI: ', p.dni, ')') AS nombre_completo,
                        p.email,
                        p.dni,
-                       p.cuit
+                       p.cuit,
+                       p.razon_social,
+                       COALESCE(p.condicion_fiscal, CASE WHEN p.razon_social IS NOT NULL AND p.razon_social <> '' THEN 'Responsable Inscripto' ELSE 'Consumidor Final' END) AS condicion_fiscal
                 FROM cliente c
                 INNER JOIN persona p ON p.id_persona = c.id_persona
                 WHERE p.activo = 1 AND c.id_cliente <> 9999
@@ -978,6 +1009,8 @@ namespace Cantina_Padel
                 rowCF["email"] = "";
                 rowCF["dni"] = "0";
                 rowCF["cuit"] = "-";
+                rowCF["razon_social"] = "";
+                rowCF["condicion_fiscal"] = "Consumidor Final";
                 dt.Rows.InsertAt(rowCF, 0);
             }
 
@@ -1080,6 +1113,104 @@ namespace Cantina_Padel
             using MySqlDataAdapter da = new MySqlDataAdapter(cmd);
             da.Fill(dt);
             return dt;
+        }
+        /// <summary>
+        /// Actualiza el precio de los cargos pendientes en cuenta corriente cuando se modifica el precio del producto.
+        /// </summary>
+        public static void ActualizarPreciosCuentaCorrienteProducto(MySqlConnection conn, MySqlTransaction tx, int idProducto, decimal nuevoPrecioVenta)
+        {
+            AsegurarTablas();
+
+            List<int> cuentasAfectadas = new List<int>();
+            List<int> ventasAfectadas = new List<int>();
+
+            const string sqlBuscar = @"
+                SELECT DISTINCT id_cuenta, id_venta 
+                FROM movimiento_cuenta_corriente 
+                WHERE id_producto = @prod 
+                  AND tipo_movimiento = 'Cargo' 
+                  AND estado = 'Pendiente'";
+
+            using (MySqlCommand cmdBuscar = new MySqlCommand(sqlBuscar, conn, tx))
+            {
+                cmdBuscar.Parameters.AddWithValue("@prod", idProducto);
+                using MySqlDataReader r = cmdBuscar.ExecuteReader();
+                while (r.Read())
+                {
+                    if (!r.IsDBNull(r.GetOrdinal("id_cuenta")))
+                    {
+                        int c = r.GetInt32("id_cuenta");
+                        if (!cuentasAfectadas.Contains(c)) cuentasAfectadas.Add(c);
+                    }
+                    if (!r.IsDBNull(r.GetOrdinal("id_venta")))
+                    {
+                        int v = r.GetInt32("id_venta");
+                        if (!ventasAfectadas.Contains(v)) ventasAfectadas.Add(v);
+                    }
+                }
+            }
+
+            if (cuentasAfectadas.Count == 0 && ventasAfectadas.Count == 0) return;
+
+            // Actualizar detalle_venta y venta.total para ventas pendientes
+            foreach (int idVenta in ventasAfectadas)
+            {
+                const string sqlUpdDet = @"
+                    UPDATE detalle_venta 
+                    SET precio_unitario = @p,
+                        total = cantidad * @p
+                    WHERE id_venta = @venta AND id_producto = @prod";
+                using (MySqlCommand cmdUpdDet = new MySqlCommand(sqlUpdDet, conn, tx))
+                {
+                    cmdUpdDet.Parameters.AddWithValue("@p", nuevoPrecioVenta);
+                    cmdUpdDet.Parameters.AddWithValue("@venta", idVenta);
+                    cmdUpdDet.Parameters.AddWithValue("@prod", idProducto);
+                    cmdUpdDet.ExecuteNonQuery();
+                }
+
+                const string sqlUpdVenta = @"
+                    UPDATE venta 
+                    SET total = (SELECT COALESCE(SUM(total), 0) FROM detalle_venta WHERE id_venta = @venta)
+                    WHERE id_venta = @venta";
+                using MySqlCommand cmdUpdVenta = new MySqlCommand(sqlUpdVenta, conn, tx);
+                cmdUpdVenta.Parameters.AddWithValue("@venta", idVenta);
+                cmdUpdVenta.ExecuteNonQuery();
+            }
+
+            // Actualizar importes en movimiento_cuenta_corriente
+            const string sqlUpdMov = @"
+                UPDATE movimiento_cuenta_corriente m
+                LEFT JOIN detalle_venta dv ON dv.id_venta = m.id_venta AND dv.id_producto = m.id_producto
+                SET m.importe = CASE WHEN dv.cantidad IS NOT NULL THEN dv.cantidad * @p ELSE @p END
+                WHERE m.id_producto = @prod
+                  AND m.tipo_movimiento = 'Cargo'
+                  AND m.estado = 'Pendiente'";
+            using (MySqlCommand cmdUpdMov = new MySqlCommand(sqlUpdMov, conn, tx))
+            {
+                cmdUpdMov.Parameters.AddWithValue("@p", nuevoPrecioVenta);
+                cmdUpdMov.Parameters.AddWithValue("@prod", idProducto);
+                cmdUpdMov.ExecuteNonQuery();
+            }
+
+            // Recalcular saldo adeudado en cada cuenta corriente afectada
+            foreach (int idCuenta in cuentasAfectadas)
+            {
+                const string sqlUpdSaldo = @"
+                    UPDATE cuenta_corriente 
+                    SET saldo = (
+                        SELECT COALESCE(SUM(importe), 0) 
+                        FROM movimiento_cuenta_corriente 
+                        WHERE id_cuenta = @cta 
+                          AND tipo_movimiento = 'Cargo' 
+                          AND estado = 'Pendiente'
+                    )
+                    WHERE id_cuenta = @cta";
+                using (MySqlCommand cmdUpdSaldo = new MySqlCommand(sqlUpdSaldo, conn, tx))
+                {
+                    cmdUpdSaldo.Parameters.AddWithValue("@cta", idCuenta);
+                    cmdUpdSaldo.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

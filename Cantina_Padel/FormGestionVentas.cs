@@ -40,8 +40,8 @@ namespace Cantina_Padel
 
             InitializeComponent();
 
-            ConfigurarGrilla(gridVentas);
-            ConfigurarGrilla(gridDetalle);
+            
+            
             ConfigurarGrilla(gridItems);
 
             CargarMediosDePago();
@@ -49,7 +49,6 @@ namespace Cantina_Padel
             CargarClientes();
             CargarProductos();
             ActualizarEstadoCaja();
-            CargarVentas();
             RefrescarItems();
 
             this.Shown += (s, e) => txtBuscador.Focus();
@@ -99,13 +98,64 @@ namespace Cantina_Padel
 
             if (_idSesionCajaActual.HasValue)
             {
-                lblEstadoCaja.Text = $"● Caja abierta (Sesión #{_idSesionCajaActual.Value})";
+                lblEstadoCaja.Text = $"● Caja abierta";
                 lblEstadoCaja.ForeColor = Color.FromArgb(163, 230, 53);
             }
             else
             {
                 lblEstadoCaja.Text = "● Sin caja abierta (Se requiere abrir caja para operar)";
                 lblEstadoCaja.ForeColor = Color.FromArgb(239, 68, 68);
+            }
+        }
+
+        private void cmbCliente_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ActualizarComprobantesSegunCliente();
+        }
+
+        private void ActualizarComprobantesSegunCliente()
+        {
+            string condicion = "Consumidor Final";
+            string razonSocial = "";
+
+            if (cmbCliente.SelectedItem is DataRowView drv)
+            {
+                if (drv.Row.Table.Columns.Contains("condicion_fiscal") && drv["condicion_fiscal"] != DBNull.Value)
+                    condicion = drv["condicion_fiscal"].ToString() ?? "Consumidor Final";
+                if (drv.Row.Table.Columns.Contains("razon_social") && drv["razon_social"] != DBNull.Value)
+                    razonSocial = drv["razon_social"].ToString() ?? "";
+            }
+
+            int? idCliente = ObtenerIdSeleccionado(cmbCliente);
+            if (!idCliente.HasValue || idCliente.Value == 9999)
+            {
+                condicion = "Consumidor Final";
+            }
+            else if (string.IsNullOrWhiteSpace(condicion) && !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                condicion = "Responsable Inscripto";
+            }
+
+            string comprobanteActual = cmbComprobante.SelectedItem?.ToString() ?? "";
+            cmbComprobante.Items.Clear();
+
+            if (condicion.Equals("Responsable Inscripto", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                cmbComprobante.Items.Add("Factura A");
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.SelectedIndex = comprobanteActual == "Factura B" ? 1 : 0;
+            }
+            else if (condicion.Equals("Monotributista", StringComparison.OrdinalIgnoreCase))
+            {
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.Items.Add("Factura A");
+                cmbComprobante.SelectedIndex = comprobanteActual == "Factura A" ? 1 : 0;
+            }
+            else // Consumidor Final
+            {
+                cmbComprobante.Items.Add("Ticket");
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.SelectedIndex = comprobanteActual == "Factura B" ? 1 : 0;
             }
         }
 
@@ -120,6 +170,7 @@ namespace Cantina_Padel
                 cmbCliente.DataSource = dt;
                 if (cmbCliente.Items.Count > 0)
                     cmbCliente.SelectedIndex = 0;
+                ActualizarComprobantesSegunCliente();
             }
             catch (Exception ex)
             {
@@ -134,7 +185,7 @@ namespace Cantina_Padel
                 _dtProductos = GestorVentas.ObtenerProductos();
                 _dvProductos = new DataView(_dtProductos);
 
-                cmbProducto.DisplayMember = "descripcion";
+                cmbProducto.DisplayMember = "nombre";
                 cmbProducto.ValueMember = "id_producto";
                 cmbProducto.DataSource = _dvProductos;
 
@@ -275,16 +326,7 @@ namespace Cantina_Padel
             int idProducto = Convert.ToInt32(fila["id_producto"]);
             string nombre = fila["nombre"].ToString() ?? "";
             decimal precio = Convert.ToDecimal(fila["precio_venta"]);
-            int stockDisponible = Convert.ToInt32(fila["stock"]);
-
-            if (stockDisponible <= 0)
-            {
-                MostrarAviso($"El producto '{nombre}' no tiene stock disponible.");
-                return;
-            }
-
-            // Seleccionar en combo para sincronizar la vista
-            cmbProducto.SelectedValue = idProducto;
+            int stockDisponible = fila.Table.Columns.Contains("stock") && fila["stock"] != DBNull.Value ? Convert.ToInt32(fila["stock"]) : 0;
 
             // Leer primero la cantidad ingresada en la casilla de cantidad (ej. si puso 5, toma 5)
             int cantAAgregar = 1;
@@ -293,25 +335,14 @@ namespace Cantina_Padel
                 cantAAgregar = cantIngresada;
             }
 
-            // Verificar si ya está en el carrito
+            // Verificar si ya está en el carrito (se eliminó restricción de stock para permitir stock negativo)
             var existente = _lineas.FirstOrDefault(l => l.IdProducto == idProducto);
             if (existente != null)
             {
-                if (existente.Cantidad + cantAAgregar > stockDisponible)
-                {
-                    MostrarAviso($"No hay suficiente stock de '{nombre}'. Stock disponible: {stockDisponible}, en carrito: {existente.Cantidad}, intentás sumar: {cantAAgregar}.");
-                    return;
-                }
                 existente.Cantidad += cantAAgregar;
             }
             else
             {
-                if (cantAAgregar > stockDisponible)
-                {
-                    MostrarAviso($"Stock insuficiente para '{nombre}'. Hay {stockDisponible} unidades disponibles e intentás agregar {cantAAgregar}.");
-                    return;
-                }
-
                 _lineas.Add(new LineaVenta
                 {
                     IdProducto = idProducto,
@@ -322,11 +353,16 @@ namespace Cantina_Padel
                 });
             }
 
+            // Mostrar el último producto escaneado / seleccionado en el control de abajo
+            if (_dvProductos != null) _dvProductos.RowFilter = "";
+            cmbProducto.SelectedValue = idProducto;
+            ActualizarPrecioDesdeProducto();
+
             // Restablecer la casilla de cantidad a 1 para el próximo escaneo
             txtCantidad.Text = "1";
 
             SystemSounds.Beep.Play();
-            RefrescarItems();
+            RefrescarItems(idProducto);
         }
 
         private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
@@ -351,76 +387,11 @@ namespace Cantina_Padel
         //  CARGA DE VENTAS Y DETALLE
         // ─────────────────────────────────────────────
 
-        private void CargarVentas()
-        {
-            try
-            {
-                gridVentas.DataSource = GestorVentas.ObtenerVentas();
-
-                if (gridVentas.Columns.Contains("id_venta"))
-                {
-                    gridVentas.Columns["id_venta"].HeaderText = "ID";
-                    gridVentas.Columns["fecha"].HeaderText = "Fecha";
-                    gridVentas.Columns["comprobante"].HeaderText = "Tipo";
-                    gridVentas.Columns["numero"].HeaderText = "N° Comp.";
-                    gridVentas.Columns["cliente"].HeaderText = "Cliente";
-                    gridVentas.Columns["medio_pago"].HeaderText = "Pago";
-                    gridVentas.Columns["total"].HeaderText = "Total";
-                    gridVentas.Columns["cajero"].HeaderText = "Cajero";
-
-                    gridVentas.Columns["id_venta"].Width = 40;
-                    gridVentas.Columns["fecha"].Width = 110;
-                    gridVentas.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
-                    gridVentas.Columns["comprobante"].Width = 75;
-                    gridVentas.Columns["numero"].Width = 115;
-                    gridVentas.Columns["cliente"].Width = 140;
-                    gridVentas.Columns["medio_pago"].Width = 90;
-                    gridVentas.Columns["total"].Width = 85;
-                    gridVentas.Columns["total"].DefaultCellStyle.Format = "C2";
-                    gridVentas.Columns["cajero"].Width = 80;
-                }
-
-                _idVentaSeleccionada = null;
-                gridDetalle.DataSource = null;
-            }
-            catch (Exception ex)
-            {
-                MostrarError("Error al cargar ventas:\n" + ex.Message);
-            }
-        }
-
-        private void CargarDetalle(int idVenta)
-        {
-            try
-            {
-                gridDetalle.DataSource = GestorVentas.ObtenerDetalleVenta(idVenta);
-
-                if (gridDetalle.Columns.Contains("producto"))
-                {
-                    gridDetalle.Columns["producto"].HeaderText = "Producto / Concepto";
-                    gridDetalle.Columns["cantidad"].HeaderText = "Cant.";
-                    gridDetalle.Columns["precio_unitario"].HeaderText = "Precio unit.";
-                    gridDetalle.Columns["subtotal"].HeaderText = "Subtotal";
-
-                    gridDetalle.Columns["producto"].Width = 230;
-                    gridDetalle.Columns["cantidad"].Width = 60;
-                    gridDetalle.Columns["precio_unitario"].Width = 110;
-                    gridDetalle.Columns["precio_unitario"].DefaultCellStyle.Format = "C2";
-                    gridDetalle.Columns["subtotal"].Width = 110;
-                    gridDetalle.Columns["subtotal"].DefaultCellStyle.Format = "C2";
-                }
-            }
-            catch (Exception ex)
-            {
-                MostrarError("Error al cargar detalle:\n" + ex.Message);
-            }
-        }
-
         // ─────────────────────────────────────────────
         //  CARRITO
         // ─────────────────────────────────────────────
 
-        private void RefrescarItems()
+        private void RefrescarItems(int? idProductoSeleccionado = null)
         {
             gridItems.DataSource = null;
             gridItems.DataSource = new BindingList<LineaVenta>(_lineas);
@@ -429,18 +400,48 @@ namespace Cantina_Padel
             {
                 gridItems.Columns["IdProducto"].Visible = false;
                 gridItems.Columns["StockDisponible"].Visible = false;
+                if (gridItems.Columns.Contains("IdReserva"))
+                    gridItems.Columns["IdReserva"].Visible = false;
 
                 gridItems.Columns["Nombre"].HeaderText = "Producto";
                 gridItems.Columns["Cantidad"].HeaderText = "Cant.";
                 gridItems.Columns["PrecioUnitario"].HeaderText = "Precio unit.";
                 gridItems.Columns["Subtotal"].HeaderText = "Subtotal";
 
-                gridItems.Columns["Nombre"].Width = 240;
-                gridItems.Columns["Cantidad"].Width = 60;
-                gridItems.Columns["PrecioUnitario"].Width = 100;
+                gridItems.Columns["Nombre"].Width = 260;
+                gridItems.Columns["Cantidad"].Width = 65;
+                gridItems.Columns["PrecioUnitario"].Width = 115;
                 gridItems.Columns["PrecioUnitario"].DefaultCellStyle.Format = "C2";
-                gridItems.Columns["Subtotal"].Width = 110;
+                gridItems.Columns["Subtotal"].Width = 115;
                 gridItems.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
+            }
+
+            // En los productos agregados, seleccionar automáticamente el último producto escaneado / agregado
+            if (gridItems.Rows.Count > 0)
+            {
+                int filaASeleccionar = -1;
+                if (idProductoSeleccionado.HasValue)
+                {
+                    for (int i = 0; i < gridItems.Rows.Count; i++)
+                    {
+                        if (gridItems.Rows[i].DataBoundItem is LineaVenta lv && lv.IdProducto == idProductoSeleccionado.Value)
+                        {
+                            filaASeleccionar = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (filaASeleccionar == -1)
+                {
+                    filaASeleccionar = gridItems.Rows.Count - 1;
+                }
+
+                gridItems.ClearSelection();
+                gridItems.Rows[filaASeleccionar].Selected = true;
+                if (gridItems.Columns.Contains("Nombre"))
+                    gridItems.CurrentCell = gridItems.Rows[filaASeleccionar].Cells["Nombre"];
+                gridItems.FirstDisplayedScrollingRowIndex = filaASeleccionar;
             }
 
             ActualizarTotal();
@@ -448,7 +449,7 @@ namespace Cantina_Padel
 
         private void ActualizarTotal()
         {
-            lblTotal.Text = "Total: " + GestorVentas.CalcularTotal(_lineas).ToString("C2");
+            lblTotal.Text = "TOTAL A PAGAR: " + GestorVentas.CalcularTotal(_lineas).ToString("C2");
         }
 
         private void AgregarItem()
@@ -486,7 +487,7 @@ namespace Cantina_Padel
                 return;
             }
 
-            RefrescarItems();
+            RefrescarItems(idProducto.Value);
             LimpiarCamposItem();
             txtBuscador.Focus();
         }
@@ -575,7 +576,6 @@ namespace Cantina_Padel
                 }
 
                 LimpiarNuevaVenta();
-                CargarVentas();
                 CargarProductos();
                 txtBuscador.Focus();
             }
@@ -591,41 +591,24 @@ namespace Cantina_Padel
 
         private void btnImprimir_Click(object sender, EventArgs e)
         {
-            if (!_idVentaSeleccionada.HasValue)
+            if (_ultimoComprobante == null)
             {
-                if (_ultimoComprobante != null)
-                {
-                    ComprobanteService.Imprimir(_ultimoComprobante, this);
-                    return;
-                }
-                MostrarAviso("Seleccioná una venta de la lista para imprimir su comprobante.");
+                MostrarAviso("No hay un comprobante de venta reciente para imprimir.");
                 return;
             }
 
-            DatosComprobante datos = GestorVentas.ObtenerDatosComprobante(_idVentaSeleccionada.Value);
-            ComprobanteService.Imprimir(datos, this);
+            ComprobanteService.Imprimir(_ultimoComprobante, this);
         }
 
         private void btnEnviarMail_Click(object sender, EventArgs e)
         {
-            DatosComprobante? datos = null;
-
-            if (_idVentaSeleccionada.HasValue)
+            if (_ultimoComprobante == null)
             {
-                datos = GestorVentas.ObtenerDatosComprobante(_idVentaSeleccionada.Value);
-            }
-            else if (_ultimoComprobante != null)
-            {
-                datos = _ultimoComprobante;
-            }
-
-            if (datos == null)
-            {
-                MostrarAviso("Seleccioná una venta de la lista para enviarla por email.");
+                MostrarAviso("No hay un comprobante de venta reciente para enviar por email.");
                 return;
             }
 
-            FormEnviarMail f = new FormEnviarMail(datos);
+            FormEnviarMail f = new FormEnviarMail(_ultimoComprobante);
             f.ShowDialog(this);
         }
 
@@ -643,9 +626,43 @@ namespace Cantina_Padel
                 return;
             }
 
-            FormCobroCanchas formCanchas = new FormCobroCanchas(_idUsuario);
-            formCanchas.ShowDialog(this);
-            CargarVentas();
+            using FormCobroCanchas formCanchas = new FormCobroCanchas(_idUsuario);
+            if (formCanchas.ShowDialog(this) == DialogResult.OK && formCanchas.TurnosParaVenta.Count > 0)
+            {
+                int agregados = 0;
+                foreach (var turno in formCanchas.TurnosParaVenta)
+                {
+                    if (_lineas.Any(l => l.IdReserva == turno.IdReserva))
+                    {
+                        MostrarAviso($"El turno {turno.Cancha} ({turno.Horario}) ya está cargado en el carrito.");
+                        continue;
+                    }
+
+                    string nombreItem = $"Alquiler Cancha: {turno.Cancha} ({turno.Horario})";
+                    _lineas.Add(new LineaVenta
+                    {
+                        IdProducto = 999,
+                        Nombre = nombreItem,
+                        Cantidad = 1,
+                        PrecioUnitario = turno.Precio,
+                        StockDisponible = 9999,
+                        IdReserva = turno.IdReserva
+                    });
+
+                    if (turno.IdCliente > 0 && turno.IdCliente != 9999)
+                    {
+                        cmbCliente.SelectedValue = turno.IdCliente;
+                    }
+
+                    agregados++;
+                }
+
+                if (agregados > 0)
+                {
+                    RefrescarItems(999);
+                    MostrarAviso($"{agregados} turno(s) de cancha agregado(s) a los productos de la venta. Cobrar seleccionando medio de pago y confirmando la venta.");
+                }
+            }
         }
 
         private void btnCuentaCorriente_Click(object sender, EventArgs e)
@@ -663,51 +680,6 @@ namespace Cantina_Padel
 
             FormCobroCuentaCorriente formCC = new FormCobroCuentaCorriente(_idUsuario, idCliente);
             formCC.ShowDialog(this);
-            CargarVentas();
-        }
-
-        // ─────────────────────────────────────────────
-        //  ANULACIÓN DE VENTA
-        // ─────────────────────────────────────────────
-
-        private void EliminarVentaSeleccionada()
-        {
-            if (_idVentaSeleccionada == null)
-            {
-                MostrarAviso("Seleccioná una venta de la lista para anularla.");
-                return;
-            }
-
-            DialogResult confirm = MessageBox.Show(
-                $"¿Estás seguro de anular la venta N° {_idVentaSeleccionada}?\n" +
-                "Se reintegrará el stock de los productos vendidos y se eliminará el registro.",
-                "Confirmar anulación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-            if (confirm != DialogResult.Yes) return;
-
-            try
-            {
-                GestorVentas.EliminarVenta(_idVentaSeleccionada.Value);
-
-                MessageBox.Show("Venta anulada con éxito.", "Listo",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                CargarVentas();
-                CargarProductos();
-            }
-            catch (Exception ex)
-            {
-                MostrarError("Error al anular la venta:\n" + ex.Message);
-            }
-        }
-
-        private void SeleccionarVenta(int indiceFila)
-        {
-            if (indiceFila < 0 || indiceFila >= gridVentas.Rows.Count) return;
-            var fila = gridVentas.Rows[indiceFila];
-
-            _idVentaSeleccionada = Convert.ToInt32(fila.Cells["id_venta"].Value);
-            CargarDetalle(_idVentaSeleccionada.Value);
         }
 
         private void LimpiarCamposItem()
@@ -738,11 +710,6 @@ namespace Cantina_Padel
             MessageBox.Show(mensaje, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
-        private void gridVentas_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            SeleccionarVenta(e.RowIndex);
-        }
-
         private void Agregar_Boton_Click(object sender, EventArgs e)
         {
             AgregarItem();
@@ -760,16 +727,25 @@ namespace Cantina_Padel
 
         private void Limpiar_Boton_Click(object sender, EventArgs e)
         {
+            if (_lineas.Count > 0)
+            {
+                DialogResult confirm = MessageBox.Show(
+                    "Hay productos cargados en el carrito.\n¿Está seguro de que desea limpiar la venta actual y vaciar el carrito?",
+                    "Confirmar limpieza", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes) return;
+            }
             LimpiarNuevaVenta();
-        }
-
-        private void Eliminar_Boton_Click(object sender, EventArgs e)
-        {
-            EliminarVentaSeleccionada();
         }
 
         private void Volver_Boton_Click(object sender, EventArgs e)
         {
+            if (_lineas.Count > 0)
+            {
+                MessageBox.Show(
+                    "Hay productos cargados en la venta actual. Debe terminar la compra o limpiar el carrito antes de salir.",
+                    "Compra en curso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
             this.Close();
         }
     }

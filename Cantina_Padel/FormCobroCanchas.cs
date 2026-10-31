@@ -11,7 +11,7 @@ namespace Cantina_Padel
         private readonly int _idUsuario;
         private decimal _totalSeleccionado = 0m;
         private readonly List<int> _reservasSeleccionadas = new List<int>();
-        private DatosComprobante? _ultimoComprobante;
+        public List<TurnoCanchaSeleccionado> TurnosParaVenta { get; } = new List<TurnoCanchaSeleccionado>();
 
         public FormCobroCanchas(int idUsuario)
         {
@@ -28,8 +28,6 @@ namespace Cantina_Padel
             InitializeComponent();
 
             ConfigurarGrilla(gridReservas);
-            CargarMediosDePago();
-            CargarComprobantes();
             CargarClientes();
             CargarReservas();
         }
@@ -45,27 +43,6 @@ namespace Cantina_Padel
             grid.DefaultCellStyle.ForeColor = Color.White;
             grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(163, 230, 53);
             grid.DefaultCellStyle.SelectionForeColor = Color.Black;
-        }
-
-        private void CargarMediosDePago()
-        {
-            cmbMedioPago.Items.Clear();
-            cmbMedioPago.Items.Add("Efectivo");
-            cmbMedioPago.Items.Add("Tarjeta de Débito");
-            cmbMedioPago.Items.Add("Tarjeta de Crédito");
-            cmbMedioPago.Items.Add("Billetera Virtual");
-            cmbMedioPago.Items.Add("Cuenta Corriente");
-            cmbMedioPago.SelectedIndex = 0;
-        }
-
-        private void CargarComprobantes()
-        {
-            cmbComprobante.Items.Clear();
-            cmbComprobante.Items.Add("Ticket");
-            cmbComprobante.Items.Add("Factura B");
-            cmbComprobante.Items.Add("Factura C");
-            cmbComprobante.Items.Add("Factura A");
-            cmbComprobante.SelectedIndex = 0;
         }
 
         private void CargarClientes()
@@ -181,92 +158,64 @@ namespace Cantina_Padel
             CargarReservas();
         }
 
-        private void btnRegistrarCobro_Click(object sender, EventArgs e)
+        private void btnEnviarAVentas_Click(object sender, EventArgs e)
         {
-            if (_reservasSeleccionadas.Count == 0)
+            if (gridReservas.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Seleccioná al menos un turno/reserva de la lista para cobrar.", "Aviso",
+                MessageBox.Show("Seleccioná al menos un turno de la lista para cobrar.", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string medioPago = cmbMedioPago.SelectedItem?.ToString() ?? "Efectivo";
-            string tipoComprobante = cmbComprobante.SelectedItem?.ToString() ?? "Ticket";
-            int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(_idUsuario);
-            if (!idSesion.HasValue)
+            TurnosParaVenta.Clear();
+            DateTime hoy = DateTime.Today;
+
+            foreach (DataGridViewRow row in gridReservas.SelectedRows)
             {
-                MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
+                if (row.Cells["id_reserva"].Value != null && row.Cells["id_reserva"].Value != DBNull.Value)
+                {
+                    DateTime fechaRes = Convert.ToDateTime(row.Cells["fecha"].Value);
+                    if (fechaRes.Date != hoy)
+                    {
+                        MessageBox.Show("Solo se pueden cobrar canchas del día de hoy. No se permite cobrar por adelantado.",
+                            "Cobro adelantado no permitido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        TurnosParaVenta.Clear();
+                        return;
+                    }
+
+                    int idRes = Convert.ToInt32(row.Cells["id_reserva"].Value);
+                    int idCli = (row.Cells["id_cliente"].Value != null && row.Cells["id_cliente"].Value != DBNull.Value)
+                        ? Convert.ToInt32(row.Cells["id_cliente"].Value)
+                        : 9999;
+                    string cancha = row.Cells["cancha"].Value?.ToString() ?? "Cancha";
+                    string horario = row.Cells["horario"].Value?.ToString() ?? "";
+                    string cliente = row.Cells["cliente"].Value?.ToString() ?? "";
+                    decimal precio = (row.Cells["precio"].Value != null && row.Cells["precio"].Value != DBNull.Value)
+                        ? Convert.ToDecimal(row.Cells["precio"].Value)
+                        : 0m;
+
+                    TurnosParaVenta.Add(new TurnoCanchaSeleccionado
+                    {
+                        IdReserva = idRes,
+                        IdCliente = idCli,
+                        Cancha = cancha,
+                        Horario = horario,
+                        Precio = precio,
+                        Fecha = fechaRes,
+                        Cliente = cliente
+                    });
+                }
+            }
+
+            if (TurnosParaVenta.Count == 0)
+            {
+                MessageBox.Show("No se seleccionó ningún turno válido.", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Obtener el id_cliente de la primera reserva seleccionada si está disponible
-            int? idCliente = null;
-            if (gridReservas.SelectedRows.Count > 0 && gridReservas.Columns.Contains("id_cliente"))
-            {
-                var val = gridReservas.SelectedRows[0].Cells["id_cliente"].Value;
-                if (val != null && val != DBNull.Value && Convert.ToInt32(val) > 0)
-                    idCliente = Convert.ToInt32(val);
-            }
-
-            if (!idCliente.HasValue || idCliente.Value <= 0)
-            {
-                MessageBox.Show("Solo clientes registrados interactúan con el sistema. La reserva debe tener un cliente asignado.",
-                    "Cliente requerido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            DialogResult conf = MessageBox.Show(
-                $"¿Confirmar cobro de {_reservasSeleccionadas.Count} turno(s) por un total de {_totalSeleccionado:C2}?\n" +
-                $"Medio de Pago: {medioPago}\n" +
-                $"Comprobante: {tipoComprobante}",
-                "Confirmar Cobro", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (conf != DialogResult.Yes) return;
-
-            try
-            {
-                int idVenta = GestorVentas.RegistrarCobroCanchas(
-                    _reservasSeleccionadas, _idUsuario, idCliente.Value, idSesion.Value, medioPago, tipoComprobante, _totalSeleccionado);
-
-                _ultimoComprobante = GestorVentas.ObtenerDatosComprobante(idVenta);
-
-                MessageBox.Show(
-                    $"¡Cobro registrado con éxito!\nSe generó la Venta N° {idVenta} ({tipoComprobante}).",
-                    "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                CargarReservas();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al registrar el cobro de canchas:\n" + ex.Message, "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void btnImprimir_Click(object sender, EventArgs e)
-        {
-            if (_ultimoComprobante == null)
-            {
-                MessageBox.Show("Registrá un cobro primero para imprimir su comprobante.", "Aviso",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            ComprobanteService.Imprimir(_ultimoComprobante, this);
-        }
-
-        private void btnEnviarMail_Click(object sender, EventArgs e)
-        {
-            if (_ultimoComprobante == null)
-            {
-                MessageBox.Show("Registrá un cobro primero para enviar su comprobante por email.", "Aviso",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            FormEnviarMail f = new FormEnviarMail(_ultimoComprobante);
-            f.ShowDialog(this);
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
 
         private void btnCerrar_Click(object sender, EventArgs e)
@@ -274,4 +223,15 @@ namespace Cantina_Padel
             this.Close();
         }
     }
+    public class TurnoCanchaSeleccionado
+    {
+        public int IdReserva { get; set; }
+        public int IdCliente { get; set; }
+        public string Cancha { get; set; } = "";
+        public string Horario { get; set; } = "";
+        public decimal Precio { get; set; }
+        public DateTime Fecha { get; set; }
+        public string Cliente { get; set; } = "";
+    }
+
 }

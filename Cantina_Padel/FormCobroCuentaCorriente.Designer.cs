@@ -24,6 +24,8 @@ namespace Cantina_Padel
             lblSaldoValor = new Label();
             lblSaldoFavorTitulo = new Label();
             txtSaldoAFavor = new TextBox();
+            lblSaldoNetoTitulo = new Label();
+            lblSaldoNetoValor = new Label();
             lblMovimientos = new Label();
             gridMovimientos = new DataGridView();
             grpAbono = new GroupBox();
@@ -87,7 +89,7 @@ namespace Cantina_Padel
             cmbCliente.FormattingEnabled = true;
             cmbCliente.Location = new Point(20, 85);
             cmbCliente.Name = "cmbCliente";
-            cmbCliente.Size = new Size(390, 29);
+            cmbCliente.Size = new Size(260, 29);
             cmbCliente.TabIndex = 3;
             cmbCliente.SelectedIndexChanged += cmbCliente_SelectedIndexChanged;
             // 
@@ -96,7 +98,7 @@ namespace Cantina_Padel
             lblSaldoTitulo.AutoSize = true;
             lblSaldoTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblSaldoTitulo.ForeColor = Color.White;
-            lblSaldoTitulo.Location = new Point(430, 60);
+            lblSaldoTitulo.Location = new Point(300, 60);
             lblSaldoTitulo.Name = "lblSaldoTitulo";
             lblSaldoTitulo.Size = new Size(137, 21);
             lblSaldoTitulo.TabIndex = 4;
@@ -107,7 +109,7 @@ namespace Cantina_Padel
             lblSaldoValor.AutoSize = true;
             lblSaldoValor.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblSaldoValor.ForeColor = Color.FromArgb(239, 68, 68);
-            lblSaldoValor.Location = new Point(430, 83);
+            lblSaldoValor.Location = new Point(300, 83);
             lblSaldoValor.Name = "lblSaldoValor";
             lblSaldoValor.Size = new Size(88, 32);
             lblSaldoValor.TabIndex = 5;
@@ -118,7 +120,7 @@ namespace Cantina_Padel
             lblSaldoFavorTitulo.AutoSize = true;
             lblSaldoFavorTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblSaldoFavorTitulo.ForeColor = Color.FromArgb(163, 230, 53);
-            lblSaldoFavorTitulo.Location = new Point(620, 60);
+            lblSaldoFavorTitulo.Location = new Point(475, 60);
             lblSaldoFavorTitulo.Name = "lblSaldoFavorTitulo";
             lblSaldoFavorTitulo.Size = new Size(116, 21);
             lblSaldoFavorTitulo.TabIndex = 6;
@@ -130,13 +132,35 @@ namespace Cantina_Padel
             txtSaldoAFavor.BorderStyle = BorderStyle.FixedSingle;
             txtSaldoAFavor.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             txtSaldoAFavor.ForeColor = Color.FromArgb(163, 230, 53);
-            txtSaldoAFavor.Location = new Point(620, 84);
+            txtSaldoAFavor.Location = new Point(475, 84);
             txtSaldoAFavor.Name = "txtSaldoAFavor";
             txtSaldoAFavor.ReadOnly = true;
-            txtSaldoAFavor.Size = new Size(170, 34);
+            txtSaldoAFavor.Size = new Size(150, 31);
             txtSaldoAFavor.TabIndex = 7;
             txtSaldoAFavor.TabStop = false;
             txtSaldoAFavor.Text = "$ 0,00";
+                        // 
+            // lblSaldoNetoTitulo
+            // 
+            lblSaldoNetoTitulo.AutoSize = true;
+            lblSaldoNetoTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            lblSaldoNetoTitulo.ForeColor = Color.FromArgb(250, 204, 21);
+            lblSaldoNetoTitulo.Location = new Point(650, 60);
+            lblSaldoNetoTitulo.Name = "lblSaldoNetoTitulo";
+            lblSaldoNetoTitulo.Size = new Size(230, 21);
+            lblSaldoNetoTitulo.TabIndex = 8;
+            lblSaldoNetoTitulo.Text = "Total Final (Restado a Favor):";
+            // 
+            // lblSaldoNetoValor
+            // 
+            lblSaldoNetoValor.AutoSize = true;
+            lblSaldoNetoValor.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblSaldoNetoValor.ForeColor = Color.FromArgb(250, 204, 21);
+            lblSaldoNetoValor.Location = new Point(650, 83);
+            lblSaldoNetoValor.Name = "lblSaldoNetoValor";
+            lblSaldoNetoValor.Size = new Size(88, 32);
+            lblSaldoNetoValor.TabIndex = 9;
+            lblSaldoNetoValor.Text = "$ 0,00";
             // 
             // lblMovimientos
             // 
@@ -288,11 +312,13 @@ namespace Cantina_Padel
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
-            ClientSize = new Size(940, 570);
+            ClientSize = new Size(980, 570);
             Controls.Add(grpAbono);
             Controls.Add(gridMovimientos);
             Controls.Add(lblMovimientos);
             Controls.Add(txtSaldoAFavor);
+            Controls.Add(lblSaldoNetoValor);
+            Controls.Add(lblSaldoNetoTitulo);
             Controls.Add(lblSaldoFavorTitulo);
             Controls.Add(lblSaldoValor);
             Controls.Add(lblSaldoTitulo);
@@ -322,6 +348,8 @@ namespace Cantina_Padel
         private Label lblSaldoValor;
         private Label lblSaldoFavorTitulo;
         private TextBox txtSaldoAFavor;
+        private Label lblSaldoNetoTitulo;
+        private Label lblSaldoNetoValor;
         private Label lblMovimientos;
         private DataGridView gridMovimientos;
         private GroupBox grpAbono;

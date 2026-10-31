@@ -406,11 +406,13 @@ namespace Cantina_Padel
                     id_proveedor  = @idp
                 WHERE id_producto = @id";
 
+            decimal precioVentaCalculado = precio + (precio * porcentajeGanancia / 100m);
+
             using MySqlCommand cmd = new MySqlCommand(updateProducto, conn, tx);
             cmd.Parameters.AddWithValue("@cod",  codigoIngresado);
             cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
-            cmd.Parameters.AddWithValue("@p",    precio + (precio * porcentajeGanancia / 100m));
+            cmd.Parameters.AddWithValue("@p",    precioVentaCalculado);
             cmd.Parameters.AddWithValue("@s",    stock);
             cmd.Parameters.AddWithValue("@a",    chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@idm",  cmbMarca.SelectedValue);
@@ -418,6 +420,9 @@ namespace Cantina_Padel
             cmd.Parameters.AddWithValue("@idp",  cmbProveedor.SelectedValue);
             cmd.Parameters.AddWithValue("@id",   id);
             cmd.ExecuteNonQuery();
+
+            // Requerimiento: Actualizar el precio en cuenta corriente al cambiarlo desde "productos"
+            GestorVentas.ActualizarPreciosCuentaCorrienteProducto(conn, tx, id, precioVentaCalculado);
         }
 
         // ─────────────────────────────────────────────

@@ -176,9 +176,27 @@ namespace Cantina_Padel
                 FROM venta v
                 INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
                 WHERE v.id_sesion = @sesion
-                  AND v.medio_pago <> 'Cuenta Corriente'";
+                  AND v.medio_pago = 'Efectivo'";
             using MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@sesion", idSesion);
+            object? result = cmd.ExecuteScalar();
+            return result == null || result == DBNull.Value ? 0 : Convert.ToDecimal(result);
+        }
+
+        /// <summary>Suma de ventas por medio de pago específico durante una sesión de caja.</summary>
+        public static decimal ObtenerTotalVentasPorMedioPago(int idSesion, string medioPago)
+        {
+            using MySqlConnection conn = Conexion.ObtenerConexion();
+            conn.Open();
+            const string sql = @"
+                SELECT COALESCE(SUM(dv.total), 0)
+                FROM venta v
+                INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
+                WHERE v.id_sesion = @sesion
+                  AND v.medio_pago = @medio";
+            using MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@sesion", idSesion);
+            cmd.Parameters.AddWithValue("@medio", medioPago);
             object? result = cmd.ExecuteScalar();
             return result == null || result == DBNull.Value ? 0 : Convert.ToDecimal(result);
         }
@@ -244,7 +262,7 @@ namespace Cantina_Padel
                         + (SELECT COALESCE(SUM(dv.total), 0)
                            FROM venta v
                            INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
-                           WHERE v.id_sesion = c.id_sesion AND v.medio_pago <> 'Cuenta Corriente')
+                           WHERE v.id_sesion = c.id_sesion AND v.medio_pago = 'Efectivo')
                         - (SELECT COALESCE(SUM(r.monto), 0)
                            FROM retiro_efectivo r
                            WHERE r.id_sesion = c.id_sesion)
