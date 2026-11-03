@@ -131,6 +131,16 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <!-- FormCancelarVenta -->
+  <ItemGroup>
+    <Compile Update="FormCancelarVenta.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormCancelarVenta.Designer.cs">
+      <DependentUpon>FormCancelarVenta.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <!-- FormCobroCanchas -->
   <ItemGroup>
     <Compile Update="FormCobroCanchas.cs">

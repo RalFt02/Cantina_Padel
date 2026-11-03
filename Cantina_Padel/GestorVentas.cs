@@ -25,6 +25,16 @@ namespace Cantina_Padel
         public DateTime Fecha { get; set; }
     }
 
+    public class VentaParaCancelar
+    {
+        public int IdVenta { get; set; }
+        public bool Cancelada { get; set; }
+        public string MedioPago { get; set; } = "";
+        public int IdCliente { get; set; }
+        public int? IdSesion { get; set; }
+        public decimal Total { get; set; }
+    }
+
     public class ResultadoPagoCC
     {
         public int IdVenta { get; set; }
@@ -60,6 +70,12 @@ namespace Cantina_Padel
                 EjecutarSqlSeguro(conn, "ALTER TABLE movimiento_cuenta_corriente ADD COLUMN id_venta INT NULL");
                 EjecutarSqlSeguro(conn, "ALTER TABLE movimiento_cuenta_corriente ADD COLUMN medio_pago VARCHAR(50) NULL");
                 EjecutarSqlSeguro(conn, "ALTER TABLE persona ADD COLUMN condicion_fiscal VARCHAR(50) DEFAULT 'Consumidor Final'");
+
+                // 2b. Columnas para cancelación de ventas (baja lógica, la venta no se borra)
+                EjecutarSqlSeguro(conn, "ALTER TABLE venta ADD COLUMN cancelada TINYINT(1) NOT NULL DEFAULT 0");
+                EjecutarSqlSeguro(conn, "ALTER TABLE venta ADD COLUMN fecha_cancelacion DATETIME NULL");
+                EjecutarSqlSeguro(conn, "ALTER TABLE venta ADD COLUMN motivo_cancelacion VARCHAR(255) NULL");
+                EjecutarSqlSeguro(conn, "ALTER TABLE venta ADD COLUMN id_usuario_cancelacion INT NULL");
 
                 // 3. Crear cuenta corriente para clientes que no la tengan
                 const string sqlCrearCC = @"
@@ -938,7 +954,8 @@ namespace Cantina_Padel
                        CONCAT(p.apellido, ', ', p.nombre) AS cliente,
                        v.medio_pago,
                        v.total,
-                       u.nombre_completo AS cajero
+                       u.nombre_completo AS cajero,
+                       IF(v.cancelada = 1, 'Cancelada', 'Activa') AS estado
                 FROM venta v
                 JOIN cliente c ON c.id_cliente = v.id_cliente
                 JOIN persona p ON p.id_persona = c.id_persona
@@ -1098,6 +1115,332 @@ namespace Cantina_Padel
                 tx.Rollback();
                 throw;
             }
+        }
+
+        // ─────────────────────────────────────────────
+        //  CANCELACIÓN DE VENTAS
+        // ─────────────────────────────────────────────
+
+        // Cancela la venta (baja lógica: queda registrada con cancelada = 1), devuelve el stock,
+        // revierte la deuda en cuenta corriente y libera las reservas de cancha que había pagado.
+        // Todo en una sola transacción: si algo falla no se modifica nada.
+        // Lanza ArgumentException si el motivo no es válido e InvalidOperationException si la venta
+        // no se puede cancelar (no existe, ya cancelada, caja cerrada, cobro de cta. cte. o cargos ya pagados).
+        public static void CancelarVenta(int idVenta, int idUsuario, string motivo)
+        {
+            AsegurarTablas();
+
+            string? errorMotivo = ValidarMotivoCancelacion(motivo);
+            if (errorMotivo != null) throw new ArgumentException(errorMotivo);
+
+            using MySqlConnection conn = Conexion.ObtenerConexion();
+            conn.Open();
+            using MySqlTransaction tx = conn.BeginTransaction();
+
+            VentaParaCancelar? venta = ObtenerVentaParaCancelar(conn, tx, idVenta);
+            bool cajaAbierta = venta != null && CajaDeVentaAbierta(conn, tx, venta.IdSesion);
+            bool esCobroCC = venta != null && EsCobroCuentaCorriente(conn, tx, idVenta);
+            bool cargosPagados = venta != null && TieneCargosPagados(conn, tx, idVenta);
+
+            string? error = ValidarVentaCancelable(venta, cajaAbierta, esCobroCC, cargosPagados);
+            if (error != null) throw new InvalidOperationException(error);
+
+            DevolverStockDeVenta(conn, tx, idVenta);
+            RevertirCuentaCorriente(conn, tx, venta!);
+            LiberarReservasDeVenta(conn, tx, idVenta);
+            MarcarVentaCancelada(conn, tx, idVenta, idUsuario, motivo);
+
+            tx.Commit();
+        }
+
+        public static bool EsProductoDeServicio(int idProducto)
+        {
+            return idProducto == 998 || idProducto == 999;
+        }
+
+        public static string? ValidarMotivoCancelacion(string? motivo)
+        {
+            if (string.IsNullOrWhiteSpace(motivo)) return "Indicá el motivo de la cancelación.";
+            if (motivo.Trim().Length > 255) return "El motivo no puede superar los 255 caracteres.";
+            return null;
+        }
+
+        public static string? ValidarVentaCancelable(VentaParaCancelar? venta, bool cajaAbierta, bool esCobroCuentaCorriente, bool tieneCargosPagados)
+        {
+            if (venta == null) return "La venta no existe.";
+            if (venta.Cancelada) return "La venta ya fue cancelada.";
+            if (esCobroCuentaCorriente) return "No se puede cancelar un cobro de cuenta corriente.";
+            if (!cajaAbierta) return "No se puede cancelar: la caja en la que se hizo la venta ya está cerrada.";
+            if (tieneCargosPagados) return "No se puede cancelar: la deuda de esta venta en cuenta corriente ya fue pagada total o parcialmente.";
+            return null;
+        }
+
+        // FOR UPDATE bloquea la fila para que dos cancelaciones simultáneas no devuelvan el stock dos veces.
+        // Devuelve null si la venta no existe.
+        public static VentaParaCancelar? ObtenerVentaParaCancelar(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            const string query = @"
+                SELECT venta.id_venta,
+                       venta.cancelada,
+                       venta.medio_pago,
+                       venta.id_cliente,
+                       venta.id_sesion,
+                       venta.total
+                FROM venta
+                WHERE venta.id_venta = @id
+                FOR UPDATE";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@id", idVenta);
+            using MySqlDataReader reader = cmd.ExecuteReader();
+            if (!reader.Read()) return null;
+
+            return new VentaParaCancelar
+            {
+                IdVenta = Convert.ToInt32(reader["id_venta"]),
+                Cancelada = Convert.ToInt32(reader["cancelada"]) == 1,
+                MedioPago = reader["medio_pago"] == DBNull.Value ? "" : reader["medio_pago"].ToString() ?? "",
+                IdCliente = Convert.ToInt32(reader["id_cliente"]),
+                IdSesion = reader["id_sesion"] == DBNull.Value ? (int?)null : Convert.ToInt32(reader["id_sesion"]),
+                Total = Convert.ToDecimal(reader["total"])
+            };
+        }
+
+        public static bool CajaDeVentaAbierta(MySqlConnection conn, MySqlTransaction tx, int? idSesion)
+        {
+            if (!idSesion.HasValue) return false;
+
+            const string query = @"
+                SELECT COUNT(*)
+                FROM caja
+                WHERE caja.id_sesion = @sesion AND caja.estado = 'Abierta'";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@sesion", idSesion.Value);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
+        public static bool EsCobroCuentaCorriente(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            const string query = @"
+                SELECT COUNT(*)
+                FROM detalle_venta
+                WHERE detalle_venta.id_venta = @id AND detalle_venta.id_producto = 998";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@id", idVenta);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
+        public static bool TieneCargosPagados(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            const string query = @"
+                SELECT COUNT(*)
+                FROM movimiento_cuenta_corriente
+                WHERE movimiento_cuenta_corriente.id_venta = @id
+                  AND movimiento_cuenta_corriente.tipo_movimiento = 'Cargo'
+                  AND movimiento_cuenta_corriente.estado = 'Pagado'";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@id", idVenta);
+            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+        }
+
+        // ─────────────────────────────────────────────
+        //  ACTUALIZACIÓN DE STOCK
+        // ─────────────────────────────────────────────
+
+        // Suma (diferencia positiva) o resta (diferencia negativa) stock de un producto.
+        // Abre su propia conexión y transacción.
+        public static void ActualizarStock(int idProducto, int diferencia)
+        {
+            using MySqlConnection conn = Conexion.ObtenerConexion();
+            conn.Open();
+            using MySqlTransaction tx = conn.BeginTransaction();
+
+            ActualizarStock(conn, tx, idProducto, diferencia);
+
+            tx.Commit();
+        }
+
+        // Versión para usar dentro de una transacción ya abierta.
+        // No bloquea el stock negativo: igual que RegistrarVenta, que permite vender sin stock.
+        public static void ActualizarStock(MySqlConnection conn, MySqlTransaction tx, int idProducto, int diferencia)
+        {
+            string? error = ValidarAjusteStock(idProducto, diferencia);
+            if (error != null) throw new ArgumentException(error);
+
+            const string query = @"
+                UPDATE producto
+                SET producto.stock = producto.stock + @dif
+                WHERE producto.id_producto = @prod";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@dif", diferencia);
+            cmd.Parameters.AddWithValue("@prod", idProducto);
+
+            if (cmd.ExecuteNonQuery() == 0)
+                throw new InvalidOperationException($"El producto {idProducto} no existe.");
+        }
+
+        public static string? ValidarAjusteStock(int idProducto, int diferencia)
+        {
+            if (idProducto <= 0) return "Producto inválido.";
+            if (EsProductoDeServicio(idProducto)) return "Los servicios no manejan stock.";
+            if (diferencia == 0) return "La diferencia de stock no puede ser 0.";
+            return null;
+        }
+
+        // Devuelve al stock lo que descontó la venta. Los servicios (canchas, cobros) no tienen stock.
+        // Devuelve la cantidad de productos a los que se les actualizó el stock.
+        public static int DevolverStockDeVenta(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            List<LineaVenta> items = LeerItemsDeVenta(conn, tx, idVenta);
+
+            foreach (LineaVenta item in items)
+                ActualizarStock(conn, tx, item.IdProducto, item.Cantidad);
+
+            return items.Count;
+        }
+
+        // Solo productos con stock (excluye servicios y líneas sin producto).
+        public static List<LineaVenta> LeerItemsDeVenta(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            const string query = @"
+                SELECT detalle_venta.id_producto,
+                       detalle_venta.cantidad,
+                       detalle_venta.descripcion,
+                       detalle_venta.precio_unitario
+                FROM detalle_venta
+                WHERE detalle_venta.id_venta = @id
+                  AND detalle_venta.id_producto IS NOT NULL
+                  AND detalle_venta.id_producto NOT IN (998, 999)";
+
+            List<LineaVenta> items = new List<LineaVenta>();
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@id", idVenta);
+            using MySqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                items.Add(new LineaVenta
+                {
+                    IdProducto = Convert.ToInt32(reader["id_producto"]),
+                    Cantidad = Convert.ToInt32(reader["cantidad"]),
+                    Nombre = reader["descripcion"] == DBNull.Value ? "" : reader["descripcion"].ToString() ?? "",
+                    PrecioUnitario = Convert.ToDecimal(reader["precio_unitario"])
+                });
+            }
+            return items;
+        }
+
+        // ─────────────────────────────────────────────
+        //  PASOS DE LA CANCELACIÓN
+        // ─────────────────────────────────────────────
+
+        // Si la venta fue a cuenta corriente: borra sus cargos pendientes y baja el saldo deudor.
+        // Devuelve el importe revertido (0 si no era de cuenta corriente).
+        public static decimal RevertirCuentaCorriente(MySqlConnection conn, MySqlTransaction tx, VentaParaCancelar venta)
+        {
+            if (!venta.MedioPago.Equals("Cuenta Corriente", StringComparison.OrdinalIgnoreCase)) return 0m;
+
+            const string querySuma = @"
+                SELECT COALESCE(SUM(movimiento_cuenta_corriente.importe), 0)
+                FROM movimiento_cuenta_corriente
+                WHERE movimiento_cuenta_corriente.id_venta = @id
+                  AND movimiento_cuenta_corriente.tipo_movimiento = 'Cargo'
+                  AND movimiento_cuenta_corriente.estado = 'Pendiente'";
+
+            decimal importe;
+            using (MySqlCommand cmdSuma = new MySqlCommand(querySuma, conn, tx))
+            {
+                cmdSuma.Parameters.AddWithValue("@id", venta.IdVenta);
+                importe = Convert.ToDecimal(cmdSuma.ExecuteScalar());
+            }
+
+            const string queryBorrar = @"
+                DELETE FROM movimiento_cuenta_corriente
+                WHERE movimiento_cuenta_corriente.id_venta = @id
+                  AND movimiento_cuenta_corriente.tipo_movimiento = 'Cargo'
+                  AND movimiento_cuenta_corriente.estado = 'Pendiente'";
+
+            using (MySqlCommand cmdBorrar = new MySqlCommand(queryBorrar, conn, tx))
+            {
+                cmdBorrar.Parameters.AddWithValue("@id", venta.IdVenta);
+                cmdBorrar.ExecuteNonQuery();
+            }
+
+            int idCuenta = ObtenerOCrearIdCuentaCorriente(conn, tx, venta.IdCliente);
+
+            // GREATEST evita que el saldo deudor quede negativo.
+            const string queryDeuda = @"
+                UPDATE cuenta_corriente
+                SET cuenta_corriente.saldo = GREATEST(cuenta_corriente.saldo - @importe, 0)
+                WHERE cuenta_corriente.id_cuenta = @cuenta";
+
+            using (MySqlCommand cmdDeuda = new MySqlCommand(queryDeuda, conn, tx))
+            {
+                cmdDeuda.Parameters.AddWithValue("@importe", importe);
+                cmdDeuda.Parameters.AddWithValue("@cuenta", idCuenta);
+                cmdDeuda.ExecuteNonQuery();
+            }
+
+            return importe;
+        }
+
+        // Las reservas de cancha pagadas con esta venta vuelven a quedar pendientes de cobro.
+        // Devuelve la cantidad de reservas liberadas.
+        public static int LiberarReservasDeVenta(MySqlConnection conn, MySqlTransaction tx, int idVenta)
+        {
+            const string queryLeer = @"
+                SELECT reserva_pagada.id_reserva
+                FROM reserva_pagada
+                WHERE reserva_pagada.id_venta = @id";
+
+            List<int> idsReserva = new List<int>();
+            using (MySqlCommand cmdLeer = new MySqlCommand(queryLeer, conn, tx))
+            {
+                cmdLeer.Parameters.AddWithValue("@id", idVenta);
+                using MySqlDataReader reader = cmdLeer.ExecuteReader();
+                while (reader.Read())
+                    idsReserva.Add(Convert.ToInt32(reader["id_reserva"]));
+            }
+
+            foreach (int idReserva in idsReserva)
+            {
+                using MySqlCommand cmdEstado = new MySqlCommand(
+                    "UPDATE reserva SET reserva.estado = 'Confirmada' WHERE reserva.id_reserva = @reserva", conn, tx);
+                cmdEstado.Parameters.AddWithValue("@reserva", idReserva);
+                cmdEstado.ExecuteNonQuery();
+            }
+
+            using (MySqlCommand cmdBorrar = new MySqlCommand(
+                "DELETE FROM reserva_pagada WHERE reserva_pagada.id_venta = @id", conn, tx))
+            {
+                cmdBorrar.Parameters.AddWithValue("@id", idVenta);
+                cmdBorrar.ExecuteNonQuery();
+            }
+
+            return idsReserva.Count;
+        }
+
+        public static void MarcarVentaCancelada(MySqlConnection conn, MySqlTransaction tx, int idVenta, int idUsuario, string motivo)
+        {
+            // cancelada = 0 en el WHERE: si otra cancelación se coló primero, esta no pisa nada y falla.
+            const string query = @"
+                UPDATE venta
+                SET venta.cancelada = 1,
+                    venta.fecha_cancelacion = NOW(),
+                    venta.motivo_cancelacion = @motivo,
+                    venta.id_usuario_cancelacion = @usuario
+                WHERE venta.id_venta = @id AND venta.cancelada = 0";
+
+            using MySqlCommand cmd = new MySqlCommand(query, conn, tx);
+            cmd.Parameters.AddWithValue("@motivo", motivo.Trim());
+            cmd.Parameters.AddWithValue("@usuario", idUsuario);
+            cmd.Parameters.AddWithValue("@id", idVenta);
+
+            if (cmd.ExecuteNonQuery() == 0)
+                throw new InvalidOperationException("La venta no existe o ya fue cancelada.");
         }
 
         private static DataTable LlenarTabla(string query, params (string nombre, object valor)[] parametros)
