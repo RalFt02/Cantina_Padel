@@ -96,6 +96,16 @@
     </Compile>
   </ItemGroup>
 
+  <!-- FormSubasPrecios -->
+  <ItemGroup>
+    <Compile Update="FormSubasPrecios.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormSubasPrecios.Designer.cs">
+      <DependentUpon>FormSubasPrecios.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <!-- FormGestionCategorias -->
   <ItemGroup>
     <Compile Update="FormGestionCategorias.cs">

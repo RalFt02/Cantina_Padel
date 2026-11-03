@@ -46,6 +46,7 @@ namespace Cantina_Padel
             Eliminar_Boton = new Button();
             Nuevo_Boton = new Button();
             Volver_Boton = new Button();
+            Subas_Boton = new Button();
             ((System.ComponentModel.ISupportInitialize)gridProductos).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
@@ -407,6 +408,21 @@ namespace Cantina_Padel
             Nuevo_Boton.UseVisualStyleBackColor = false;
             Nuevo_Boton.Click += Nuevo_Boton_Click;
             // 
+            // Subas_Boton
+            // 
+            Subas_Boton.BackColor = Color.FromArgb(245, 158, 11);
+            Subas_Boton.FlatAppearance.BorderSize = 0;
+            Subas_Boton.FlatStyle = FlatStyle.Flat;
+            Subas_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            Subas_Boton.ForeColor = Color.Black;
+            Subas_Boton.Location = new Point(525, 55);
+            Subas_Boton.Name = "Subas_Boton";
+            Subas_Boton.Size = new Size(190, 32);
+            Subas_Boton.TabIndex = 7;
+            Subas_Boton.Text = "📈 Subas de Precios";
+            Subas_Boton.UseVisualStyleBackColor = false;
+            Subas_Boton.Click += Subas_Boton_Click;
+            // 
             // Volver_Boton
             // 
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
@@ -434,6 +450,7 @@ namespace Cantina_Padel
             Controls.Add(grpDatos);
             Controls.Add(Nuevo_Boton);
             Controls.Add(Volver_Boton);
+            Controls.Add(Subas_Boton);
             Name = "FormGestionProductos";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Gestión de Productos";
@@ -473,6 +490,7 @@ namespace Cantina_Padel
         private Button           Eliminar_Boton;
         private Button           Cancelar_Boton;
         private Button           Volver_Boton;
+        private Button           Subas_Boton;
         private Label label1;
         private TextBox textBox1;
     }
