@@ -96,6 +96,16 @@
     </Compile>
   </ItemGroup>
 
+  <!-- FormSubasPrecios -->
+  <ItemGroup>
+    <Compile Update="FormSubasPrecios.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormSubasPrecios.Designer.cs">
+      <DependentUpon>FormSubasPrecios.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
   <!-- FormGestionCategorias -->
   <ItemGroup>
     <Compile Update="FormGestionCategorias.cs">
@@ -129,6 +139,16 @@
     <EmbeddedResource Update="FormGestionVentas.resx">
       <DependentUpon>FormGestionVentas.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- FormCancelarVenta -->
+  <ItemGroup>
+    <Compile Update="FormCancelarVenta.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormCancelarVenta.Designer.cs">
+      <DependentUpon>FormCancelarVenta.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <!-- FormCobroCanchas -->

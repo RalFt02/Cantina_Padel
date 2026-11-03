@@ -682,6 +682,21 @@ namespace Cantina_Padel
             formCC.ShowDialog(this);
         }
 
+        private void btnCancelarVenta_Click(object sender, EventArgs e)
+        {
+            AbrirCancelacionDeVentas();
+        }
+
+        private void AbrirCancelacionDeVentas()
+        {
+            using FormCancelarVenta formCancelar = new FormCancelarVenta(_idUsuario);
+            formCancelar.ShowDialog(this);
+
+            // La cancelación devuelve stock y cambia los totales de caja
+            CargarProductos();
+            ActualizarEstadoCaja();
+        }
+
         private void LimpiarCamposItem()
         {
             txtCantidad.Text = "1";

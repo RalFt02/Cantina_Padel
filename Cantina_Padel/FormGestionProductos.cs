@@ -543,6 +543,21 @@ namespace Cantina_Padel
             LimpiarFormulario();
         }
 
+        // ─────────────────────────────────────────────
+        //  SUBAS DE PRECIOS (proveedor, categoría, marca, producto, unidad)
+        // ─────────────────────────────────────────────
+        private void Subas_Boton_Click(object sender, EventArgs e)
+        {
+            using (var frm = new FormSubasPrecios(SesionActual.IdUsuario))
+            {
+                frm.ShowDialog(this);
+            }
+
+            // Los precios pudieron cambiar: refrescar grilla y formulario
+            CargarProductos();
+            LimpiarFormulario();
+        }
+
         private void Volver_Boton_Click(object sender, EventArgs e)
         {
             this.Close();

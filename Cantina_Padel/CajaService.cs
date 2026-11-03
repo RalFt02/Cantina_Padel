@@ -169,6 +169,7 @@ namespace Cantina_Padel
         /// <summary>Suma de ventas cobradas en efectivo durante una sesión de caja.</summary>
         public static decimal ObtenerTotalVentasEfectivo(int idSesion)
         {
+            GestorVentas.AsegurarTablas();
             using MySqlConnection conn = Conexion.ObtenerConexion();
             conn.Open();
             const string sql = @"
@@ -176,6 +177,7 @@ namespace Cantina_Padel
                 FROM venta v
                 INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
                 WHERE v.id_sesion = @sesion
+                  AND v.cancelada = 0
                   AND v.medio_pago = 'Efectivo'";
             using MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@sesion", idSesion);
@@ -186,6 +188,7 @@ namespace Cantina_Padel
         /// <summary>Suma de ventas por medio de pago específico durante una sesión de caja.</summary>
         public static decimal ObtenerTotalVentasPorMedioPago(int idSesion, string medioPago)
         {
+            GestorVentas.AsegurarTablas();
             using MySqlConnection conn = Conexion.ObtenerConexion();
             conn.Open();
             const string sql = @"
@@ -193,6 +196,7 @@ namespace Cantina_Padel
                 FROM venta v
                 INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
                 WHERE v.id_sesion = @sesion
+                  AND v.cancelada = 0
                   AND v.medio_pago = @medio";
             using MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@sesion", idSesion);
@@ -252,6 +256,7 @@ namespace Cantina_Padel
         /// </summary>
         public static decimal CerrarCaja(int idSesion, int idUsuario)
         {
+            GestorVentas.AsegurarTablas();
             using MySqlConnection conn = Conexion.ObtenerConexion();
             conn.Open();
             const string sql = @"
@@ -262,7 +267,7 @@ namespace Cantina_Padel
                         + (SELECT COALESCE(SUM(dv.total), 0)
                            FROM venta v
                            INNER JOIN detalle_venta dv ON dv.id_venta = v.id_venta
-                           WHERE v.id_sesion = c.id_sesion AND v.medio_pago = 'Efectivo')
+                           WHERE v.id_sesion = c.id_sesion AND v.cancelada = 0 AND v.medio_pago = 'Efectivo')
                         - (SELECT COALESCE(SUM(r.monto), 0)
                            FROM retiro_efectivo r
                            WHERE r.id_sesion = c.id_sesion)

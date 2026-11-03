@@ -20,6 +20,7 @@ namespace Cantina_Padel
             lblTitulo = new Label();
             btnCobroCanchas = new Button();
             btnCuentaCorriente = new Button();
+            btnCancelarVenta = new Button();
             Volver_Boton = new Button();
             grpCarrito = new GroupBox();
             gridItems = new DataGridView();
@@ -71,7 +72,7 @@ namespace Cantina_Padel
             btnCobroCanchas.FlatStyle = FlatStyle.Flat;
             btnCobroCanchas.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             btnCobroCanchas.ForeColor = Color.White;
-            btnCobroCanchas.Location = new Point(640, 14);
+            btnCobroCanchas.Location = new Point(450, 14);
             btnCobroCanchas.Name = "btnCobroCanchas";
             btnCobroCanchas.Size = new Size(189, 36);
             btnCobroCanchas.TabIndex = 1;
@@ -86,13 +87,28 @@ namespace Cantina_Padel
             btnCuentaCorriente.FlatStyle = FlatStyle.Flat;
             btnCuentaCorriente.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             btnCuentaCorriente.ForeColor = Color.Black;
-            btnCuentaCorriente.Location = new Point(845, 14);
+            btnCuentaCorriente.Location = new Point(650, 14);
             btnCuentaCorriente.Name = "btnCuentaCorriente";
             btnCuentaCorriente.Size = new Size(175, 36);
             btnCuentaCorriente.TabIndex = 2;
             btnCuentaCorriente.Text = "💳 Cuenta Corriente";
             btnCuentaCorriente.UseVisualStyleBackColor = false;
             btnCuentaCorriente.Click += btnCuentaCorriente_Click;
+            // 
+            // btnCancelarVenta
+            // 
+            btnCancelarVenta.BackColor = Color.FromArgb(239, 68, 68);
+            btnCancelarVenta.FlatAppearance.BorderSize = 0;
+            btnCancelarVenta.FlatStyle = FlatStyle.Flat;
+            btnCancelarVenta.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            btnCancelarVenta.ForeColor = Color.White;
+            btnCancelarVenta.Location = new Point(840, 14);
+            btnCancelarVenta.Name = "btnCancelarVenta";
+            btnCancelarVenta.Size = new Size(175, 36);
+            btnCancelarVenta.TabIndex = 6;
+            btnCancelarVenta.Text = "🚫 Cancelar Venta";
+            btnCancelarVenta.UseVisualStyleBackColor = false;
+            btnCancelarVenta.Click += btnCancelarVenta_Click;
             // 
             // Volver_Boton
             // 
@@ -482,6 +498,7 @@ namespace Cantina_Padel
             ClientSize = new Size(1260, 695);
             Controls.Add(btnCobroCanchas);
             Controls.Add(btnCuentaCorriente);
+            Controls.Add(btnCancelarVenta);
             Controls.Add(lblTitulo);
             Controls.Add(Volver_Boton);
             Controls.Add(grpCarrito);
@@ -503,6 +520,7 @@ namespace Cantina_Padel
         private Label lblTitulo;
         private Button btnCobroCanchas;
         private Button btnCuentaCorriente;
+        private Button btnCancelarVenta;
         private Button Volver_Boton;
         private GroupBox grpCarrito;
         private DataGridView gridItems;
