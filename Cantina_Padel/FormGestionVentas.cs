@@ -40,8 +40,14 @@ namespace Cantina_Padel
 
             InitializeComponent();
 
-            
-            
+            // Solo el administrador puede cancelar ventas; ocultar botón para cajeros
+            bool esAdmin = SesionActual.EsAdmin;
+            btnCancelarVenta.Visible = esAdmin;
+            btnCancelarVenta.Enabled = esAdmin;
+
+            // El botón de impresión manual se quita de Caja (se mantiene el desplegable de comprobante)
+            btnImprimir.Visible = false;
+
             ConfigurarGrilla(gridItems);
 
             CargarMediosDePago();
@@ -113,6 +119,43 @@ namespace Cantina_Padel
             ActualizarComprobantesSegunCliente();
         }
 
+        private string ObtenerFacturaSeleccionadaOSegunCliente()
+        {
+            string seleccionado = cmbComprobante.SelectedItem?.ToString() ?? "";
+            if (seleccionado.StartsWith("Factura", StringComparison.OrdinalIgnoreCase))
+            {
+                return seleccionado;
+            }
+
+            string condicion = "Consumidor Final";
+            string razonSocial = "";
+
+            if (cmbCliente.SelectedItem is DataRowView drv)
+            {
+                if (drv.Row.Table.Columns.Contains("condicion_fiscal") && drv["condicion_fiscal"] != DBNull.Value)
+                    condicion = drv["condicion_fiscal"].ToString() ?? "Consumidor Final";
+                if (drv.Row.Table.Columns.Contains("razon_social") && drv["razon_social"] != DBNull.Value)
+                    razonSocial = drv["razon_social"].ToString() ?? "";
+            }
+
+            int? idCliente = ObtenerIdSeleccionado(cmbCliente);
+            if (!idCliente.HasValue || idCliente.Value == 9999)
+            {
+                condicion = "Consumidor Final";
+            }
+            else if (string.IsNullOrWhiteSpace(condicion) && !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                condicion = "Responsable Inscripto";
+            }
+
+            if (condicion.Equals("Responsable Inscripto", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                return "Factura A";
+            }
+
+            return "Factura B";
+        }
+
         private void ActualizarComprobantesSegunCliente()
         {
             string condicion = "Consumidor Final";
@@ -143,20 +186,24 @@ namespace Cantina_Padel
             {
                 cmbComprobante.Items.Add("Factura A");
                 cmbComprobante.Items.Add("Factura B");
-                cmbComprobante.SelectedIndex = comprobanteActual == "Factura B" ? 1 : 0;
+                cmbComprobante.Items.Add("Factura C");
+                cmbComprobante.Items.Add("Ticket");
             }
             else if (condicion.Equals("Monotributista", StringComparison.OrdinalIgnoreCase))
             {
                 cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.Items.Add("Factura C");
                 cmbComprobante.Items.Add("Factura A");
-                cmbComprobante.SelectedIndex = comprobanteActual == "Factura A" ? 1 : 0;
+                cmbComprobante.Items.Add("Ticket");
             }
             else // Consumidor Final
             {
                 cmbComprobante.Items.Add("Ticket");
                 cmbComprobante.Items.Add("Factura B");
-                cmbComprobante.SelectedIndex = comprobanteActual == "Factura B" ? 1 : 0;
             }
+
+            int idx = cmbComprobante.Items.IndexOf(comprobanteActual);
+            cmbComprobante.SelectedIndex = idx >= 0 ? idx : 0;
         }
 
         private void CargarClientes()
@@ -384,10 +431,6 @@ namespace Cantina_Padel
         }
 
         // ─────────────────────────────────────────────
-        //  CARGA DE VENTAS Y DETALLE
-        // ─────────────────────────────────────────────
-
-        // ─────────────────────────────────────────────
         //  CARRITO
         // ─────────────────────────────────────────────
 
@@ -505,13 +548,12 @@ namespace Cantina_Padel
         }
 
         // ─────────────────────────────────────────────
-        //  REGISTRAR VENTA
+        //  REGISTRAR VENTA (TICKET AUTOMÁTICO + AVISO DE FACTURA)
         // ─────────────────────────────────────────────
 
         private void RegistrarVenta()
         {
             string? medioPago = cmbMedioPago.SelectedItem?.ToString();
-            string? tipoComprobante = cmbComprobante.SelectedItem?.ToString() ?? "Ticket";
             int? idCliente = ObtenerIdSeleccionado(cmbCliente);
 
             if (!idCliente.HasValue || idCliente.Value <= 0)
@@ -544,10 +586,10 @@ namespace Cantina_Padel
 
             decimal total = GestorVentas.CalcularTotal(_lineas);
             string clienteNombre = cmbCliente.Text;
+            string facturaDisponible = ObtenerFacturaSeleccionadaOSegunCliente();
 
             DialogResult confirmacion = MessageBox.Show(
                 $"¿Confirmar venta por {total:C2}?\n" +
-                $"Comprobante: {tipoComprobante}\n" +
                 $"Cliente: {clienteNombre}\n" +
                 $"Medio de Pago: {medioPago}\n" +
                 $"Ítems: {_lineas.Count}\n" +
@@ -556,6 +598,17 @@ namespace Cantina_Padel
 
             if (confirmacion != DialogResult.Yes) return;
 
+            // Aviso consultando si desea factura o no; si acepta emite la factura correspondiente (A/B/C), si no emite Ticket
+            DialogResult deseaFactura = MessageBox.Show(
+                $"¿Desea emitir factura ({facturaDisponible}) para esta compra?\n\nSeleccione 'Sí' para emitir {facturaDisponible} o 'No' para emitir Ticket.",
+                "Comprobante de Venta",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            string tipoComprobante = (deseaFactura == DialogResult.Yes)
+                ? facturaDisponible
+                : "Ticket";
+
             try
             {
                 int idVenta = GestorVentas.RegistrarVenta(
@@ -563,17 +616,8 @@ namespace Cantina_Padel
 
                 _ultimoComprobante = GestorVentas.ObtenerDatosComprobante(idVenta);
 
-                DialogResult drPost = MessageBox.Show(
-                    $"¡Venta N° {idVenta} ({tipoComprobante}) registrada con éxito!\n\n" +
-                    "¿Deseás imprimir el comprobante ahora?\n(Hacé clic en 'No' si preferís enviarlo por email o continuar)",
-                    "Venta completada",
-                    MessageBoxButtons.YesNoCancel,
-                    MessageBoxIcon.Information);
-
-                if (drPost == DialogResult.Yes)
-                {
-                    ComprobanteService.Imprimir(_ultimoComprobante, this);
-                }
+                // Generación automática del Ticket / Comprobante al completar la compra
+                ComprobanteService.Imprimir(_ultimoComprobante, this);
 
                 LimpiarNuevaVenta();
                 CargarProductos();
@@ -689,6 +733,12 @@ namespace Cantina_Padel
 
         private void AbrirCancelacionDeVentas()
         {
+            if (!SesionActual.EsAdmin)
+            {
+                MostrarAviso("Solo el administrador puede cancelar ventas.");
+                return;
+            }
+
             using FormCancelarVenta formCancelar = new FormCancelarVenta(_idUsuario);
             formCancelar.ShowDialog(this);
 

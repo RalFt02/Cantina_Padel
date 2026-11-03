@@ -187,7 +187,7 @@ namespace Cantina_Padel
             if (!CajaService.TryParseMonto(txtMontoInicio.Text, out decimal monto)
                 || !CajaService.MontoInicioEsValido(monto))
             {
-                MessageBox.Show("Ingresá un monto de inicio válido mayor a $0.",
+                MessageBox.Show("Ingresá un monto de inicio válido mayor o igual a $0.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtMontoInicio.Focus();
                 return;

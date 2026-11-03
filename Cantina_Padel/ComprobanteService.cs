@@ -31,6 +31,14 @@ namespace Cantina_Padel
         public string Cajero { get; set; } = "Administrador";
         public List<ItemComprobante> Items { get; set; } = new List<ItemComprobante>();
         public decimal Total { get; set; }
+
+        /// <summary>
+        /// Cuando el cliente paga con Cuenta Corriente, en el ticket solo deben figurar
+        /// los productos (y sus cantidades), sin precios unitarios ni totales, ya que si
+        /// el producto sube de precio luego, el ticket no debe mostrar el precio viejo.
+        /// </summary>
+        public bool SoloProductosSinPrecio =>
+            MedioPago.Equals("Cuenta Corriente", StringComparison.OrdinalIgnoreCase);
     }
 
     public static class ComprobanteService
@@ -57,27 +65,45 @@ namespace Cantina_Padel
                 sb.AppendLine($"Dirección  : {datos.DireccionCliente}");
             sb.AppendLine($"Cond. Pago : {datos.MedioPago}");
             sb.AppendLine("--------------------------------------------------");
-            sb.AppendLine(string.Format("{0,-24} {1,4} {2,9} {3,9}", "DESCRIPCIÓN", "CANT", "P.UNIT", "TOTAL"));
-            sb.AppendLine("--------------------------------------------------");
 
-            foreach (var item in datos.Items)
+            if (datos.SoloProductosSinPrecio)
             {
-                string desc = item.Descripcion.Length > 24 ? item.Descripcion.Substring(0, 24) : item.Descripcion;
-                sb.AppendLine(string.Format("{0,-24} {1,4} {2,9:N2} {3,9:N2}", desc, item.Cantidad, item.PrecioUnitario, item.Subtotal));
+                sb.AppendLine(string.Format("{0,-40} {1,8}", "PRODUCTO", "CANT"));
+                sb.AppendLine("--------------------------------------------------");
+
+                foreach (var item in datos.Items)
+                {
+                    string desc = item.Descripcion.Length > 40 ? item.Descripcion.Substring(0, 40) : item.Descripcion;
+                    sb.AppendLine(string.Format("{0,-40} {1,8}", desc, item.Cantidad));
+                }
+
+                sb.AppendLine("--------------------------------------------------");
+            }
+            else
+            {
+                sb.AppendLine(string.Format("{0,-24} {1,4} {2,9} {3,9}", "DESCRIPCIÓN", "CANT", "P.UNIT", "TOTAL"));
+                sb.AppendLine("--------------------------------------------------");
+
+                foreach (var item in datos.Items)
+                {
+                    string desc = item.Descripcion.Length > 24 ? item.Descripcion.Substring(0, 24) : item.Descripcion;
+                    sb.AppendLine(string.Format("{0,-24} {1,4} {2,9:N2} {3,9:N2}", desc, item.Cantidad, item.PrecioUnitario, item.Subtotal));
+                }
+
+                sb.AppendLine("--------------------------------------------------");
+
+                // Desglose fiscal según comprobante
+                if (datos.TipoComprobante.Equals("Factura A", StringComparison.OrdinalIgnoreCase))
+                {
+                    decimal neto = Math.Round(datos.Total / 1.21m, 2);
+                    decimal iva = datos.Total - neto;
+                    sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "Subtotal Neto Gravado:", neto));
+                    sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "IVA 21%:", iva));
+                }
+
+                sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "TOTAL A PAGAR:", datos.Total));
             }
 
-            sb.AppendLine("--------------------------------------------------");
-
-            // Desglose fiscal según comprobante
-            if (datos.TipoComprobante.Equals("Factura A", StringComparison.OrdinalIgnoreCase))
-            {
-                decimal neto = Math.Round(datos.Total / 1.21m, 2);
-                decimal iva = datos.Total - neto;
-                sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "Subtotal Neto Gravado:", neto));
-                sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "IVA 21%:", iva));
-            }
-
-            sb.AppendLine(string.Format("{0,-39} ${1,9:N2}", "TOTAL A PAGAR:", datos.Total));
             sb.AppendLine("==================================================");
             sb.AppendLine("         ¡Gracias por su compra / visita!         ");
             sb.AppendLine("             Cantina Padel 2026                   ");
@@ -125,23 +151,35 @@ namespace Cantina_Padel
             sb.AppendLine("</table>");
 
             sb.AppendLine("<table class='items-table'>");
-            sb.AppendLine("<tr><th>Descripción</th><th style='text-align:center;'>Cant.</th><th style='text-align:right;'>P. Unit.</th><th style='text-align:right;'>Subtotal</th></tr>");
-
-            foreach (var item in datos.Items)
+            if (datos.SoloProductosSinPrecio)
             {
-                sb.AppendLine($"<tr><td>{item.Descripcion}</td><td style='text-align:center;'>{item.Cantidad}</td><td style='text-align:right;'>${item.PrecioUnitario:N2}</td><td style='text-align:right;'>${item.Subtotal:N2}</td></tr>");
+                sb.AppendLine("<tr><th>Producto</th><th style='text-align:center;'>Cant.</th></tr>");
+                foreach (var item in datos.Items)
+                {
+                    sb.AppendLine($"<tr><td>{item.Descripcion}</td><td style='text-align:center;'>{item.Cantidad}</td></tr>");
+                }
+                sb.AppendLine("</table>");
             }
-            sb.AppendLine("</table>");
-
-            sb.AppendLine("<div class='total-section'>");
-            if (datos.TipoComprobante.Equals("Factura A", StringComparison.OrdinalIgnoreCase))
+            else
             {
-                decimal neto = Math.Round(datos.Total / 1.21m, 2);
-                decimal iva = datos.Total - neto;
-                sb.AppendLine($"<div style='font-size:13px; color:#94a3b8;'>Neto Gravado: ${neto:N2} | IVA 21%: ${iva:N2}</div>");
+                sb.AppendLine("<tr><th>Descripción</th><th style='text-align:center;'>Cant.</th><th style='text-align:right;'>P. Unit.</th><th style='text-align:right;'>Subtotal</th></tr>");
+
+                foreach (var item in datos.Items)
+                {
+                    sb.AppendLine($"<tr><td>{item.Descripcion}</td><td style='text-align:center;'>{item.Cantidad}</td><td style='text-align:right;'>${item.PrecioUnitario:N2}</td><td style='text-align:right;'>${item.Subtotal:N2}</td></tr>");
+                }
+                sb.AppendLine("</table>");
+
+                sb.AppendLine("<div class='total-section'>");
+                if (datos.TipoComprobante.Equals("Factura A", StringComparison.OrdinalIgnoreCase))
+                {
+                    decimal neto = Math.Round(datos.Total / 1.21m, 2);
+                    decimal iva = datos.Total - neto;
+                    sb.AppendLine($"<div style='font-size:13px; color:#94a3b8;'>Neto Gravado: ${neto:N2} | IVA 21%: ${iva:N2}</div>");
+                }
+                sb.AppendLine($"<div class='total-amount'>Total: ${datos.Total:N2}</div>");
+                sb.AppendLine("</div>");
             }
-            sb.AppendLine($"<div class='total-amount'>Total: ${datos.Total:N2}</div>");
-            sb.AppendLine("</div>");
 
             sb.AppendLine("<div class='footer'>¡Muchas gracias por su preferencia! Cantina Padel Club</div>");
             sb.AppendLine("</div></body></html>");
@@ -156,7 +194,7 @@ namespace Cantina_Padel
         {
             try
             {
-                PrintDocument pd = new PrintDocument();
+                using PrintDocument pd = new PrintDocument();
                 pd.DocumentName = $"{datos.TipoComprobante}_{datos.NumeroComprobante}";
 
                 pd.PrintPage += (sender, ev) =>
@@ -165,7 +203,7 @@ namespace Cantina_Padel
                     using Font fontTitulo = new Font("Courier New", 12, FontStyle.Bold);
                     using Font fontNormal = new Font("Courier New", 8.5f, FontStyle.Regular);
                     using Font fontNegrita = new Font("Courier New", 8.5f, FontStyle.Bold);
-                    using Brush brush = Brushes.Black;
+                    using SolidBrush brush = new SolidBrush(Color.Black);
 
                     string texto = GenerarTextoPlano(datos);
                     string[] lineas = texto.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -185,6 +223,8 @@ namespace Cantina_Padel
                         }
                         y += lineSpacing;
                     }
+
+                    ev.HasMorePages = false;
                 };
 
                 using PrintPreviewDialog preview = new PrintPreviewDialog

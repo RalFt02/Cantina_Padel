@@ -1,4 +1,4 @@
-﻿namespace Cantina_Padel
+namespace Cantina_Padel
 {
     partial class FormPrincipal_Usuario
     {
@@ -130,6 +130,7 @@
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
             TransparencyKey = Color.Transparent;
+            FormClosing += FormPrincipal_Admin_FormClosing;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }

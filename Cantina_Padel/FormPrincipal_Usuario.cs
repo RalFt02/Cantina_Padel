@@ -50,6 +50,16 @@ namespace Cantina_Padel
         private bool _volviendoAlLogin = false;
         private void Volver_Menu_Click(object sender, EventArgs e)
         {
+            if (GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario).HasValue)
+            {
+                MessageBox.Show(
+                    "Debe cerrar la caja antes de salir del sistema.",
+                    "Caja abierta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
             if (this.Owner != null)
             {
                 _volviendoAlLogin = true; // se activa para volver al menu
@@ -57,8 +67,23 @@ namespace Cantina_Padel
                 this.Close();             // se cierra el formulario
             }
         }
+
         private void FormPrincipal_Admin_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason == CloseReason.UserClosing &&
+                SesionActual.HayUsuario &&
+                GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario).HasValue)
+            {
+                MessageBox.Show(
+                    "Debe cerrar la caja antes de salir del sistema.",
+                    "Caja abierta",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                e.Cancel = true;
+                _volviendoAlLogin = false;
+                return;
+            }
+
             // si no se vuelve al login el usuario cerro con la X
             if (!_volviendoAlLogin)
             {

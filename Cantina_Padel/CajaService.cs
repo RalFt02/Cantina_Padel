@@ -13,8 +13,8 @@ namespace Cantina_Padel
         //  VALIDACIONES (puras, sin BD — fáciles de testear)
         // ═══════════════════════════════════════════════════
 
-        /// <summary>Valida que el monto de inicio sea mayor a cero.</summary>
-        public static bool MontoInicioEsValido(decimal monto) => monto > 0;
+        /// <summary>Valida que el monto de inicio sea mayor o igual a cero.</summary>
+        public static bool MontoInicioEsValido(decimal monto) => monto >= 0;
 
         /// <summary>Valida que el monto de retiro sea mayor a cero.</summary>
         public static bool MontoRetiroEsValido(decimal monto) => monto > 0;

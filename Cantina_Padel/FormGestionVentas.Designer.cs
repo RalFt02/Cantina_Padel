@@ -25,9 +25,9 @@ namespace Cantina_Padel
             grpCarrito = new GroupBox();
             gridItems = new DataGridView();
             Quitar_Boton = new Button();
-            btnImprimir = new Button();
             btnEnviarMail = new Button();
             lblTotal = new Label();
+            btnImprimir = new Button();
             grpNuevaVenta = new GroupBox();
             lblBuscador = new Label();
             txtBuscador = new TextBox();
@@ -87,7 +87,7 @@ namespace Cantina_Padel
             btnCuentaCorriente.FlatStyle = FlatStyle.Flat;
             btnCuentaCorriente.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             btnCuentaCorriente.ForeColor = Color.Black;
-            btnCuentaCorriente.Location = new Point(650, 14);
+            btnCuentaCorriente.Location = new Point(653, 14);
             btnCuentaCorriente.Name = "btnCuentaCorriente";
             btnCuentaCorriente.Size = new Size(175, 36);
             btnCuentaCorriente.TabIndex = 2;
@@ -130,7 +130,6 @@ namespace Cantina_Padel
             grpCarrito.BackColor = Color.FromArgb(30, 41, 59);
             grpCarrito.Controls.Add(gridItems);
             grpCarrito.Controls.Add(Quitar_Boton);
-            grpCarrito.Controls.Add(btnImprimir);
             grpCarrito.Controls.Add(btnEnviarMail);
             grpCarrito.Controls.Add(lblTotal);
             grpCarrito.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
@@ -169,26 +168,11 @@ namespace Cantina_Padel
             Quitar_Boton.ForeColor = Color.White;
             Quitar_Boton.Location = new Point(15, 465);
             Quitar_Boton.Name = "Quitar_Boton";
-            Quitar_Boton.Size = new Size(160, 38);
+            Quitar_Boton.Size = new Size(275, 38);
             Quitar_Boton.TabIndex = 1;
             Quitar_Boton.Text = "🗑 Quitar Ítem";
             Quitar_Boton.UseVisualStyleBackColor = false;
             Quitar_Boton.Click += Quitar_Boton_Click;
-            // 
-            // btnImprimir
-            // 
-            btnImprimir.BackColor = Color.FromArgb(59, 130, 246);
-            btnImprimir.FlatAppearance.BorderSize = 0;
-            btnImprimir.FlatStyle = FlatStyle.Flat;
-            btnImprimir.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
-            btnImprimir.ForeColor = Color.White;
-            btnImprimir.Location = new Point(190, 465);
-            btnImprimir.Name = "btnImprimir";
-            btnImprimir.Size = new Size(185, 38);
-            btnImprimir.TabIndex = 2;
-            btnImprimir.Text = "🖨 Imprimir Comp.";
-            btnImprimir.UseVisualStyleBackColor = false;
-            btnImprimir.Click += btnImprimir_Click;
             // 
             // btnEnviarMail
             // 
@@ -197,9 +181,9 @@ namespace Cantina_Padel
             btnEnviarMail.FlatStyle = FlatStyle.Flat;
             btnEnviarMail.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             btnEnviarMail.ForeColor = Color.White;
-            btnEnviarMail.Location = new Point(390, 465);
+            btnEnviarMail.Location = new Point(310, 465);
             btnEnviarMail.Name = "btnEnviarMail";
-            btnEnviarMail.Size = new Size(195, 38);
+            btnEnviarMail.Size = new Size(275, 38);
             btnEnviarMail.TabIndex = 3;
             btnEnviarMail.Text = "✉ Enviar por Email";
             btnEnviarMail.UseVisualStyleBackColor = false;
@@ -215,6 +199,22 @@ namespace Cantina_Padel
             lblTotal.Size = new Size(345, 41);
             lblTotal.TabIndex = 4;
             lblTotal.Text = "TOTAL A PAGAR: $ 0,00";
+            // 
+            // btnImprimir
+            // 
+            btnImprimir.BackColor = Color.FromArgb(59, 130, 246);
+            btnImprimir.FlatAppearance.BorderSize = 0;
+            btnImprimir.FlatStyle = FlatStyle.Flat;
+            btnImprimir.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+            btnImprimir.ForeColor = Color.White;
+            btnImprimir.Location = new Point(190, 465);
+            btnImprimir.Name = "btnImprimir";
+            btnImprimir.Size = new Size(185, 38);
+            btnImprimir.TabIndex = 2;
+            btnImprimir.Text = "🖨 Imprimir Comp.";
+            btnImprimir.UseVisualStyleBackColor = false;
+            btnImprimir.Visible = false;
+            btnImprimir.Click += btnImprimir_Click;
             // 
             // grpNuevaVenta
             // 

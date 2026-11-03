@@ -11,6 +11,10 @@ namespace Cantina_Padel
 
         public static bool HayUsuario => IdUsuario > 0;
 
+        public static bool EsAdmin =>
+            string.Equals(Rol, "Admin", System.StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(Rol, "Administrador", System.StringComparison.OrdinalIgnoreCase);
+
         public static void Iniciar(int idUsuario, string rol)
         {
             IdUsuario = idUsuario;

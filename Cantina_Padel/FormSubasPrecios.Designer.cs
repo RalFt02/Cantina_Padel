@@ -19,6 +19,8 @@ namespace Cantina_Padel
         {
             lblTitulo = new System.Windows.Forms.Label();
             grpCriterios = new System.Windows.Forms.GroupBox();
+            lblBuscador = new System.Windows.Forms.Label();
+            txtBuscador = new System.Windows.Forms.TextBox();
             cmbUnidad = new System.Windows.Forms.ComboBox();
             rbUnidad = new System.Windows.Forms.RadioButton();
             cmbProducto = new System.Windows.Forms.ComboBox();
@@ -52,6 +54,8 @@ namespace Cantina_Padel
             // 
             // grpCriterios
             // 
+            grpCriterios.Controls.Add(lblBuscador);
+            grpCriterios.Controls.Add(txtBuscador);
             grpCriterios.Controls.Add(cmbUnidad);
             grpCriterios.Controls.Add(rbUnidad);
             grpCriterios.Controls.Add(cmbProducto);
@@ -66,10 +70,32 @@ namespace Cantina_Padel
             grpCriterios.ForeColor = System.Drawing.Color.FromArgb(163, 230, 53);
             grpCriterios.Location = new System.Drawing.Point(20, 75);
             grpCriterios.Name = "grpCriterios";
-            grpCriterios.Size = new System.Drawing.Size(540, 280);
+            grpCriterios.Size = new System.Drawing.Size(540, 340);
             grpCriterios.TabIndex = 1;
             grpCriterios.TabStop = false;
             grpCriterios.Text = "Criterio de Suba";
+            // 
+            // lblBuscador
+            // 
+            lblBuscador.AutoSize = true;
+            lblBuscador.ForeColor = System.Drawing.Color.FromArgb(163, 230, 53);
+            lblBuscador.Location = new System.Drawing.Point(20, 28);
+            lblBuscador.Name = "lblBuscador";
+            lblBuscador.Size = new System.Drawing.Size(445, 21);
+            lblBuscador.TabIndex = 0;
+            lblBuscador.Text = "🔍 Buscar por nombre (categoría, producto, marca, etc.):";
+            // 
+            // txtBuscador
+            // 
+            txtBuscador.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
+            txtBuscador.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            txtBuscador.Font = new System.Drawing.Font("Segoe UI", 10F);
+            txtBuscador.ForeColor = System.Drawing.Color.White;
+            txtBuscador.Location = new System.Drawing.Point(20, 53);
+            txtBuscador.Name = "txtBuscador";
+            txtBuscador.PlaceholderText = "Escribí para filtrar proveedor, categoría, marca, producto...";
+            txtBuscador.Size = new System.Drawing.Size(490, 30);
+            txtBuscador.TabIndex = 1;
             // 
             // cmbUnidad
             // 
@@ -79,19 +105,19 @@ namespace Cantina_Padel
             cmbUnidad.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             cmbUnidad.ForeColor = System.Drawing.Color.White;
             cmbUnidad.FormattingEnabled = true;
-            cmbUnidad.Location = new System.Drawing.Point(180, 220);
+            cmbUnidad.Location = new System.Drawing.Point(180, 280);
             cmbUnidad.Name = "cmbUnidad";
             cmbUnidad.Size = new System.Drawing.Size(330, 29);
-            cmbUnidad.TabIndex = 9;
+            cmbUnidad.TabIndex = 11;
             // 
             // rbUnidad
             // 
             rbUnidad.AutoSize = true;
             rbUnidad.ForeColor = System.Drawing.Color.White;
-            rbUnidad.Location = new System.Drawing.Point(20, 221);
+            rbUnidad.Location = new System.Drawing.Point(20, 281);
             rbUnidad.Name = "rbUnidad";
             rbUnidad.Size = new System.Drawing.Size(117, 25);
-            rbUnidad.TabIndex = 8;
+            rbUnidad.TabIndex = 10;
             rbUnidad.Text = "Por Unidad:";
             rbUnidad.UseVisualStyleBackColor = true;
             // 
@@ -103,19 +129,19 @@ namespace Cantina_Padel
             cmbProducto.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             cmbProducto.ForeColor = System.Drawing.Color.White;
             cmbProducto.FormattingEnabled = true;
-            cmbProducto.Location = new System.Drawing.Point(180, 175);
+            cmbProducto.Location = new System.Drawing.Point(180, 235);
             cmbProducto.Name = "cmbProducto";
             cmbProducto.Size = new System.Drawing.Size(330, 29);
-            cmbProducto.TabIndex = 7;
+            cmbProducto.TabIndex = 9;
             // 
             // rbProducto
             // 
             rbProducto.AutoSize = true;
             rbProducto.ForeColor = System.Drawing.Color.White;
-            rbProducto.Location = new System.Drawing.Point(20, 176);
+            rbProducto.Location = new System.Drawing.Point(20, 236);
             rbProducto.Name = "rbProducto";
             rbProducto.Size = new System.Drawing.Size(133, 25);
-            rbProducto.TabIndex = 6;
+            rbProducto.TabIndex = 8;
             rbProducto.Text = "Por Producto:";
             rbProducto.UseVisualStyleBackColor = true;
             // 
@@ -127,19 +153,19 @@ namespace Cantina_Padel
             cmbMarca.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             cmbMarca.ForeColor = System.Drawing.Color.White;
             cmbMarca.FormattingEnabled = true;
-            cmbMarca.Location = new System.Drawing.Point(180, 130);
+            cmbMarca.Location = new System.Drawing.Point(180, 190);
             cmbMarca.Name = "cmbMarca";
             cmbMarca.Size = new System.Drawing.Size(330, 29);
-            cmbMarca.TabIndex = 5;
+            cmbMarca.TabIndex = 7;
             // 
             // rbMarca
             // 
             rbMarca.AutoSize = true;
             rbMarca.ForeColor = System.Drawing.Color.White;
-            rbMarca.Location = new System.Drawing.Point(20, 131);
+            rbMarca.Location = new System.Drawing.Point(20, 191);
             rbMarca.Name = "rbMarca";
             rbMarca.Size = new System.Drawing.Size(111, 25);
-            rbMarca.TabIndex = 4;
+            rbMarca.TabIndex = 6;
             rbMarca.Text = "Por Marca:";
             rbMarca.UseVisualStyleBackColor = true;
             // 
@@ -151,19 +177,19 @@ namespace Cantina_Padel
             cmbCategoria.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             cmbCategoria.ForeColor = System.Drawing.Color.White;
             cmbCategoria.FormattingEnabled = true;
-            cmbCategoria.Location = new System.Drawing.Point(180, 85);
+            cmbCategoria.Location = new System.Drawing.Point(180, 145);
             cmbCategoria.Name = "cmbCategoria";
             cmbCategoria.Size = new System.Drawing.Size(330, 29);
-            cmbCategoria.TabIndex = 3;
+            cmbCategoria.TabIndex = 5;
             // 
             // rbCategoria
             // 
             rbCategoria.AutoSize = true;
             rbCategoria.ForeColor = System.Drawing.Color.White;
-            rbCategoria.Location = new System.Drawing.Point(20, 86);
+            rbCategoria.Location = new System.Drawing.Point(20, 146);
             rbCategoria.Name = "rbCategoria";
             rbCategoria.Size = new System.Drawing.Size(135, 25);
-            rbCategoria.TabIndex = 2;
+            rbCategoria.TabIndex = 4;
             rbCategoria.Text = "Por Categoría:";
             rbCategoria.UseVisualStyleBackColor = true;
             // 
@@ -174,20 +200,20 @@ namespace Cantina_Padel
             cmbProveedor.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             cmbProveedor.ForeColor = System.Drawing.Color.White;
             cmbProveedor.FormattingEnabled = true;
-            cmbProveedor.Location = new System.Drawing.Point(180, 40);
+            cmbProveedor.Location = new System.Drawing.Point(180, 100);
             cmbProveedor.Name = "cmbProveedor";
             cmbProveedor.Size = new System.Drawing.Size(330, 29);
-            cmbProveedor.TabIndex = 1;
+            cmbProveedor.TabIndex = 3;
             // 
             // rbProveedor
             // 
             rbProveedor.AutoSize = true;
             rbProveedor.Checked = true;
             rbProveedor.ForeColor = System.Drawing.Color.White;
-            rbProveedor.Location = new System.Drawing.Point(20, 41);
+            rbProveedor.Location = new System.Drawing.Point(20, 101);
             rbProveedor.Name = "rbProveedor";
             rbProveedor.Size = new System.Drawing.Size(141, 25);
-            rbProveedor.TabIndex = 0;
+            rbProveedor.TabIndex = 2;
             rbProveedor.TabStop = true;
             rbProveedor.Text = "Por Proveedor:";
             rbProveedor.UseVisualStyleBackColor = true;
@@ -200,7 +226,7 @@ namespace Cantina_Padel
             grpAccion.Controls.Add(btnAplicar);
             grpAccion.Font = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             grpAccion.ForeColor = System.Drawing.Color.FromArgb(163, 230, 53);
-            grpAccion.Location = new System.Drawing.Point(20, 370);
+            grpAccion.Location = new System.Drawing.Point(20, 430);
             grpAccion.Name = "grpAccion";
             grpAccion.Size = new System.Drawing.Size(540, 160);
             grpAccion.TabIndex = 2;
@@ -275,7 +301,7 @@ namespace Cantina_Padel
             AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.FromArgb(15, 23, 42);
-            ClientSize = new System.Drawing.Size(580, 555);
+            ClientSize = new System.Drawing.Size(580, 615);
             Controls.Add(btnCerrar);
             Controls.Add(grpAccion);
             Controls.Add(grpCriterios);
@@ -298,6 +324,8 @@ namespace Cantina_Padel
 
         private System.Windows.Forms.Label lblTitulo;
         private System.Windows.Forms.GroupBox grpCriterios;
+        private System.Windows.Forms.Label lblBuscador;
+        private System.Windows.Forms.TextBox txtBuscador;
         private System.Windows.Forms.ComboBox cmbProveedor;
         private System.Windows.Forms.RadioButton rbProveedor;
         private System.Windows.Forms.ComboBox cmbCategoria;

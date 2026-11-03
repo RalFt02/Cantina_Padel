@@ -1,4 +1,4 @@
-﻿namespace Cantina_Padel
+namespace Cantina_Padel
 {
     partial class FormPrincipal_Admin
     {
@@ -248,6 +248,7 @@
             Name = "FormPrincipal_Admin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Form2";
+            FormClosing += FormPrincipal_Admin_FormClosing;
             ((System.ComponentModel.ISupportInitialize)Imagen).EndInit();
             ResumeLayout(false);
         }

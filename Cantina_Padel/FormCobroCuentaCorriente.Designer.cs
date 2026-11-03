@@ -139,7 +139,7 @@ namespace Cantina_Padel
             txtSaldoAFavor.TabIndex = 7;
             txtSaldoAFavor.TabStop = false;
             txtSaldoAFavor.Text = "$ 0,00";
-                        // 
+            // 
             // lblSaldoNetoTitulo
             // 
             lblSaldoNetoTitulo.AutoSize = true;
@@ -193,7 +193,6 @@ namespace Cantina_Padel
             // grpAbono
             // 
             grpAbono.BackColor = Color.FromArgb(30, 41, 59);
-            grpAbono.Controls.Add(btnImprimir);
             grpAbono.Controls.Add(btnRegistrarPago);
             grpAbono.Controls.Add(cmbComprobante);
             grpAbono.Controls.Add(lblComprobante);
@@ -292,7 +291,7 @@ namespace Cantina_Padel
             btnRegistrarPago.UseVisualStyleBackColor = false;
             btnRegistrarPago.Click += btnRegistrarPago_Click;
             // 
-            // btnImprimir
+            // btnImprimir (oculto: el ticket se genera automáticamente)
             // 
             btnImprimir.BackColor = Color.FromArgb(59, 130, 246);
             btnImprimir.FlatAppearance.BorderSize = 0;
@@ -305,6 +304,7 @@ namespace Cantina_Padel
             btnImprimir.TabIndex = 7;
             btnImprimir.Text = "🖨 Imprimir Recibo";
             btnImprimir.UseVisualStyleBackColor = false;
+            btnImprimir.Visible = false;
             btnImprimir.Click += btnImprimir_Click;
             // 
             // FormCobroCuentaCorriente

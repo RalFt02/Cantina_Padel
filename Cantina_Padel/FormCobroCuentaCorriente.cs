@@ -29,6 +29,9 @@ namespace Cantina_Padel
             InitializeComponent();
             _idClienteSeleccionado = idClienteInicial;
 
+            // El botón de impresión manual se quita de Cuenta Corriente (se mantiene el desplegable de comprobante)
+            btnImprimir.Visible = false;
+
             ConfigurarGrilla(gridMovimientos);
             CargarMediosDePago();
             CargarComprobantes();
@@ -66,11 +69,84 @@ namespace Cantina_Padel
         private void CargarComprobantes()
         {
             cmbComprobante.Items.Clear();
-            cmbComprobante.Items.Add("Recibo de Cobro");
             cmbComprobante.Items.Add("Ticket");
             cmbComprobante.Items.Add("Factura B");
             cmbComprobante.Items.Add("Factura C");
+            cmbComprobante.Items.Add("Factura A");
             cmbComprobante.SelectedIndex = 0;
+        }
+
+        private void ActualizarComprobantesSegunCliente()
+        {
+            string condicion = "Consumidor Final";
+            string razonSocial = "";
+
+            if (cmbCliente.SelectedItem is DataRowView drv)
+            {
+                if (drv.Row.Table.Columns.Contains("condicion_fiscal") && drv["condicion_fiscal"] != DBNull.Value)
+                    condicion = drv["condicion_fiscal"].ToString() ?? "Consumidor Final";
+                if (drv.Row.Table.Columns.Contains("razon_social") && drv["razon_social"] != DBNull.Value)
+                    razonSocial = drv["razon_social"].ToString() ?? "";
+            }
+
+            if (string.IsNullOrWhiteSpace(condicion) && !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                condicion = "Responsable Inscripto";
+            }
+
+            string comprobanteActual = cmbComprobante.SelectedItem?.ToString() ?? "";
+            cmbComprobante.Items.Clear();
+
+            if (condicion.Equals("Responsable Inscripto", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                cmbComprobante.Items.Add("Factura A");
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.Items.Add("Factura C");
+                cmbComprobante.Items.Add("Ticket");
+            }
+            else if (condicion.Equals("Monotributista", StringComparison.OrdinalIgnoreCase))
+            {
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.Items.Add("Factura C");
+                cmbComprobante.Items.Add("Factura A");
+                cmbComprobante.Items.Add("Ticket");
+            }
+            else // Consumidor Final
+            {
+                cmbComprobante.Items.Add("Ticket");
+                cmbComprobante.Items.Add("Factura B");
+                cmbComprobante.Items.Add("Factura C");
+            }
+
+            int idx = cmbComprobante.Items.IndexOf(comprobanteActual);
+            cmbComprobante.SelectedIndex = idx >= 0 ? idx : 0;
+        }
+
+        private string ObtenerFacturaSeleccionadaOSegunCliente()
+        {
+            string seleccionado = cmbComprobante.SelectedItem?.ToString() ?? "";
+            if (seleccionado.StartsWith("Factura", StringComparison.OrdinalIgnoreCase))
+            {
+                return seleccionado;
+            }
+
+            string condicion = "Consumidor Final";
+            string razonSocial = "";
+
+            if (cmbCliente.SelectedItem is DataRowView drv)
+            {
+                if (drv.Row.Table.Columns.Contains("condicion_fiscal") && drv["condicion_fiscal"] != DBNull.Value)
+                    condicion = drv["condicion_fiscal"].ToString() ?? "Consumidor Final";
+                if (drv.Row.Table.Columns.Contains("razon_social") && drv["razon_social"] != DBNull.Value)
+                    razonSocial = drv["razon_social"].ToString() ?? "";
+            }
+
+            if (condicion.Equals("Responsable Inscripto", StringComparison.OrdinalIgnoreCase) || !string.IsNullOrWhiteSpace(razonSocial))
+            {
+                return "Factura A";
+            }
+
+            return "Factura B";
         }
 
         private void CargarClientes()
@@ -85,6 +161,7 @@ namespace Cantina_Padel
                 if (cmbCliente.Items.Count > 0)
                 {
                     cmbCliente.SelectedIndex = 0;
+                    ActualizarComprobantesSegunCliente();
                     CargarEstadoCuenta();
                 }
             }
@@ -164,6 +241,7 @@ namespace Cantina_Padel
 
         private void cmbCliente_SelectedIndexChanged(object? sender, EventArgs e)
         {
+            ActualizarComprobantesSegunCliente();
             CargarEstadoCuenta();
         }
 
@@ -206,13 +284,24 @@ namespace Cantina_Padel
             }
 
             string medioPago = cmbMedioPago.SelectedItem?.ToString() ?? "Efectivo";
-            string tipoComprobante = cmbComprobante.SelectedItem?.ToString() ?? "Recibo de Cobro";
+            string facturaDisponible = ObtenerFacturaSeleccionadaOSegunCliente();
 
             DialogResult conf = MessageBox.Show(
-                $"¿Confirmar cobro de {monto:C2} a {cmbCliente.Text}?\nMedio: {medioPago}\nComprobante: {tipoComprobante}",
+                $"¿Confirmar cobro de {monto:C2} a {cmbCliente.Text}?\nMedio: {medioPago}",
                 "Confirmar Abono", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (conf != DialogResult.Yes) return;
+
+            // Aviso consultando si desea factura o no; si acepta emite la factura correspondiente (A/B/C), si no emite Ticket
+            DialogResult deseaFactura = MessageBox.Show(
+                $"¿Desea emitir factura ({facturaDisponible}) para este pago?\n\nSeleccione 'Sí' para emitir {facturaDisponible} o 'No' para emitir Ticket.",
+                "Comprobante de Pago",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            string tipoComprobante = (deseaFactura == DialogResult.Yes)
+                ? facturaDisponible
+                : "Ticket";
 
             try
             {
@@ -222,6 +311,9 @@ namespace Cantina_Padel
                 _ultimoComprobante = GestorVentas.ObtenerDatosComprobante(res.IdVenta);
 
                 MessageBox.Show(res.Mensaje, "Resultado del Abono", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Generación automática del Ticket / Comprobante al completar el cobro
+                ComprobanteService.Imprimir(_ultimoComprobante, this);
 
                 CargarEstadoCuenta();
             }

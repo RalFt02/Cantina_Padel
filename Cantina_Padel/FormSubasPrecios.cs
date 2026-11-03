@@ -10,6 +10,12 @@ namespace Cantina_Padel
     public partial class FormSubasPrecios : Form
     {
         private readonly int _idUsuario;
+        private DataView? _dvProveedor;
+        private DataView? _dvCategoria;
+        private DataView? _dvMarca;
+        private DataView? _dvProducto;
+        private DataView? _dvUnidad;
+        private bool _cambiandoCriterio;
 
         public FormSubasPrecios(int idUsuario)
         {
@@ -17,6 +23,7 @@ namespace Cantina_Padel
             InitializeComponent();
             ConfigurarEventos();
             CargarCombos();
+            this.Shown += (s, e) => txtBuscador.Focus();
         }
 
         private void ConfigurarEventos()
@@ -26,6 +33,7 @@ namespace Cantina_Padel
             rbMarca.CheckedChanged += RadioButton_CheckedChanged;
             rbProducto.CheckedChanged += RadioButton_CheckedChanged;
             rbUnidad.CheckedChanged += RadioButton_CheckedChanged;
+            txtBuscador.TextChanged += txtBuscador_TextChanged;
         }
 
         private void RadioButton_CheckedChanged(object? sender, EventArgs e)
@@ -35,6 +43,107 @@ namespace Cantina_Padel
             cmbMarca.Enabled     = rbMarca.Checked;
             cmbProducto.Enabled  = rbProducto.Checked;
             cmbUnidad.Enabled    = rbUnidad.Checked;
+
+            if (!_cambiandoCriterio)
+            {
+                AplicarFiltroBusqueda(permitirAutoCambioCriterio: false);
+            }
+        }
+
+        private void txtBuscador_TextChanged(object? sender, EventArgs e)
+        {
+            AplicarFiltroBusqueda(permitirAutoCambioCriterio: true);
+        }
+
+        /// <summary>
+        /// Filtra por nombre (o código en el caso de productos) el criterio seleccionado
+        /// (proveedor, categoría, marca, producto o unidad). Si el criterio activo no tiene
+        /// coincidencias pero otro sí, cambia automáticamente al criterio con coincidencias.
+        /// </summary>
+        private void AplicarFiltroBusqueda(bool permitirAutoCambioCriterio)
+        {
+            string query = txtBuscador.Text.Trim();
+            string safeQuery = query.Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]");
+            string filtroGeneral = string.IsNullOrWhiteSpace(safeQuery) ? "" : $"nombre LIKE '%{safeQuery}%'";
+            string filtroProducto = string.IsNullOrWhiteSpace(safeQuery)
+                ? ""
+                : (_dvProducto != null && _dvProducto.Table != null && _dvProducto.Table.Columns.Contains("codigo")
+                    ? $"nombre LIKE '%{safeQuery}%' OR codigo LIKE '%{safeQuery}%'"
+                    : $"nombre LIKE '%{safeQuery}%'");
+
+            // Primero limpiar filtros en los criterios no seleccionados para que no queden vacíos visualmente
+            if (!rbProveedor.Checked && _dvProveedor != null) _dvProveedor.RowFilter = "";
+            if (!rbCategoria.Checked && _dvCategoria != null) _dvCategoria.RowFilter = "";
+            if (!rbMarca.Checked && _dvMarca != null)         _dvMarca.RowFilter = "";
+            if (!rbProducto.Checked && _dvProducto != null)   _dvProducto.RowFilter = "";
+            if (!rbUnidad.Checked && _dvUnidad != null)       _dvUnidad.RowFilter = "";
+
+            // Aplicar filtro al criterio actualmente activo
+            DataView? dvActivo = ObtenerDataViewActivo();
+            ComboBox cmbActivo = ObtenerComboActivo();
+
+            if (dvActivo != null)
+            {
+                dvActivo.RowFilter = rbProducto.Checked ? filtroProducto : filtroGeneral;
+                if (cmbActivo.Items.Count > 0)
+                {
+                    cmbActivo.SelectedIndex = 0;
+                    return;
+                }
+            }
+
+            // Si el usuario escribió un nombre y en el criterio actual no hay coincidencias,
+            // buscar en Producto, Categoría, Marca, Proveedor o Unidad y activar el que coincida
+            if (permitirAutoCambioCriterio && !string.IsNullOrWhiteSpace(safeQuery))
+            {
+                if (IntentarActivarCriterioConCoincidencia(_dvProducto, filtroProducto, rbProducto, cmbProducto)) return;
+                if (IntentarActivarCriterioConCoincidencia(_dvCategoria, filtroGeneral, rbCategoria, cmbCategoria)) return;
+                if (IntentarActivarCriterioConCoincidencia(_dvMarca, filtroGeneral, rbMarca, cmbMarca)) return;
+                if (IntentarActivarCriterioConCoincidencia(_dvProveedor, filtroGeneral, rbProveedor, cmbProveedor)) return;
+                if (rbUnidad.Enabled && IntentarActivarCriterioConCoincidencia(_dvUnidad, filtroGeneral, rbUnidad, cmbUnidad)) return;
+            }
+        }
+
+        private bool IntentarActivarCriterioConCoincidencia(DataView? dv, string filtro, RadioButton rb, ComboBox cmb)
+        {
+            if (dv == null || !rb.Enabled) return false;
+
+            dv.RowFilter = filtro;
+            if (dv.Count > 0)
+            {
+                _cambiandoCriterio = true;
+                // Limpiar el que estaba antes
+                DataView? anterior = ObtenerDataViewActivo();
+                if (anterior != null && anterior != dv) anterior.RowFilter = "";
+
+                rb.Checked = true;
+                _cambiandoCriterio = false;
+
+                if (cmb.Items.Count > 0)
+                    cmb.SelectedIndex = 0;
+                return true;
+            }
+
+            dv.RowFilter = "";
+            return false;
+        }
+
+        private DataView? ObtenerDataViewActivo()
+        {
+            if (rbProveedor.Checked) return _dvProveedor;
+            if (rbCategoria.Checked) return _dvCategoria;
+            if (rbMarca.Checked)     return _dvMarca;
+            if (rbProducto.Checked)  return _dvProducto;
+            return _dvUnidad;
+        }
+
+        private ComboBox ObtenerComboActivo()
+        {
+            if (rbProveedor.Checked) return cmbProveedor;
+            if (rbCategoria.Checked) return cmbCategoria;
+            if (rbMarca.Checked)     return cmbMarca;
+            if (rbProducto.Checked)  return cmbProducto;
+            return cmbUnidad;
         }
 
         private void CargarCombos()
@@ -46,24 +155,24 @@ namespace Cantina_Padel
 
                 // 1. Proveedores
                 string qProv = @"SELECT prov.id_proveedor, COALESCE(NULLIF(p.razon_social, ''), CONCAT(p.nombre, ' ', p.apellido)) AS nombre 
-                                 FROM proveedor prov JOIN persona p ON p.id_persona = prov.id_persona WHERE p.activo = 1";
-                LlenarCombo(cmbProveedor, qProv, conn, "id_proveedor", "nombre");
+                                 FROM proveedor prov JOIN persona p ON p.id_persona = prov.id_persona WHERE p.activo = 1 ORDER BY nombre";
+                _dvProveedor = LlenarCombo(cmbProveedor, qProv, conn, "id_proveedor", "nombre");
 
                 // 2. Categorías
-                LlenarCombo(cmbCategoria, "SELECT id_categoria, nombre FROM categoria WHERE activo = 1", conn, "id_categoria", "nombre");
+                _dvCategoria = LlenarCombo(cmbCategoria, "SELECT id_categoria, nombre FROM categoria WHERE activo = 1 ORDER BY nombre", conn, "id_categoria", "nombre");
 
                 // 3. Marcas
-                LlenarCombo(cmbMarca, "SELECT id_marca, nombre FROM marca WHERE activo = 1", conn, "id_marca", "nombre");
+                _dvMarca = LlenarCombo(cmbMarca, "SELECT id_marca, nombre FROM marca WHERE activo = 1 ORDER BY nombre", conn, "id_marca", "nombre");
 
-                // 4. Productos
-                LlenarCombo(cmbProducto, "SELECT id_producto, nombre FROM producto WHERE activo = 1", conn, "id_producto", "nombre");
+                // 4. Productos (incluye codigo para búsqueda rápida)
+                _dvProducto = LlenarCombo(cmbProducto, "SELECT id_producto, nombre, codigo FROM producto WHERE activo = 1 AND id_producto NOT IN (998, 999) ORDER BY nombre", conn, "id_producto", "nombre");
 
                 // 5. Unidades: solo si la BD tiene la tabla 'unidad' y la columna producto.id_unidad
                 if (SubasPrecios.SoportaUnidad())
                 {
                     try
                     {
-                        LlenarCombo(cmbUnidad, "SELECT id_unidad, nombre FROM unidad WHERE activo = 1", conn, "id_unidad", "nombre");
+                        _dvUnidad = LlenarCombo(cmbUnidad, "SELECT id_unidad, nombre FROM unidad WHERE activo = 1 ORDER BY nombre", conn, "id_unidad", "nombre");
                     }
                     catch { DeshabilitarUnidad(); }
                 }
@@ -86,15 +195,17 @@ namespace Cantina_Padel
             rbUnidad.AutoSize = true;
         }
 
-        private void LlenarCombo(ComboBox cmb, string query, MySqlConnection conn, string valueMember, string displayMember)
+        private DataView LlenarCombo(ComboBox cmb, string query, MySqlConnection conn, string valueMember, string displayMember)
         {
             using MySqlDataAdapter da = new MySqlDataAdapter(query, conn);
             DataTable dt = new DataTable();
             da.Fill(dt);
-            cmb.DataSource = dt;
+            DataView dv = new DataView(dt);
+            cmb.DataSource = dv;
             cmb.ValueMember = valueMember;
             cmb.DisplayMember = displayMember;
-            cmb.SelectedIndex = dt.Rows.Count > 0 ? 0 : -1;
+            cmb.SelectedIndex = dv.Count > 0 ? 0 : -1;
+            return dv;
         }
 
         private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
