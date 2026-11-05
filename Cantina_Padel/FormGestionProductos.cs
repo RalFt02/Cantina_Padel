@@ -5,9 +5,6 @@ namespace Cantina_Padel
 {
     public partial class FormGestionProductos : Form
     {
-        // Guarda el ID del producto seleccionado en la grilla (null = alta nueva).
-        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
-        // ejecución ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
         private decimal _precioBase;
         private decimal _porcentajeCategoriaAnterior;
@@ -17,12 +14,16 @@ namespace Cantina_Padel
         public FormGestionProductos()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridProductos.AutoGenerateColumns = true;
+            gridProductos.BindingContext = this.BindingContext;
+            gridProductos.DataBindingComplete += (_, _) => FormatearColumnasProductos();
+            this.Load += (_, _) => FormatearColumnasProductos();
             txtPrecio.TextChanged += txtPrecio_TextChanged;
             CargarCombos();
             CargarProductos();
         }
 
-        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
         private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
         {
             var txt = (TextBox)sender;
@@ -35,7 +36,6 @@ namespace Cantina_Padel
                 e.Handled = true;
         }
 
-        // Permite solo dígitos y teclas de control (backspace, etc.)
         private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -54,26 +54,24 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                // Marca
                 var daMarca = new MySqlDataAdapter("SELECT id_marca, nombre FROM marca WHERE activo = 1 ORDER BY nombre", conn);
                 var dtMarca = new System.Data.DataTable();
                 daMarca.Fill(dtMarca);
-                cmbMarca.DataSource    = dtMarca;
                 cmbMarca.DisplayMember = "nombre";
                 cmbMarca.ValueMember   = "id_marca";
+                cmbMarca.DataSource    = dtMarca;
 
-                // Categoria: se muestra solamente el nombre.
                 var daCategoria = new MySqlDataAdapter("SELECT id_categoria, nombre, porcentaje_ganancia FROM categoria WHERE activo = 1 ORDER BY nombre", conn);
                 var dtCategoria = new System.Data.DataTable();
                 daCategoria.Fill(dtCategoria);
 
-                cmbCategoria.DataSource    = dtCategoria;
                 cmbCategoria.DisplayMember = "nombre";
                 cmbCategoria.ValueMember   = "id_categoria";
+                cmbCategoria.DataSource    = dtCategoria;
+                cmbCategoria.SelectedIndexChanged -= cmbCategoria_SelectedIndexChanged;
                 cmbCategoria.SelectedIndexChanged += cmbCategoria_SelectedIndexChanged;
                 ActualizarPorcentajeGanancia();
 
-                // Proveedor (nombre a mostrar: razon social si tiene, si no nombre y apellido)
                 string queryProv = @"
                     SELECT prov.id_proveedor,
                            COALESCE(NULLIF(p.razon_social, ''), CONCAT(p.nombre, ' ', p.apellido)) AS nombre_proveedor
@@ -84,11 +82,11 @@ namespace Cantina_Padel
                 var daProv = new MySqlDataAdapter(queryProv, conn);
                 var dtProv = new System.Data.DataTable();
                 daProv.Fill(dtProv);
-                cmbProveedor.DataSource    = dtProv;
                 cmbProveedor.DisplayMember = "nombre_proveedor";
                 cmbProveedor.ValueMember   = "id_proveedor";
+                cmbProveedor.DataSource    = dtProv;
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar los combos:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -130,79 +128,74 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridProductos.AutoGenerateColumns = true;
+                gridProductos.BindingContext = this.BindingContext;
+                gridProductos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridProductos.DataSource = dt;
 
-                // Las columnas se auto-generan recién acá; a veces no heredan bien
-                // el ForeColor blanco definido en el diseñador, así que lo forzamos
-                // columna por columna para que el texto no se vea negro.
-                gridProductos.RowsDefaultCellStyle.ForeColor = Color.White;
-                gridProductos.RowsDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
-                foreach (DataGridViewColumn col in gridProductos.Columns)
-                {
-                    col.DefaultCellStyle.ForeColor = Color.White;
-                    col.DefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
-                    col.DefaultCellStyle.SelectionForeColor = Color.Black;
-                    col.DefaultCellStyle.SelectionBackColor = Color.FromArgb(163, 230, 53);
-                }
-
-                gridProductos.Columns["id_producto"].HeaderText   = "ID";
-                gridProductos.Columns["codigo"].HeaderText         = "Código";
-                gridProductos.Columns["nombre"].HeaderText         = "Nombre";
-                gridProductos.Columns["descripcion"].HeaderText    = "Descripción";
-                gridProductos.Columns["precio_venta"].HeaderText   = "Precio";
-                gridProductos.Columns["stock"].HeaderText          = "Stock";
-                gridProductos.Columns["marca"].HeaderText          = "Marca";
-                gridProductos.Columns["categoria"].HeaderText      = "Categoría";
-                gridProductos.Columns["proveedor"].HeaderText      = "Proveedor";
-                gridProductos.Columns["activo"].HeaderText         = "Activo";
-
-                gridProductos.Columns["id_producto"].Width  = 40;
-                gridProductos.Columns["codigo"].Width         = 110;
-                gridProductos.Columns["nombre"].Width         = 130;
-                gridProductos.Columns["descripcion"].Width    = 160;
-                gridProductos.Columns["precio_venta"].Width   = 90;
-                gridProductos.Columns["precio_venta"].DefaultCellStyle.Format = "C2";
-                gridProductos.Columns["stock"].Width           = 60;
-                gridProductos.Columns["marca"].Width            = 100;
-                gridProductos.Columns["categoria"].Width        = 100;
-                gridProductos.Columns["proveedor"].Width        = 130;
-                gridProductos.Columns["activo"].Width            = 55;
-
-                // Los IDs de FK viajan ocultos, solo se usan para preseleccionar los combos al editar
-                gridProductos.Columns["id_marca"].Visible     = false;
-                gridProductos.Columns["id_categoria"].Visible = false;
-                gridProductos.Columns["id_proveedor"].Visible = false;
+                FormatearColumnasProductos();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar productos:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        private void FormatearColumnasProductos()
+        {
+            if (gridProductos == null || gridProductos.Columns.Count == 0) return;
 
+            gridProductos.RowsDefaultCellStyle.ForeColor = Color.White;
+            gridProductos.RowsDefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
+            foreach (DataGridViewColumn col in gridProductos.Columns)
+            {
+                col.DefaultCellStyle.ForeColor = Color.White;
+                col.DefaultCellStyle.BackColor = Color.FromArgb(30, 41, 59);
+                col.DefaultCellStyle.SelectionForeColor = Color.Black;
+                col.DefaultCellStyle.SelectionBackColor = Color.FromArgb(163, 230, 53);
+            }
 
-        private void cmbCategoria_SelectedIndexChanged(object sender, EventArgs e)
+            void Configurar(string colName, string header, int width, string? format = null)
+            {
+                if (gridProductos.Columns[colName] is DataGridViewColumn col)
+                {
+                    col.HeaderText = header;
+                    col.Width = width;
+                    if (!string.IsNullOrEmpty(format))
+                        col.DefaultCellStyle.Format = format;
+                }
+            }
+
+            Configurar("id_producto", "ID", 40);
+            Configurar("codigo", "Código", 110);
+            Configurar("nombre", "Nombre", 130);
+            Configurar("descripcion", "Descripción", 160);
+            Configurar("precio_venta", "Precio", 90, "C2");
+            Configurar("stock", "Stock", 60);
+            Configurar("marca", "Marca", 100);
+            Configurar("categoria", "Categoría", 100);
+            Configurar("proveedor", "Proveedor", 130);
+            Configurar("activo", "Activo", 55);
+
+            if (gridProductos.Columns["id_marca"] is DataGridViewColumn colMarca) colMarca.Visible = false;
+            if (gridProductos.Columns["id_categoria"] is DataGridViewColumn colCat) colCat.Visible = false;
+            if (gridProductos.Columns["id_proveedor"] is DataGridViewColumn colProv) colProv.Visible = false;
+        }
+
+        private void cmbCategoria_SelectedIndexChanged(object? sender, EventArgs e)
         {
             decimal nuevoPorcentaje = ObtenerPorcentajeGananciaCategoria();
 
-            // Si se está editando un producto y el usuario no modificó manualmente
-            // el precio, recuperamos el precio base desde el precio de venta actual
-            // usando el porcentaje anterior. Así, cambiar de categoría no acumula
-            // porcentajes sobre porcentajes.
             if (!_actualizandoFormulario)
             {
                 if (_precioEditadoManualmente)
                 {
-                    // El usuario acaba de escribir un precio base.
                     _precioBase = ObtenerPrecioMostrado();
                 }
                 else
                 {
-                    // El precio mostrado ya incluye el porcentaje anterior.
-                    // Lo revertimos para obtener el precio base antes de aplicar
-                    // el porcentaje de la nueva categoría.
                     decimal factorAnterior = 1m + (_porcentajeCategoriaAnterior / 100m);
                     if (factorAnterior > 0m)
                     {
@@ -218,7 +211,7 @@ namespace Cantina_Padel
             ActualizarPorcentajeGanancia();
         }
 
-        private void txtPrecio_TextChanged(object sender, EventArgs e)
+        private void txtPrecio_TextChanged(object? sender, EventArgs e)
         {
             if (!_actualizandoFormulario)
             {
@@ -246,6 +239,7 @@ namespace Cantina_Padel
         private decimal ObtenerPorcentajeGananciaCategoria()
         {
             if (cmbCategoria.SelectedItem is System.Data.DataRowView fila &&
+                fila.Row.Table.Columns.Contains("porcentaje_ganancia") &&
                 fila["porcentaje_ganancia"] != DBNull.Value)
             {
                 return Convert.ToDecimal(fila["porcentaje_ganancia"]);
@@ -312,10 +306,15 @@ namespace Cantina_Padel
                 conn.Open();
                 using MySqlTransaction tx = conn.BeginTransaction();
 
-                if (esNuevo)
-                    CrearProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado);
-                else
-                    EditarProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado);
+                bool exito = esNuevo
+                    ? CrearProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado)
+                    : EditarProducto(conn, tx, precioBase, stock, porcentajeGanancia, codigoIngresado);
+
+                if (!exito)
+                {
+                    try { tx.Rollback(); } catch { }
+                    return;
+                }
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -323,15 +322,60 @@ namespace Cantina_Padel
                 CargarProductos();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("Ya existe un producto con ese mismo código de barras o nombre.",
+                    "Producto duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CrearProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
+        private bool ValidarDuplicadosProducto(MySqlConnection conn, MySqlTransaction tx, string codigo, string nombre, int? idProductoActual)
         {
+            string filtroExcluir = idProductoActual.HasValue ? " AND id_producto <> @id" : "";
+
+            if (!string.IsNullOrWhiteSpace(codigo))
+            {
+                string checkCod = "SELECT COUNT(*) FROM producto WHERE codigo = @c" + filtroExcluir;
+                using MySqlCommand cmdCod = new MySqlCommand(checkCod, conn, tx);
+                cmdCod.Parameters.AddWithValue("@c", codigo);
+                if (idProductoActual.HasValue) cmdCod.Parameters.AddWithValue("@id", idProductoActual.Value);
+                long countCod = Convert.ToInt64(cmdCod.ExecuteScalar());
+                if (countCod > 0)
+                {
+                    MessageBox.Show($"Ya existe un producto registrado con el código de barras '{codigo}'.",
+                        "Código duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            string checkNom = "SELECT COUNT(*) FROM producto WHERE nombre = @n" + filtroExcluir;
+            using (MySqlCommand cmdNom = new MySqlCommand(checkNom, conn, tx))
+            {
+                cmdNom.Parameters.AddWithValue("@n", nombre);
+                if (idProductoActual.HasValue) cmdNom.Parameters.AddWithValue("@id", idProductoActual.Value);
+                long countNom = Convert.ToInt64(cmdNom.ExecuteScalar());
+                if (countNom > 0)
+                {
+                    MessageBox.Show($"Ya existe un producto registrado con el nombre '{nombre}'.",
+                        "Producto ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CrearProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
+        {
+            string nombre = txtNombre.Text.Trim();
+            if (!ValidarDuplicadosProducto(conn, tx, codigoIngresado, nombre, null))
+                return false;
+
             string codigo = string.IsNullOrWhiteSpace(codigoIngresado)
                 ? GenerarCodigoEan13Unico(conn, tx)
                 : codigoIngresado;
@@ -342,7 +386,7 @@ namespace Cantina_Padel
 
             using MySqlCommand cmd = new MySqlCommand(insertProducto, conn, tx);
             cmd.Parameters.AddWithValue("@cod",  codigo);
-            cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
+            cmd.Parameters.AddWithValue("@n",    nombre);
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
             cmd.Parameters.AddWithValue("@p",    precio + (precio / 100 * porcentajeGanancia));
             cmd.Parameters.AddWithValue("@s",    stock);
@@ -353,16 +397,9 @@ namespace Cantina_Padel
             cmd.ExecuteNonQuery();
 
             txtCodigo.Text = codigo;
+            return true;
         }
 
-        // ─────────────────────────────────────────────
-        //  Generador de código de barras (EAN-13 válido)
-        // ─────────────────────────────────────────────
-        // Arma un código de 13 dígitos: prefijo 779 (rango GS1 Argentina) +
-        // 9 dígitos aleatorios + dígito verificador calculado. Verifica contra
-        // la base que no exista otro producto con el mismo código antes de
-        // devolverlo (reintenta si hay colisión, algo prácticamente imposible
-        // con 9 dígitos aleatorios, pero mejor curarse en salud).
         private string GenerarCodigoEan13Unico(MySqlConnection conn, MySqlTransaction tx)
         {
             var rnd = new Random();
@@ -383,15 +420,23 @@ namespace Cantina_Padel
                 string check = "SELECT COUNT(*) FROM producto WHERE codigo = @c";
                 using MySqlCommand cmd = new MySqlCommand(check, conn, tx);
                 cmd.Parameters.AddWithValue("@c", codigo);
-                long count = (long)cmd.ExecuteScalar()!;
+                long count = Convert.ToInt64(cmd.ExecuteScalar());
 
                 if (count == 0) return codigo;
             }
         }
 
-        private void EditarProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
+        private bool EditarProducto(MySqlConnection conn, MySqlTransaction tx, decimal precio, int stock, decimal porcentajeGanancia, string codigoIngresado)
         {
             int id = _idSeleccionado!.Value;
+            string nombre = txtNombre.Text.Trim();
+
+            if (!ValidarDuplicadosProducto(conn, tx, codigoIngresado, nombre, id))
+                return false;
+
+            string codigo = string.IsNullOrWhiteSpace(codigoIngresado)
+                ? GenerarCodigoEan13Unico(conn, tx)
+                : codigoIngresado;
 
             string updateProducto = @"
                 UPDATE producto
@@ -409,8 +454,8 @@ namespace Cantina_Padel
             decimal precioVentaCalculado = precio + (precio * porcentajeGanancia / 100m);
 
             using MySqlCommand cmd = new MySqlCommand(updateProducto, conn, tx);
-            cmd.Parameters.AddWithValue("@cod",  codigoIngresado);
-            cmd.Parameters.AddWithValue("@n",    txtNombre.Text.Trim());
+            cmd.Parameters.AddWithValue("@cod",  codigo);
+            cmd.Parameters.AddWithValue("@n",    nombre);
             cmd.Parameters.AddWithValue("@desc", string.IsNullOrWhiteSpace(txtDescripcion.Text) ? DBNull.Value : txtDescripcion.Text.Trim());
             cmd.Parameters.AddWithValue("@p",    precioVentaCalculado);
             cmd.Parameters.AddWithValue("@s",    stock);
@@ -421,8 +466,8 @@ namespace Cantina_Padel
             cmd.Parameters.AddWithValue("@id",   id);
             cmd.ExecuteNonQuery();
 
-            // Requerimiento: Actualizar el precio en cuenta corriente al cambiarlo desde "productos"
             GestorVentas.ActualizarPreciosCuentaCorrienteProducto(conn, tx, id, precioVentaCalculado);
+            return true;
         }
 
         // ─────────────────────────────────────────────
@@ -458,7 +503,7 @@ namespace Cantina_Padel
                 CargarProductos();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -470,23 +515,32 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridProductos_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridProductos.Rows.Count) return;
             var row = gridProductos.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado      = Convert.ToInt32(row.Cells["id_producto"].Value);
-            txtCodigo.Text      = row.Cells["codigo"].Value?.ToString() ?? "";
-            txtNombre.Text      = row.Cells["nombre"].Value?.ToString() ?? "";
-            txtDescripcion.Text = row.Cells["descripcion"].Value?.ToString() ?? "";
+            var idVal = gridProductos.Columns.Contains("id_producto") ? row.Cells["id_producto"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
 
-            decimal precioVenta = row.Cells["precio_venta"].Value != null
-                ? Convert.ToDecimal(row.Cells["precio_venta"].Value)
+            string LeerCelda(string col) => gridProductos.Columns.Contains(col) ? (row.Cells[col]?.Value?.ToString() ?? "") : "";
+
+            _idSeleccionado     = Convert.ToInt32(idVal);
+            txtCodigo.Text      = LeerCelda("codigo");
+            txtNombre.Text      = LeerCelda("nombre");
+            txtDescripcion.Text = LeerCelda("descripcion");
+
+            var pvObj = gridProductos.Columns.Contains("precio_venta") ? row.Cells["precio_venta"]?.Value : null;
+            decimal precioVenta = pvObj != null && pvObj != DBNull.Value
+                ? Convert.ToDecimal(pvObj)
                 : 0m;
-            txtStock.Text = row.Cells["stock"].Value?.ToString() ?? "0";
+            txtStock.Text = string.IsNullOrEmpty(LeerCelda("stock")) ? "0" : LeerCelda("stock");
 
-            cmbMarca.SelectedValue     = row.Cells["id_marca"].Value;
+            if (gridProductos.Columns.Contains("id_marca") && row.Cells["id_marca"]?.Value != null && row.Cells["id_marca"].Value != DBNull.Value)
+                cmbMarca.SelectedValue = Convert.ToInt32(row.Cells["id_marca"].Value);
 
             _actualizandoFormulario = true;
-            cmbCategoria.SelectedValue = row.Cells["id_categoria"].Value;
+            if (gridProductos.Columns.Contains("id_categoria") && row.Cells["id_categoria"]?.Value != null && row.Cells["id_categoria"].Value != DBNull.Value)
+                cmbCategoria.SelectedValue = Convert.ToInt32(row.Cells["id_categoria"].Value);
             _actualizandoFormulario = false;
 
             _porcentajeCategoriaAnterior = ObtenerPorcentajeGananciaCategoria();
@@ -495,9 +549,12 @@ namespace Cantina_Padel
             _precioEditadoManualmente = false;
             MostrarPrecioConGanancia(_precioBase, _porcentajeCategoriaAnterior);
             ActualizarPorcentajeGanancia();
-            cmbProveedor.SelectedValue = row.Cells["id_proveedor"].Value;
 
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+            if (gridProductos.Columns.Contains("id_proveedor") && row.Cells["id_proveedor"]?.Value != null && row.Cells["id_proveedor"].Value != DBNull.Value)
+                cmbProveedor.SelectedValue = Convert.ToInt32(row.Cells["id_proveedor"].Value);
+
+            var actVal = gridProductos.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = actVal != null && actVal != DBNull.Value && Convert.ToBoolean(actVal);
             Guardar_Boton.Text = "Guardar Cambios";
         }
 
@@ -543,9 +600,6 @@ namespace Cantina_Padel
             LimpiarFormulario();
         }
 
-        // ─────────────────────────────────────────────
-        //  SUBAS DE PRECIOS (proveedor, categoría, marca, producto, unidad)
-        // ─────────────────────────────────────────────
         private void Subas_Boton_Click(object sender, EventArgs e)
         {
             using (var frm = new FormSubasPrecios(SesionActual.IdUsuario))
@@ -553,7 +607,6 @@ namespace Cantina_Padel
                 frm.ShowDialog(this);
             }
 
-            // Los precios pudieron cambiar: refrescar grilla y formulario
             CargarProductos();
             LimpiarFormulario();
         }

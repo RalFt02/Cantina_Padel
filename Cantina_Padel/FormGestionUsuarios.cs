@@ -4,18 +4,19 @@ namespace Cantina_Padel
 {
     public partial class FormGestionUsuarios : Form
     {
-        // Guarda el ID del usuario seleccionado en la grilla (null = alta nueva).
-        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
-        // ejecución ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
 
         public FormGestionUsuarios()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridUsuarios.AutoGenerateColumns = true;
+            gridUsuarios.BindingContext = this.BindingContext;
+            gridUsuarios.DataBindingComplete += (_, _) => FormatearColumnasUsuarios();
+            this.Load += (_, _) => FormatearColumnasUsuarios();
             CargarUsuarios();
         }
 
-        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
         private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -49,29 +50,40 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridUsuarios.AutoGenerateColumns = true;
+                gridUsuarios.BindingContext = this.BindingContext;
+                gridUsuarios.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridUsuarios.DataSource = dt;
 
-                // Personalizar columnas
-                gridUsuarios.Columns["id_usuario"].HeaderText      = "ID";
-                gridUsuarios.Columns["username"].HeaderText         = "Usuario";
-                gridUsuarios.Columns["nombre_completo"].HeaderText  = "Nombre";
-                gridUsuarios.Columns["nombre_rol"].HeaderText       = "Rol";
-                gridUsuarios.Columns["activo"].HeaderText           = "Activo";
-                gridUsuarios.Columns["ultimo_acceso"].HeaderText    = "Último acceso";
-
-                gridUsuarios.Columns["id_usuario"].Width     = 40;
-                gridUsuarios.Columns["username"].Width        = 110;
-                gridUsuarios.Columns["nombre_completo"].Width = 160;
-                gridUsuarios.Columns["nombre_rol"].Width      = 90;
-                gridUsuarios.Columns["activo"].Width          = 55;
-                gridUsuarios.Columns["ultimo_acceso"].Width   = 130;
+                FormatearColumnasUsuarios();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar usuarios:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void FormatearColumnasUsuarios()
+        {
+            if (gridUsuarios == null || gridUsuarios.Columns.Count == 0) return;
+
+            void Configurar(string colName, string header, int width)
+            {
+                if (gridUsuarios.Columns[colName] is DataGridViewColumn col)
+                {
+                    col.HeaderText = header;
+                    col.Width = width;
+                }
+            }
+
+            Configurar("id_usuario", "ID", 40);
+            Configurar("username", "Usuario", 110);
+            Configurar("nombre_completo", "Nombre", 160);
+            Configurar("nombre_rol", "Rol", 90);
+            Configurar("activo", "Activo", 55);
+            Configurar("ultimo_acceso", "Último acceso", 130);
         }
 
         // ─────────────────────────────────────────────
@@ -112,10 +124,15 @@ namespace Cantina_Padel
                 conn.Open();
                 using MySqlTransaction tx = conn.BeginTransaction();
 
-                if (esNuevo)
-                    CrearUsuario(conn, tx);
-                else
-                    EditarUsuario(conn, tx);
+                bool exito = esNuevo
+                    ? CrearUsuario(conn, tx)
+                    : EditarUsuario(conn, tx);
+
+                if (!exito)
+                {
+                    try { tx.Rollback(); } catch { }
+                    return;
+                }
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -123,27 +140,30 @@ namespace Cantina_Padel
                 CargarUsuarios();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("El nombre de usuario ingresado ya existe.",
+                    "Usuario duplicado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CrearUsuario(MySqlConnection conn, MySqlTransaction tx)
+        private bool CrearUsuario(MySqlConnection conn, MySqlTransaction tx)
         {
-            // Verificar username duplicado
             string checkQuery = "SELECT COUNT(*) FROM Usuario WHERE username = @u";
             using (MySqlCommand check = new MySqlCommand(checkQuery, conn, tx))
             {
                 check.Parameters.AddWithValue("@u", txtUsername.Text.Trim());
-                long count = (long)check.ExecuteScalar()!;
+                long count = Convert.ToInt64(check.ExecuteScalar());
                 if (count > 0)
                 {
                     MessageBox.Show("El nombre de usuario ya existe.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
+                        "Usuario ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
                 }
             }
 
@@ -169,11 +189,26 @@ namespace Cantina_Padel
             cmdRol.Parameters.AddWithValue("@id", nuevoId);
             cmdRol.Parameters.AddWithValue("@r", cmbRol.SelectedItem!.ToString());
             cmdRol.ExecuteNonQuery();
+            return true;
         }
 
-        private void EditarUsuario(MySqlConnection conn, MySqlTransaction tx)
+        private bool EditarUsuario(MySqlConnection conn, MySqlTransaction tx)
         {
             int id = _idSeleccionado!.Value;
+
+            string checkQuery = "SELECT COUNT(*) FROM Usuario WHERE username = @u AND id_usuario <> @id";
+            using (MySqlCommand check = new MySqlCommand(checkQuery, conn, tx))
+            {
+                check.Parameters.AddWithValue("@u", txtUsername.Text.Trim());
+                check.Parameters.AddWithValue("@id", id);
+                long count = Convert.ToInt64(check.ExecuteScalar());
+                if (count > 0)
+                {
+                    MessageBox.Show("Ya existe otro usuario con ese nombre de usuario.",
+                        "Usuario ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
 
             string updateUsuario = @"
                 UPDATE Usuario
@@ -191,7 +226,6 @@ namespace Cantina_Padel
                 cmd.ExecuteNonQuery();
             }
 
-            // Si se ingresó una nueva contraseña, actualizarla
             if (!string.IsNullOrWhiteSpace(txtPassword.Text))
             {
                 using MySqlCommand cmdPass = new MySqlCommand(
@@ -201,13 +235,13 @@ namespace Cantina_Padel
                 cmdPass.ExecuteNonQuery();
             }
 
-            // Actualizar rol
             string updateRol = @"
                 UPDATE Rol SET nombre_rol = @r WHERE id_usuario = @id";
             using MySqlCommand cmdRol = new MySqlCommand(updateRol, conn, tx);
             cmdRol.Parameters.AddWithValue("@r",  cmbRol.SelectedItem!.ToString());
             cmdRol.Parameters.AddWithValue("@id", id);
             cmdRol.ExecuteNonQuery();
+            return true;
         }
 
         // ─────────────────────────────────────────────
@@ -243,7 +277,7 @@ namespace Cantina_Padel
                 CargarUsuarios();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -255,18 +289,23 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridUsuarios_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridUsuarios.Rows.Count) return;
             var row = gridUsuarios.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado  = Convert.ToInt32(row.Cells["id_usuario"].Value);
-            txtUsername.Text = row.Cells["username"].Value?.ToString() ?? "";
-            txtNombre.Text   = row.Cells["nombre_completo"].Value?.ToString() ?? "";
-            txtPassword.Text = "";  // no mostramos el hash
+            var idVal = gridUsuarios.Columns.Contains("id_usuario") ? row.Cells["id_usuario"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
 
-            string rol = row.Cells["nombre_rol"].Value?.ToString() ?? "Cajero";
+            _idSeleccionado  = Convert.ToInt32(idVal);
+            txtUsername.Text = gridUsuarios.Columns.Contains("username") ? (row.Cells["username"]?.Value?.ToString() ?? "") : "";
+            txtNombre.Text   = gridUsuarios.Columns.Contains("nombre_completo") ? (row.Cells["nombre_completo"]?.Value?.ToString() ?? "") : "";
+            txtPassword.Text = "";
+
+            string rol = gridUsuarios.Columns.Contains("nombre_rol") ? (row.Cells["nombre_rol"]?.Value?.ToString() ?? "Cajero") : "Cajero";
             cmbRol.SelectedItem = rol;
 
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+            var actVal = gridUsuarios.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = actVal != null && actVal != DBNull.Value && Convert.ToBoolean(actVal);
             Guardar_Boton.Text = "Guardar Cambios";
         }
 
@@ -277,8 +316,9 @@ namespace Cantina_Padel
         {
             if (gridUsuarios.DataSource is System.Data.DataTable dt)
             {
+                string filtro = txtBuscar.Text.Replace("'", "''");
                 dt.DefaultView.RowFilter =
-                    $"username LIKE '%{txtBuscar.Text}%' OR nombre_completo LIKE '%{txtBuscar.Text}%'";
+                    $"username LIKE '%{filtro}%' OR nombre_completo LIKE '%{filtro}%'";
             }
         }
 
@@ -307,7 +347,7 @@ namespace Cantina_Padel
             txtUsername.Text = "";
             txtNombre.Text   = "";
             txtPassword.Text = "";
-            cmbRol.SelectedIndex = 1; // Cajero por defecto
+            if (cmbRol.Items.Count > 1) cmbRol.SelectedIndex = 1;
             chkActivo.Checked = true;
             Guardar_Boton.Text = "Crear Usuario";
         }

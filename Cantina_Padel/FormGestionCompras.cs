@@ -24,11 +24,22 @@ namespace Cantina_Padel
         public FormGestionCompras(int idUsuario)
         {
             InitializeComponent();
-            _idUsuario = idUsuario;
+            this.BindingContext ??= new BindingContext();
+            _idUsuario = idUsuario > 0 ? idUsuario : 1;
 
             ConfigurarGrilla(gridCompras);
             ConfigurarGrilla(gridDetalle);
             ConfigurarGrilla(gridItems);
+
+            gridCompras.DataBindingComplete += (_, _) => FormatearColumnasCompras();
+            gridDetalle.DataBindingComplete += (_, _) => FormatearColumnasDetalle();
+            gridItems.DataBindingComplete += (_, _) => FormatearColumnasItems();
+            this.Load += (_, _) =>
+            {
+                FormatearColumnasCompras();
+                FormatearColumnasDetalle();
+                FormatearColumnasItems();
+            };
 
             CargarProductos();
             CargarCompras();
@@ -64,8 +75,14 @@ namespace Cantina_Padel
         // Devuelve el valor seleccionado de un combo como int, o null si no hay selección válida.
         private int? ObtenerIdSeleccionado(ComboBox combo)
         {
-            if (combo.SelectedValue == null || combo.SelectedValue is DataRowView)
+            if (combo.SelectedValue == null || combo.SelectedValue == DBNull.Value)
                 return null;
+            if (combo.SelectedValue is DataRowView drv)
+            {
+                if (!string.IsNullOrWhiteSpace(combo.ValueMember) && drv.Row.Table.Columns.Contains(combo.ValueMember) && drv[combo.ValueMember] != DBNull.Value)
+                    return Convert.ToInt32(drv[combo.ValueMember]);
+                return null;
+            }
             return Convert.ToInt32(combo.SelectedValue);
         }
 
@@ -104,22 +121,12 @@ namespace Cantina_Padel
         {
             try
             {
+                this.BindingContext ??= new BindingContext();
+                gridCompras.AutoGenerateColumns = true;
+                gridCompras.BindingContext = this.BindingContext;
                 gridCompras.DataSource = GestorCompras.ObtenerCompras();
 
-                gridCompras.Columns["id_compra"].HeaderText = "ID";
-                gridCompras.Columns["fecha"].HeaderText = "Fecha";
-                gridCompras.Columns["proveedor"].HeaderText = "Proveedor";
-                gridCompras.Columns["total"].HeaderText = "Total";
-                gridCompras.Columns["total_con_ganancia"].HeaderText = "Total c/ ganancia";
-
-                gridCompras.Columns["id_compra"].Width = 40;
-                gridCompras.Columns["fecha"].Width = 130;
-                gridCompras.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
-                gridCompras.Columns["proveedor"].Width = 170;
-                gridCompras.Columns["total"].Width = 100;
-                gridCompras.Columns["total"].DefaultCellStyle.Format = "C2";
-                gridCompras.Columns["total_con_ganancia"].Width = 130;
-                gridCompras.Columns["total_con_ganancia"].DefaultCellStyle.Format = "C2";
+                FormatearColumnasCompras();
 
                 _idCompraSeleccionada = null;
                 gridDetalle.DataSource = null;
@@ -130,26 +137,50 @@ namespace Cantina_Padel
             }
         }
 
+        private void FormatearColumnasCompras()
+        {
+            if (gridCompras == null || gridCompras.Columns.Count == 0) return;
+
+            if (gridCompras.Columns["id_compra"] is DataGridViewColumn colId)
+            {
+                colId.HeaderText = "ID";
+                colId.Width = 40;
+            }
+            if (gridCompras.Columns["fecha"] is DataGridViewColumn colFec)
+            {
+                colFec.HeaderText = "Fecha";
+                colFec.Width = 130;
+                colFec.DefaultCellStyle.Format = "dd/MM/yyyy HH:mm";
+            }
+            if (gridCompras.Columns["proveedor"] is DataGridViewColumn colProv)
+            {
+                colProv.HeaderText = "Proveedor";
+                colProv.Width = 170;
+            }
+            if (gridCompras.Columns["total"] is DataGridViewColumn colTot)
+            {
+                colTot.HeaderText = "Total";
+                colTot.Width = 100;
+                colTot.DefaultCellStyle.Format = "C2";
+            }
+            if (gridCompras.Columns["total_con_ganancia"] is DataGridViewColumn colTotGan)
+            {
+                colTotGan.HeaderText = "Total c/ ganancia";
+                colTotGan.Width = 130;
+                colTotGan.DefaultCellStyle.Format = "C2";
+            }
+        }
+
         private void CargarDetalle(int idCompra)
         {
             try
             {
+                this.BindingContext ??= new BindingContext();
+                gridDetalle.AutoGenerateColumns = true;
+                gridDetalle.BindingContext = this.BindingContext;
                 gridDetalle.DataSource = GestorCompras.ObtenerDetalleCompra(idCompra);
 
-                gridDetalle.Columns["nombre"].HeaderText = "Producto";
-                gridDetalle.Columns["cantidad"].HeaderText = "Cant.";
-                gridDetalle.Columns["precio_unitario"].HeaderText = "Costo unit.";
-                gridDetalle.Columns["subtotal"].HeaderText = "Subtotal";
-                gridDetalle.Columns["subtotal_con_ganancia"].HeaderText = "Subt. c/ ganancia";
-
-                gridDetalle.Columns["nombre"].Width = 170;
-                gridDetalle.Columns["cantidad"].Width = 60;
-                gridDetalle.Columns["precio_unitario"].Width = 100;
-                gridDetalle.Columns["precio_unitario"].DefaultCellStyle.Format = "C2";
-                gridDetalle.Columns["subtotal"].Width = 100;
-                gridDetalle.Columns["subtotal"].DefaultCellStyle.Format = "C2";
-                gridDetalle.Columns["subtotal_con_ganancia"].Width = 110;
-                gridDetalle.Columns["subtotal_con_ganancia"].DefaultCellStyle.Format = "C2";
+                FormatearColumnasDetalle();
             }
             catch (MySqlException ex)
             {
@@ -157,31 +188,89 @@ namespace Cantina_Padel
             }
         }
 
+        private void FormatearColumnasDetalle()
+        {
+            if (gridDetalle == null || gridDetalle.Columns.Count == 0) return;
+
+            if (gridDetalle.Columns["nombre"] is DataGridViewColumn colNom)
+            {
+                colNom.HeaderText = "Producto";
+                colNom.Width = 170;
+            }
+            if (gridDetalle.Columns["cantidad"] is DataGridViewColumn colCant)
+            {
+                colCant.HeaderText = "Cant.";
+                colCant.Width = 60;
+            }
+            if (gridDetalle.Columns["precio_unitario"] is DataGridViewColumn colPre)
+            {
+                colPre.HeaderText = "Costo unit.";
+                colPre.Width = 100;
+                colPre.DefaultCellStyle.Format = "C2";
+            }
+            if (gridDetalle.Columns["subtotal"] is DataGridViewColumn colSub)
+            {
+                colSub.HeaderText = "Subtotal";
+                colSub.Width = 100;
+                colSub.DefaultCellStyle.Format = "C2";
+            }
+            if (gridDetalle.Columns["subtotal_con_ganancia"] is DataGridViewColumn colSubGan)
+            {
+                colSubGan.HeaderText = "Subt. c/ ganancia";
+                colSubGan.Width = 110;
+                colSubGan.DefaultCellStyle.Format = "C2";
+            }
+        }
+
         // Redibuja la grilla de ítems de la compra en armado y actualiza el total.
         private void RefrescarItems()
         {
+            this.BindingContext ??= new BindingContext();
+            gridItems.AutoGenerateColumns = true;
+            gridItems.BindingContext = this.BindingContext;
             gridItems.DataSource = null;
             gridItems.DataSource = new System.ComponentModel.BindingList<LineaCompra>(_lineas);
 
-            gridItems.Columns["IdProducto"].Visible = false;
-            gridItems.Columns["IdProveedor"].Visible = false;
-            gridItems.Columns["PorcentajeGanancia"].Visible = false;
-            gridItems.Columns["Nombre"].HeaderText = "Producto";
-            gridItems.Columns["Cantidad"].HeaderText = "Cant.";
-            gridItems.Columns["PrecioUnitario"].HeaderText = "Costo unit.";
-            gridItems.Columns["Subtotal"].HeaderText = "Subtotal";
-            gridItems.Columns["SubtotalConGanancia"].HeaderText = "Subt. c/ ganancia";
-
-            gridItems.Columns["Nombre"].Width = 150;
-            gridItems.Columns["Cantidad"].Width = 50;
-            gridItems.Columns["PrecioUnitario"].Width = 90;
-            gridItems.Columns["PrecioUnitario"].DefaultCellStyle.Format = "C2";
-            gridItems.Columns["Subtotal"].Width = 95;
-            gridItems.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
-            gridItems.Columns["SubtotalConGanancia"].Width = 105;
-            gridItems.Columns["SubtotalConGanancia"].DefaultCellStyle.Format = "C2";
-
+            FormatearColumnasItems();
             ActualizarTotal();
+        }
+
+        private void FormatearColumnasItems()
+        {
+            if (gridItems == null || gridItems.Columns.Count == 0) return;
+
+            if (gridItems.Columns["IdProducto"] is DataGridViewColumn colIdP) colIdP.Visible = false;
+            if (gridItems.Columns["IdProveedor"] is DataGridViewColumn colIdPr) colIdPr.Visible = false;
+            if (gridItems.Columns["PorcentajeGanancia"] is DataGridViewColumn colPg) colPg.Visible = false;
+
+            if (gridItems.Columns["Nombre"] is DataGridViewColumn colNom)
+            {
+                colNom.HeaderText = "Producto";
+                colNom.Width = 150;
+            }
+            if (gridItems.Columns["Cantidad"] is DataGridViewColumn colCant)
+            {
+                colCant.HeaderText = "Cant.";
+                colCant.Width = 50;
+            }
+            if (gridItems.Columns["PrecioUnitario"] is DataGridViewColumn colPre)
+            {
+                colPre.HeaderText = "Costo unit.";
+                colPre.Width = 90;
+                colPre.DefaultCellStyle.Format = "C2";
+            }
+            if (gridItems.Columns["Subtotal"] is DataGridViewColumn colSub)
+            {
+                colSub.HeaderText = "Subtotal";
+                colSub.Width = 95;
+                colSub.DefaultCellStyle.Format = "C2";
+            }
+            if (gridItems.Columns["SubtotalConGanancia"] is DataGridViewColumn colSubGan)
+            {
+                colSubGan.HeaderText = "Subt. c/ ganancia";
+                colSubGan.Width = 105;
+                colSubGan.DefaultCellStyle.Format = "C2";
+            }
         }
 
         private void ActualizarTotal()
@@ -216,15 +305,20 @@ namespace Cantina_Padel
                 return;
             }
 
-            var fila = (DataRowView)cmbProducto.SelectedItem!;
+            if (cmbProducto.SelectedItem is not DataRowView fila)
+            {
+                MostrarAviso("Seleccioná un producto válido.");
+                return;
+            }
+
             LineaCompra nueva = new LineaCompra
             {
                 IdProducto = idProducto.Value,
-                IdProveedor = Convert.ToInt32(fila["id_proveedor"]),
-                Nombre = fila["nombre"].ToString() ?? "",
+                IdProveedor = fila.Row.Table.Columns.Contains("id_proveedor") && fila["id_proveedor"] != DBNull.Value ? Convert.ToInt32(fila["id_proveedor"]) : 1,
+                Nombre = fila.Row.Table.Columns.Contains("nombre") ? (fila["nombre"]?.ToString() ?? "") : "",
                 Cantidad = cantidad,
                 PrecioUnitario = precio,
-                PorcentajeGanancia = Convert.ToDecimal(fila["porcentaje_ganancia"])
+                PorcentajeGanancia = fila.Row.Table.Columns.Contains("porcentaje_ganancia") && fila["porcentaje_ganancia"] != DBNull.Value ? Convert.ToDecimal(fila["porcentaje_ganancia"]) : 0m
             };
 
             string? error = GestorCompras.AgregarLinea(_lineas, nueva);
@@ -338,10 +432,14 @@ namespace Cantina_Padel
 
         private void SeleccionarCompra(int indiceFila)
         {
-            if (indiceFila < 0) return;
+            if (indiceFila < 0 || indiceFila >= gridCompras.Rows.Count) return;
             var fila = gridCompras.Rows[indiceFila];
+            if (fila.IsNewRow) return;
 
-            _idCompraSeleccionada = Convert.ToInt32(fila.Cells["id_compra"].Value);
+            var idVal = gridCompras.Columns.Contains("id_compra") ? fila.Cells["id_compra"]?.Value : (fila.Cells.Count > 0 ? fila.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
+
+            _idCompraSeleccionada = Convert.ToInt32(idVal);
             CargarDetalle(_idCompraSeleccionada.Value);
         }
 
@@ -374,7 +472,10 @@ namespace Cantina_Padel
         // Mismo estilo oscuro que el resto de los formularios.
         private void ConfigurarGrilla(DataGridView grid)
         {
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            this.BindingContext ??= new BindingContext();
+            grid.AutoGenerateColumns = true;
+            grid.BindingContext = this.BindingContext;
+            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.EnableHeadersVisualStyles = false;
             grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);

@@ -42,10 +42,11 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridDetalle).BeginInit();
             ((System.ComponentModel.ISupportInitialize)gridItems).BeginInit();
             grpNuevaCompra.SuspendLayout();
+            this.BindingContext = new System.Windows.Forms.BindingContext();
             SuspendLayout();
-            //
+            // 
             // lblTitulo
-            //
+            // 
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -53,93 +54,102 @@ namespace Cantina_Padel
             lblTitulo.Name = "lblTitulo";
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "GESTIÓN DE COMPRAS";
-            //
+            // 
             // Volver_Boton
-            //
+            // 
+            Volver_Boton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
+            Volver_Boton.Cursor = Cursors.Hand;
             Volver_Boton.FlatAppearance.BorderSize = 0;
             Volver_Boton.FlatStyle = FlatStyle.Flat;
+            Volver_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Volver_Boton.ForeColor = Color.White;
-            Volver_Boton.Location = new Point(1110, 15);
+            Volver_Boton.Location = new Point(1130, 15);
             Volver_Boton.Name = "Volver_Boton";
-            Volver_Boton.Size = new Size(110, 32);
+            Volver_Boton.Size = new Size(130, 36);
             Volver_Boton.TabIndex = 1;
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            //
+            // 
             // lblCompras
-            //
+            // 
             lblCompras.AutoSize = true;
-            lblCompras.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblCompras.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblCompras.ForeColor = Color.FromArgb(163, 230, 53);
-            lblCompras.Location = new Point(20, 65);
+            lblCompras.Location = new Point(20, 62);
             lblCompras.Name = "lblCompras";
             lblCompras.TabIndex = 2;
             lblCompras.Text = "Compras registradas:";
-            //
+            // 
             // gridCompras
-            //
+            // 
             gridCompras.AllowUserToAddRows = false;
             gridCompras.AllowUserToDeleteRows = false;
+            gridCompras.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            gridCompras.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gridCompras.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridCompras.BorderStyle = BorderStyle.None;
             gridCompras.GridColor = Color.FromArgb(51, 65, 85);
-            gridCompras.Location = new Point(20, 95);
+            gridCompras.Location = new Point(20, 88);
             gridCompras.MultiSelect = false;
             gridCompras.Name = "gridCompras";
             gridCompras.ReadOnly = true;
             gridCompras.RowHeadersVisible = false;
             gridCompras.RowHeadersWidth = 51;
             gridCompras.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridCompras.Size = new Size(600, 290);
+            gridCompras.Size = new Size(620, 305);
             gridCompras.TabIndex = 3;
             gridCompras.CellClick += gridCompras_CellClick;
-            //
+            // 
             // Eliminar_Boton
-            //
+            // 
             Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
+            Eliminar_Boton.Cursor = Cursors.Hand;
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
             Eliminar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Eliminar_Boton.ForeColor = Color.White;
-            Eliminar_Boton.Location = new Point(20, 395);
+            Eliminar_Boton.Location = new Point(20, 403);
             Eliminar_Boton.Name = "Eliminar_Boton";
-            Eliminar_Boton.Size = new Size(240, 38);
+            Eliminar_Boton.Size = new Size(250, 38);
             Eliminar_Boton.TabIndex = 4;
             Eliminar_Boton.Text = "Eliminar compra seleccionada";
             Eliminar_Boton.UseVisualStyleBackColor = false;
             Eliminar_Boton.Click += Eliminar_Boton_Click;
-            //
+            // 
             // lblDetalle
-            //
+            // 
             lblDetalle.AutoSize = true;
-            lblDetalle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblDetalle.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblDetalle.ForeColor = Color.FromArgb(163, 230, 53);
-            lblDetalle.Location = new Point(20, 445);
+            lblDetalle.Location = new Point(20, 452);
             lblDetalle.Name = "lblDetalle";
             lblDetalle.TabIndex = 5;
             lblDetalle.Text = "Detalle de la compra seleccionada:";
-            //
+            // 
             // gridDetalle
-            //
+            // 
             gridDetalle.AllowUserToAddRows = false;
             gridDetalle.AllowUserToDeleteRows = false;
+            gridDetalle.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gridDetalle.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gridDetalle.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridDetalle.BorderStyle = BorderStyle.None;
             gridDetalle.GridColor = Color.FromArgb(51, 65, 85);
-            gridDetalle.Location = new Point(20, 475);
+            gridDetalle.Location = new Point(20, 478);
             gridDetalle.MultiSelect = false;
             gridDetalle.Name = "gridDetalle";
             gridDetalle.ReadOnly = true;
             gridDetalle.RowHeadersVisible = false;
             gridDetalle.RowHeadersWidth = 51;
             gridDetalle.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridDetalle.Size = new Size(600, 185);
+            gridDetalle.Size = new Size(620, 222);
             gridDetalle.TabIndex = 6;
-            //
+            // 
             // grpNuevaCompra
-            //
+            // 
+            grpNuevaCompra.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             grpNuevaCompra.BackColor = Color.FromArgb(30, 41, 59);
             grpNuevaCompra.Controls.Add(lblProducto);
             grpNuevaCompra.Controls.Add(cmbProducto);
@@ -154,178 +164,188 @@ namespace Cantina_Padel
             grpNuevaCompra.Controls.Add(lblTotalGanancia);
             grpNuevaCompra.Controls.Add(Registrar_Boton);
             grpNuevaCompra.Controls.Add(Limpiar_Boton);
-            grpNuevaCompra.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            grpNuevaCompra.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             grpNuevaCompra.ForeColor = Color.FromArgb(163, 230, 53);
-            grpNuevaCompra.Location = new Point(640, 60);
+            grpNuevaCompra.Location = new Point(660, 62);
             grpNuevaCompra.Name = "grpNuevaCompra";
-            grpNuevaCompra.Size = new Size(580, 600);
+            grpNuevaCompra.Size = new Size(600, 638);
             grpNuevaCompra.TabIndex = 7;
             grpNuevaCompra.TabStop = false;
             grpNuevaCompra.Text = "Nueva compra";
-            //
+            // 
             // lblProducto
-            //
+            // 
             lblProducto.AutoSize = true;
             lblProducto.ForeColor = Color.White;
-            lblProducto.Location = new Point(10, 25);
+            lblProducto.Location = new Point(15, 25);
             lblProducto.Name = "lblProducto";
             lblProducto.TabIndex = 2;
             lblProducto.Text = "Producto:";
-            //
+            // 
             // cmbProducto
-            //
+            // 
             cmbProducto.BackColor = Color.FromArgb(51, 65, 85);
             cmbProducto.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbProducto.FlatStyle = FlatStyle.Flat;
             cmbProducto.ForeColor = Color.White;
-            cmbProducto.Location = new Point(10, 50);
+            cmbProducto.Location = new Point(15, 48);
             cmbProducto.Name = "cmbProducto";
-            cmbProducto.Size = new Size(555, 28);
+            cmbProducto.Size = new Size(570, 26);
             cmbProducto.TabIndex = 3;
-            //
+            // 
             // lblCantidad
-            //
+            // 
             lblCantidad.AutoSize = true;
             lblCantidad.ForeColor = Color.White;
-            lblCantidad.Location = new Point(10, 88);
+            lblCantidad.Location = new Point(15, 86);
             lblCantidad.Name = "lblCantidad";
             lblCantidad.TabIndex = 4;
             lblCantidad.Text = "Cantidad:";
-            //
+            // 
             // txtCantidad
-            //
+            // 
             txtCantidad.BackColor = Color.FromArgb(51, 65, 85);
             txtCantidad.ForeColor = Color.White;
-            txtCantidad.Location = new Point(10, 113);
+            txtCantidad.Location = new Point(15, 110);
             txtCantidad.MaxLength = 6;
             txtCantidad.Name = "txtCantidad";
-            txtCantidad.Size = new Size(120, 27);
+            txtCantidad.Size = new Size(125, 25);
             txtCantidad.TabIndex = 5;
             txtCantidad.KeyPress += SoloNumeros_KeyPress;
-            //
+            // 
             // lblPrecio
-            //
+            // 
             lblPrecio.AutoSize = true;
             lblPrecio.ForeColor = Color.White;
-            lblPrecio.Location = new Point(145, 88);
+            lblPrecio.Location = new Point(155, 86);
             lblPrecio.Name = "lblPrecio";
             lblPrecio.TabIndex = 6;
             lblPrecio.Text = "Costo unitario:";
-            //
+            // 
             // txtPrecio
-            //
+            // 
             txtPrecio.BackColor = Color.FromArgb(51, 65, 85);
             txtPrecio.ForeColor = Color.White;
-            txtPrecio.Location = new Point(145, 113);
+            txtPrecio.Location = new Point(155, 110);
             txtPrecio.MaxLength = 11;
             txtPrecio.Name = "txtPrecio";
-            txtPrecio.Size = new Size(140, 27);
+            txtPrecio.Size = new Size(145, 25);
             txtPrecio.TabIndex = 7;
             txtPrecio.KeyPress += SoloNumerosDecimal_KeyPress;
-            //
+            // 
             // Agregar_Boton
-            //
+            // 
             Agregar_Boton.BackColor = Color.FromArgb(163, 230, 53);
+            Agregar_Boton.Cursor = Cursors.Hand;
             Agregar_Boton.FlatAppearance.BorderSize = 0;
             Agregar_Boton.FlatStyle = FlatStyle.Flat;
             Agregar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Agregar_Boton.ForeColor = Color.Black;
-            Agregar_Boton.Location = new Point(300, 108);
+            Agregar_Boton.Location = new Point(315, 105);
             Agregar_Boton.Name = "Agregar_Boton";
-            Agregar_Boton.Size = new Size(125, 36);
+            Agregar_Boton.Size = new Size(130, 36);
             Agregar_Boton.TabIndex = 8;
             Agregar_Boton.Text = "Agregar ítem";
             Agregar_Boton.UseVisualStyleBackColor = false;
             Agregar_Boton.Click += Agregar_Boton_Click;
-            //
+            // 
             // Quitar_Boton
-            //
+            // 
             Quitar_Boton.BackColor = Color.FromArgb(71, 85, 105);
+            Quitar_Boton.Cursor = Cursors.Hand;
             Quitar_Boton.FlatAppearance.BorderSize = 0;
             Quitar_Boton.FlatStyle = FlatStyle.Flat;
             Quitar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             Quitar_Boton.ForeColor = Color.White;
-            Quitar_Boton.Location = new Point(440, 108);
+            Quitar_Boton.Location = new Point(455, 105);
             Quitar_Boton.Name = "Quitar_Boton";
-            Quitar_Boton.Size = new Size(125, 36);
+            Quitar_Boton.Size = new Size(130, 36);
             Quitar_Boton.TabIndex = 9;
             Quitar_Boton.Text = "Quitar ítem";
             Quitar_Boton.UseVisualStyleBackColor = false;
             Quitar_Boton.Click += Quitar_Boton_Click;
-            //
+            // 
             // gridItems
-            //
+            // 
             gridItems.AllowUserToAddRows = false;
             gridItems.AllowUserToDeleteRows = false;
+            gridItems.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gridItems.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gridItems.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridItems.BorderStyle = BorderStyle.None;
             gridItems.GridColor = Color.FromArgb(51, 65, 85);
-            gridItems.Location = new Point(10, 160);
+            gridItems.Location = new Point(15, 155);
             gridItems.MultiSelect = false;
             gridItems.Name = "gridItems";
             gridItems.ReadOnly = true;
             gridItems.RowHeadersVisible = false;
             gridItems.RowHeadersWidth = 51;
             gridItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridItems.Size = new Size(555, 305);
+            gridItems.Size = new Size(570, 345);
             gridItems.TabIndex = 10;
-            //
+            // 
             // lblTotal
-            //
+            // 
+            lblTotal.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblTotal.AutoSize = true;
             lblTotal.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblTotal.ForeColor = Color.FromArgb(163, 230, 53);
-            lblTotal.Location = new Point(10, 475);
+            lblTotal.Location = new Point(15, 512);
             lblTotal.Name = "lblTotal";
             lblTotal.TabIndex = 11;
             lblTotal.Text = "Total: $ 0,00";
-            //
+            // 
             // lblTotalGanancia
-            //
+            // 
+            lblTotalGanancia.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lblTotalGanancia.AutoSize = true;
             lblTotalGanancia.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             lblTotalGanancia.ForeColor = Color.White;
-            lblTotalGanancia.Location = new Point(10, 510);
+            lblTotalGanancia.Location = new Point(15, 544);
             lblTotalGanancia.Name = "lblTotalGanancia";
             lblTotalGanancia.TabIndex = 14;
             lblTotalGanancia.Text = "Total con ganancia: $ 0,00";
-            //
+            // 
             // Registrar_Boton
-            //
+            // 
+            Registrar_Boton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             Registrar_Boton.BackColor = Color.FromArgb(163, 230, 53);
+            Registrar_Boton.Cursor = Cursors.Hand;
             Registrar_Boton.FlatAppearance.BorderSize = 0;
             Registrar_Boton.FlatStyle = FlatStyle.Flat;
-            Registrar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            Registrar_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Registrar_Boton.ForeColor = Color.Black;
-            Registrar_Boton.Location = new Point(10, 545);
+            Registrar_Boton.Location = new Point(15, 580);
             Registrar_Boton.Name = "Registrar_Boton";
-            Registrar_Boton.Size = new Size(270, 42);
+            Registrar_Boton.Size = new Size(275, 44);
             Registrar_Boton.TabIndex = 12;
             Registrar_Boton.Text = "Registrar compra";
             Registrar_Boton.UseVisualStyleBackColor = false;
             Registrar_Boton.Click += Registrar_Boton_Click;
-            //
+            // 
             // Limpiar_Boton
-            //
+            // 
+            Limpiar_Boton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             Limpiar_Boton.BackColor = Color.FromArgb(71, 85, 105);
+            Limpiar_Boton.Cursor = Cursors.Hand;
             Limpiar_Boton.FlatAppearance.BorderSize = 0;
             Limpiar_Boton.FlatStyle = FlatStyle.Flat;
-            Limpiar_Boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            Limpiar_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Limpiar_Boton.ForeColor = Color.White;
-            Limpiar_Boton.Location = new Point(295, 545);
+            Limpiar_Boton.Location = new Point(310, 580);
             Limpiar_Boton.Name = "Limpiar_Boton";
-            Limpiar_Boton.Size = new Size(270, 42);
+            Limpiar_Boton.Size = new Size(275, 44);
             Limpiar_Boton.TabIndex = 13;
             Limpiar_Boton.Text = "Limpiar";
             Limpiar_Boton.UseVisualStyleBackColor = false;
             Limpiar_Boton.Click += Limpiar_Boton_Click;
-            //
+            // 
             // FormGestionCompras
-            //
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
-            ClientSize = new Size(1240, 680);
+            ClientSize = new Size(1280, 720);
             Controls.Add(lblTitulo);
             Controls.Add(Volver_Boton);
             Controls.Add(lblCompras);
@@ -334,9 +354,12 @@ namespace Cantina_Padel
             Controls.Add(lblDetalle);
             Controls.Add(gridDetalle);
             Controls.Add(grpNuevaCompra);
+            Font = new Font("Segoe UI", 9F);
+            ForeColor = Color.White;
+            MinimumSize = new Size(1150, 680);
             Name = "FormGestionCompras";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Gestión de Compras";
+            Text = "Gestión de Compras - Cantina Padel Club";
             ((System.ComponentModel.ISupportInitialize)gridCompras).EndInit();
             ((System.ComponentModel.ISupportInitialize)gridDetalle).EndInit();
             ((System.ComponentModel.ISupportInitialize)gridItems).EndInit();
@@ -344,6 +367,7 @@ namespace Cantina_Padel
             grpNuevaCompra.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
+                    WindowState = FormWindowState.Maximized;
         }
 
         #endregion

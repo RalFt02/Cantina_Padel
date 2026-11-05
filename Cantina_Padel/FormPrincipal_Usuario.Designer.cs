@@ -38,98 +38,124 @@ namespace Cantina_Padel
             Reportes_Boton = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
-            //
+            this.BindingContext = new System.Windows.Forms.BindingContext();
+            // 
             // pictureBox1
-            //
+            // 
+            pictureBox1.Anchor = AnchorStyles.None;
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
-            pictureBox1.Location = new Point(413, 93);
+            pictureBox1.Location = new Point(393, 85);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(494, 270);
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
-            //
+            // 
             // Clientes_Boton
-            //
+            // 
+            Clientes_Boton.Anchor = AnchorStyles.None;
             Clientes_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Clientes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Clientes_Boton.Cursor = Cursors.Hand;
+            Clientes_Boton.FlatAppearance.BorderSize = 0;
+            Clientes_Boton.FlatStyle = FlatStyle.Flat;
+            Clientes_Boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Clientes_Boton.ForeColor = Color.Black;
-            Clientes_Boton.Location = new Point(100, 472);
+            Clientes_Boton.Location = new Point(95, 455);
             Clientes_Boton.Name = "Clientes_Boton";
-            Clientes_Boton.Size = new Size(216, 64);
+            Clientes_Boton.Size = new Size(225, 64);
             Clientes_Boton.TabIndex = 1;
             Clientes_Boton.Text = "Clientes";
             Clientes_Boton.UseVisualStyleBackColor = false;
             Clientes_Boton.Click += Clientes_Boton_Click;
-            //
+            // 
             // Caja_Boton
-            //
+            // 
+            Caja_Boton.Anchor = AnchorStyles.None;
             Caja_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Caja_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Caja_Boton.Cursor = Cursors.Hand;
+            Caja_Boton.FlatAppearance.BorderSize = 0;
+            Caja_Boton.FlatStyle = FlatStyle.Flat;
+            Caja_Boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Caja_Boton.ForeColor = Color.Black;
-            Caja_Boton.Location = new Point(400, 472);
+            Caja_Boton.Location = new Point(390, 455);
             Caja_Boton.Name = "Caja_Boton";
-            Caja_Boton.Size = new Size(216, 64);
+            Caja_Boton.Size = new Size(225, 64);
             Caja_Boton.TabIndex = 2;
             Caja_Boton.Text = "Caja";
             Caja_Boton.UseVisualStyleBackColor = false;
             Caja_Boton.Click += Caja_Boton_Click;
-            //
+            // 
             // Ventas_Boton
-            //
+            // 
+            Ventas_Boton.Anchor = AnchorStyles.None;
             Ventas_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Ventas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Ventas_Boton.Cursor = Cursors.Hand;
+            Ventas_Boton.FlatAppearance.BorderSize = 0;
+            Ventas_Boton.FlatStyle = FlatStyle.Flat;
+            Ventas_Boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Ventas_Boton.ForeColor = Color.Black;
-            Ventas_Boton.Location = new Point(700, 472);
+            Ventas_Boton.Location = new Point(665, 455);
             Ventas_Boton.Name = "Ventas_Boton";
-            Ventas_Boton.Size = new Size(216, 64);
+            Ventas_Boton.Size = new Size(225, 64);
             Ventas_Boton.TabIndex = 3;
             Ventas_Boton.Text = "Ventas";
             Ventas_Boton.UseVisualStyleBackColor = false;
             Ventas_Boton.Click += Ventas_Boton_Click;
-            //
+            // 
             // Reservas_Boton
-            //
+            // 
+            Reservas_Boton.Anchor = AnchorStyles.None;
             Reservas_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Reservas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Reservas_Boton.Cursor = Cursors.Hand;
+            Reservas_Boton.FlatAppearance.BorderSize = 0;
+            Reservas_Boton.FlatStyle = FlatStyle.Flat;
+            Reservas_Boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Reservas_Boton.ForeColor = Color.Black;
-            Reservas_Boton.Location = new Point(1000, 472);
+            Reservas_Boton.Location = new Point(960, 455);
             Reservas_Boton.Name = "Reservas_Boton";
-            Reservas_Boton.Size = new Size(216, 64);
+            Reservas_Boton.Size = new Size(225, 64);
             Reservas_Boton.TabIndex = 5;
             Reservas_Boton.Text = "Reservas";
             Reservas_Boton.UseVisualStyleBackColor = false;
             Reservas_Boton.Click += Reservas_Boton_Click;
-            //
+            // 
             // Reportes_Boton
-            //
+            // 
+            Reportes_Boton.Anchor = AnchorStyles.None;
             Reportes_Boton.BackColor = Color.FromArgb(163, 230, 53);
-            Reportes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Reportes_Boton.Cursor = Cursors.Hand;
+            Reportes_Boton.FlatAppearance.BorderSize = 0;
+            Reportes_Boton.FlatStyle = FlatStyle.Flat;
+            Reportes_Boton.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Reportes_Boton.ForeColor = Color.Black;
-            Reportes_Boton.Location = new Point(550, 565);
+            Reportes_Boton.Location = new Point(528, 555);
             Reportes_Boton.Name = "Reportes_Boton";
-            Reportes_Boton.Size = new Size(216, 64);
+            Reportes_Boton.Size = new Size(225, 64);
             Reportes_Boton.TabIndex = 7;
             Reportes_Boton.Text = "Reportes";
             Reportes_Boton.UseVisualStyleBackColor = false;
             Reportes_Boton.Click += Reportes_Boton_Click;
-            //
+            // 
             // Volver_Menu
-            //
-            Volver_Menu.BackColor = Color.FromArgb(163, 230, 53);
-            Volver_Menu.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
-            Volver_Menu.ForeColor = Color.Black;
-            Volver_Menu.Location = new Point(19, 19);
+            // 
+            Volver_Menu.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            Volver_Menu.BackColor = Color.FromArgb(51, 65, 85);
+            Volver_Menu.Cursor = Cursors.Hand;
+            Volver_Menu.FlatAppearance.BorderSize = 0;
+            Volver_Menu.FlatStyle = FlatStyle.Flat;
+            Volver_Menu.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Volver_Menu.ForeColor = Color.White;
+            Volver_Menu.Location = new Point(20, 20);
             Volver_Menu.Name = "Volver_Menu";
-            Volver_Menu.Size = new Size(216, 56);
+            Volver_Menu.Size = new Size(190, 46);
             Volver_Menu.TabIndex = 6;
-            Volver_Menu.Text = "Volver al Inicio";
+            Volver_Menu.Text = "← Cerrar Sesión";
             Volver_Menu.UseVisualStyleBackColor = false;
             Volver_Menu.Click += Volver_Menu_Click;
-            //
+            // 
             // FormPrincipal_Usuario
-            //
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
             ClientSize = new Size(1280, 720);
@@ -140,14 +166,16 @@ namespace Cantina_Padel
             Controls.Add(Caja_Boton);
             Controls.Add(Clientes_Boton);
             Controls.Add(pictureBox1);
-            ForeColor = Color.Transparent;
+            Font = new Font("Segoe UI", 9F);
+            ForeColor = Color.White;
+            MinimumSize = new Size(1150, 680);
             Name = "FormPrincipal_Usuario";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Form1";
-            TransparencyKey = Color.Transparent;
+            Text = "Panel Principal Cajero - Cantina Padel Club";
             FormClosing += FormPrincipal_Admin_FormClosing;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
+                    WindowState = FormWindowState.Maximized;
         }
 
         #endregion

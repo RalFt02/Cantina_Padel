@@ -13,6 +13,12 @@ namespace Cantina_Padel
         public FormGestionHorarios(int? clienteInicial = null, int? canchaInicial = null, DateTime? fechaInicial = null, TimeSpan? horaInicial = null, TimeSpan? horaFinInicial = null)
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridOcupados.AutoGenerateColumns = true;
+            gridOcupados.BindingContext = this.BindingContext;
+            gridOcupados.DataBindingComplete += (_, _) => FormatearColumnasOcupados();
+            this.Load += (_, _) => FormatearColumnasOcupados();
+
             ConfigurarControles();
             CargarClientes();
             CargarCombosCanchas();
@@ -56,9 +62,9 @@ namespace Cantina_Padel
                 var dt = new DataTable();
                 using var da = new MySqlDataAdapter(sql, conn);
                 da.Fill(dt);
-                cmbCliente.DataSource = dt;
                 cmbCliente.DisplayMember = "cliente";
                 cmbCliente.ValueMember = "id_cliente";
+                cmbCliente.DataSource = dt;
             }
             catch (MySqlException ex)
             {
@@ -76,9 +82,9 @@ namespace Cantina_Padel
                 var dt = new DataTable();
                 using var da = new MySqlDataAdapter(sql, conn);
                 da.Fill(dt);
-                cmbCancha.DataSource = dt;
                 cmbCancha.DisplayMember = "nombre";
                 cmbCancha.ValueMember = "id_cancha";
+                cmbCancha.DataSource = dt;
             }
             catch (MySqlException ex)
             {
@@ -123,28 +129,13 @@ namespace Cantina_Padel
 
                 var dt = new DataTable();
                 using (var da = new MySqlDataAdapter(cmd)) da.Fill(dt);
+
+                this.BindingContext ??= new BindingContext();
+                gridOcupados.AutoGenerateColumns = true;
+                gridOcupados.BindingContext = this.BindingContext;
                 gridOcupados.DataSource = dt;
-                if (gridOcupados.Columns.Count > 0)
-                {
-                    gridOcupados.Columns["id_reserva"].Visible = false;
-                    gridOcupados.Columns["id_cancha"].Visible = false;
-                    gridOcupados.Columns["cancha"].HeaderText = "Cancha";
-                    gridOcupados.Columns["fecha"].HeaderText = "Fecha";
-                    gridOcupados.Columns["dia_semana"].HeaderText = "Dia";
-                    gridOcupados.Columns["hora_inicio"].HeaderText = "Inicio";
-                    gridOcupados.Columns["hora_fin"].HeaderText = "Fin";
-                    gridOcupados.Columns["cliente"].HeaderText = "Cliente que reservó";
-                    gridOcupados.Columns["estado"].HeaderText = "Estado";
-                    gridOcupados.Columns["reserva_fija"].HeaderText = "Reserva fija";
-                    gridOcupados.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy";
-                    gridOcupados.Columns["hora_inicio"].DefaultCellStyle.Format = @"hh\:mm";
-                    gridOcupados.Columns["hora_fin"].DefaultCellStyle.Format = @"hh\:mm";
-                    foreach (DataGridViewRow row in gridOcupados.Rows)
-                    {
-                        row.DefaultCellStyle.BackColor = Color.FromArgb(71, 71, 71);
-                        row.DefaultCellStyle.ForeColor = Color.LightGray;
-                    }
-                }
+
+                FormatearColumnasOcupados();
 
                 foreach (DataRow row in dt.Rows)
                 {
@@ -173,6 +164,40 @@ namespace Cantina_Padel
             ActualizarEstadoHorario();
         }
 
+        private void FormatearColumnasOcupados()
+        {
+            if (gridOcupados == null || gridOcupados.Columns.Count == 0) return;
+
+            if (gridOcupados.Columns["id_reserva"] is DataGridViewColumn colIdRes) colIdRes.Visible = false;
+            if (gridOcupados.Columns["id_cancha"] is DataGridViewColumn colIdCan) colIdCan.Visible = false;
+            if (gridOcupados.Columns["cancha"] is DataGridViewColumn colCan) colCan.HeaderText = "Cancha";
+            if (gridOcupados.Columns["fecha"] is DataGridViewColumn colFec)
+            {
+                colFec.HeaderText = "Fecha";
+                colFec.DefaultCellStyle.Format = "dd/MM/yyyy";
+            }
+            if (gridOcupados.Columns["dia_semana"] is DataGridViewColumn colDia) colDia.HeaderText = "Dia";
+            if (gridOcupados.Columns["hora_inicio"] is DataGridViewColumn colIni)
+            {
+                colIni.HeaderText = "Inicio";
+                colIni.DefaultCellStyle.Format = @"hh\:mm";
+            }
+            if (gridOcupados.Columns["hora_fin"] is DataGridViewColumn colFin)
+            {
+                colFin.HeaderText = "Fin";
+                colFin.DefaultCellStyle.Format = @"hh\:mm";
+            }
+            if (gridOcupados.Columns["cliente"] is DataGridViewColumn colCli) colCli.HeaderText = "Cliente que reservó";
+            if (gridOcupados.Columns["estado"] is DataGridViewColumn colEst) colEst.HeaderText = "Estado";
+            if (gridOcupados.Columns["reserva_fija"] is DataGridViewColumn colRf) colRf.HeaderText = "Reserva fija";
+
+            foreach (DataGridViewRow row in gridOcupados.Rows)
+            {
+                row.DefaultCellStyle.BackColor = Color.FromArgb(71, 71, 71);
+                row.DefaultCellStyle.ForeColor = Color.LightGray;
+            }
+        }
+
         private static string ClaveReserva(DateTime fecha, TimeSpan inicio, TimeSpan fin)
             => $"{fecha:yyyyMMdd}|{inicio:c}|{fin:c}";
 
@@ -183,24 +208,23 @@ namespace Cantina_Padel
 
             try
             {
+                if (combo.SelectedValue is DataRowView drv)
+                {
+                    string col = combo.ValueMember;
+                    if (!string.IsNullOrWhiteSpace(col) && drv.Row.Table.Columns.Contains(col) && drv[col] != DBNull.Value)
+                    {
+                        id = Convert.ToInt32(drv[col], CultureInfo.InvariantCulture);
+                        return true;
+                    }
+                    return false;
+                }
                 id = Convert.ToInt32(combo.SelectedValue, CultureInfo.InvariantCulture);
                 return true;
             }
-            catch (InvalidCastException)
+            catch
             {
-                if (combo.SelectedItem is DataRowView row && row.Row.Table.Columns.Count > 0)
-                {
-                    string column = combo.ValueMember;
-                    if (!string.IsNullOrWhiteSpace(column) && row.Row.Table.Columns.Contains(column))
-                    {
-                        id = Convert.ToInt32(row[column], CultureInfo.InvariantCulture);
-                        return true;
-                    }
-                }
                 return false;
             }
-            catch (FormatException) { return false; }
-            catch (ArgumentException) { return false; }
         }
 
         private static void SeleccionarComboPorId(ComboBox combo, int id)
@@ -220,8 +244,6 @@ namespace Cantina_Padel
             try { combo.SelectedValue = id; } catch { }
         }
 
-        // Arma la lista del desplegable con los turnos que NO están ocupados en la fecha elegida.
-        // Usa HorariosTurnos (lógica pura), así que se puede testear sin abrir el formulario.
         private void RefrescarTurnosDisponibles()
         {
             Turno? previo = cmbHorario.SelectedItem is Turno t ? t : null;
@@ -407,7 +429,6 @@ namespace Cantina_Padel
 
             DateTime fecha = dtpFecha.Value.Date;
 
-            // El reloj sigue corriendo con el formulario abierto: se revalida al reservar.
             if (HorariosTurnos.YaPaso(fecha, new Turno(inicio, fin), DateTime.Now))
             {
                 MessageBox.Show("Ese horario ya pasó. Elegí uno posterior.", "Horario vencido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -458,7 +479,7 @@ namespace Cantina_Padel
             }
         }
 
-        private int ObtenerUsuarioActual() => 1;
+        private int ObtenerUsuarioActual() => SesionActual.HayUsuario ? SesionActual.IdUsuario : 1;
 
         private void ReservasFijas_Boton_Click(object sender, EventArgs e)
         {
@@ -513,10 +534,14 @@ namespace Cantina_Padel
 
             try
             {
-                idReserva = Convert.ToInt32(gridOcupados.CurrentRow.Cells["id_reserva"].Value, CultureInfo.InvariantCulture);
-                fecha = Convert.ToDateTime(gridOcupados.CurrentRow.Cells["fecha"].Value).Date;
-                inicio = (TimeSpan)gridOcupados.CurrentRow.Cells["hora_inicio"].Value;
-                fin = (TimeSpan)gridOcupados.CurrentRow.Cells["hora_fin"].Value;
+                var row = gridOcupados.CurrentRow;
+                var idVal = gridOcupados.Columns.Contains("id_reserva") ? row.Cells["id_reserva"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+                if (idVal == null || idVal == DBNull.Value) return false;
+
+                idReserva = Convert.ToInt32(idVal, CultureInfo.InvariantCulture);
+                fecha = Convert.ToDateTime(row.Cells["fecha"]?.Value).Date;
+                inicio = (TimeSpan)row.Cells["hora_inicio"]!.Value!;
+                fin = (TimeSpan)row.Cells["hora_fin"]!.Value!;
                 return true;
             }
             catch

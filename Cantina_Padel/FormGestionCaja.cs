@@ -9,10 +9,17 @@ namespace Cantina_Padel
         private readonly int _idUsuario;   // usuario logueado
         private const int ID_CAJA = 1;     // número físico de caja
 
+        public FormGestionCaja() : this(SesionActual.HayUsuario ? SesionActual.IdUsuario : 1)
+        {
+        }
+
         public FormGestionCaja(int idUsuario)
         {
-            _idUsuario = idUsuario;
+            _idUsuario = idUsuario > 0 ? idUsuario : 1;
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridRetiros.AutoGenerateColumns = true;
+            gridRetiros.BindingContext = this.BindingContext;
             RefrescarEstadoCaja();
         }
 
@@ -159,7 +166,6 @@ namespace Cantina_Padel
 
         private decimal ObtenerMontoInicio()
         {
-            // Usa el valor guardado al cargar la sesión del usuario logueado (sin consultar de nuevo la base)
             return _idSesionActual == null ? 0 : _montoInicioActual;
         }
 
@@ -170,6 +176,9 @@ namespace Cantina_Padel
         private void CargarGrillaRetiros()
         {
             if (_idSesionActual == null) return;
+            this.BindingContext ??= new BindingContext();
+            gridRetiros.AutoGenerateColumns = true;
+            gridRetiros.BindingContext = this.BindingContext;
             gridRetiros.DataSource = CajaService.ObtenerRetirosDeSesion(_idSesionActual.Value);
         }
 
@@ -236,7 +245,6 @@ namespace Cantina_Padel
 
             try
             {
-                // Solo puede cerrarla el mismo usuario que la abrió
                 decimal cierre = CajaService.CerrarCaja(_idSesionActual.Value, _idUsuario);
                 RefrescarEstadoCaja();
                 MessageBox.Show($"Caja cerrada con ${cierre:N2}.", "Éxito",

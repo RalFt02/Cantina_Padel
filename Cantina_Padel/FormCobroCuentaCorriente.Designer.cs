@@ -40,143 +40,148 @@ namespace Cantina_Padel
             btnCerrar = new Button();
             ((System.ComponentModel.ISupportInitialize)gridMovimientos).BeginInit();
             grpAbono.SuspendLayout();
+            this.BindingContext = new System.Windows.Forms.BindingContext();
             SuspendLayout();
-            //
+            // 
             // lblTitulo
-            //
+            // 
             lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
+            lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
             lblTitulo.Location = new Point(20, 15);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(479, 35);
+            lblTitulo.Size = new Size(440, 30);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "COBRO Y ESTADO DE CUENTA CORRIENTE";
-            //
+            // 
             // btnCerrar
-            //
+            // 
+            btnCerrar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnCerrar.BackColor = Color.FromArgb(71, 85, 105);
+            btnCerrar.Cursor = Cursors.Hand;
             btnCerrar.FlatAppearance.BorderSize = 0;
             btnCerrar.FlatStyle = FlatStyle.Flat;
-            btnCerrar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnCerrar.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             btnCerrar.ForeColor = Color.White;
-            btnCerrar.Location = new Point(810, 15);
+            btnCerrar.Location = new Point(1130, 15);
             btnCerrar.Name = "btnCerrar";
-            btnCerrar.Size = new Size(110, 32);
+            btnCerrar.Size = new Size(130, 36);
             btnCerrar.TabIndex = 1;
             btnCerrar.Text = "← Volver";
             btnCerrar.UseVisualStyleBackColor = false;
             btnCerrar.Click += btnCerrar_Click;
-            //
+            // 
             // lblCliente
-            //
+            // 
             lblCliente.AutoSize = true;
             lblCliente.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblCliente.ForeColor = Color.White;
-            lblCliente.Location = new Point(20, 60);
+            lblCliente.Location = new Point(20, 62);
             lblCliente.Name = "lblCliente";
-            lblCliente.Size = new Size(160, 21);
+            lblCliente.Size = new Size(135, 17);
             lblCliente.TabIndex = 2;
             lblCliente.Text = "Seleccionar Cliente:";
-            //
+            // 
             // cmbCliente
-            //
+            // 
             cmbCliente.BackColor = Color.FromArgb(51, 65, 85);
             cmbCliente.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCliente.FlatStyle = FlatStyle.Flat;
-            cmbCliente.Font = new Font("Segoe UI", 9.5F);
+            cmbCliente.Font = new Font("Segoe UI", 10F);
             cmbCliente.ForeColor = Color.White;
             cmbCliente.FormattingEnabled = true;
-            cmbCliente.Location = new Point(20, 85);
+            cmbCliente.Location = new Point(20, 86);
             cmbCliente.Name = "cmbCliente";
-            cmbCliente.Size = new Size(260, 29);
+            cmbCliente.Size = new Size(340, 26);
             cmbCliente.TabIndex = 3;
             cmbCliente.SelectedIndexChanged += cmbCliente_SelectedIndexChanged;
-            //
+            // 
             // lblSaldoTitulo
-            //
+            // 
             lblSaldoTitulo.AutoSize = true;
             lblSaldoTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblSaldoTitulo.ForeColor = Color.White;
-            lblSaldoTitulo.Location = new Point(300, 60);
+            lblSaldoTitulo.Location = new Point(390, 62);
             lblSaldoTitulo.Name = "lblSaldoTitulo";
-            lblSaldoTitulo.Size = new Size(137, 21);
+            lblSaldoTitulo.Size = new Size(115, 17);
             lblSaldoTitulo.TabIndex = 4;
             lblSaldoTitulo.Text = "Saldo Adeudado:";
-            //
+            // 
             // lblSaldoValor
-            //
+            // 
             lblSaldoValor.AutoSize = true;
             lblSaldoValor.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblSaldoValor.ForeColor = Color.FromArgb(239, 68, 68);
-            lblSaldoValor.Location = new Point(300, 83);
+            lblSaldoValor.Location = new Point(390, 84);
             lblSaldoValor.Name = "lblSaldoValor";
-            lblSaldoValor.Size = new Size(88, 32);
+            lblSaldoValor.Size = new Size(70, 25);
             lblSaldoValor.TabIndex = 5;
             lblSaldoValor.Text = "$ 0,00";
-            //
+            // 
             // lblSaldoFavorTitulo
-            //
+            // 
             lblSaldoFavorTitulo.AutoSize = true;
             lblSaldoFavorTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblSaldoFavorTitulo.ForeColor = Color.FromArgb(163, 230, 53);
-            lblSaldoFavorTitulo.Location = new Point(475, 60);
+            lblSaldoFavorTitulo.Location = new Point(600, 62);
             lblSaldoFavorTitulo.Name = "lblSaldoFavorTitulo";
-            lblSaldoFavorTitulo.Size = new Size(116, 21);
+            lblSaldoFavorTitulo.Size = new Size(98, 17);
             lblSaldoFavorTitulo.TabIndex = 6;
             lblSaldoFavorTitulo.Text = "Saldo a Favor:";
-            //
+            // 
             // txtSaldoAFavor
-            //
+            // 
             txtSaldoAFavor.BackColor = Color.FromArgb(30, 41, 59);
             txtSaldoAFavor.BorderStyle = BorderStyle.FixedSingle;
             txtSaldoAFavor.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             txtSaldoAFavor.ForeColor = Color.FromArgb(163, 230, 53);
-            txtSaldoAFavor.Location = new Point(475, 84);
+            txtSaldoAFavor.Location = new Point(600, 84);
             txtSaldoAFavor.Name = "txtSaldoAFavor";
             txtSaldoAFavor.ReadOnly = true;
-            txtSaldoAFavor.Size = new Size(150, 31);
+            txtSaldoAFavor.Size = new Size(180, 29);
             txtSaldoAFavor.TabIndex = 7;
             txtSaldoAFavor.TabStop = false;
             txtSaldoAFavor.Text = "$ 0,00";
-            //
+            // 
             // lblSaldoNetoTitulo
-            //
+            // 
             lblSaldoNetoTitulo.AutoSize = true;
             lblSaldoNetoTitulo.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblSaldoNetoTitulo.ForeColor = Color.FromArgb(250, 204, 21);
-            lblSaldoNetoTitulo.Location = new Point(650, 60);
+            lblSaldoNetoTitulo.Location = new Point(810, 62);
             lblSaldoNetoTitulo.Name = "lblSaldoNetoTitulo";
-            lblSaldoNetoTitulo.Size = new Size(230, 21);
+            lblSaldoNetoTitulo.Size = new Size(195, 17);
             lblSaldoNetoTitulo.TabIndex = 8;
             lblSaldoNetoTitulo.Text = "Total Final (Restado a Favor):";
-            //
+            // 
             // lblSaldoNetoValor
-            //
+            // 
             lblSaldoNetoValor.AutoSize = true;
             lblSaldoNetoValor.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblSaldoNetoValor.ForeColor = Color.FromArgb(250, 204, 21);
-            lblSaldoNetoValor.Location = new Point(650, 83);
+            lblSaldoNetoValor.Location = new Point(810, 84);
             lblSaldoNetoValor.Name = "lblSaldoNetoValor";
-            lblSaldoNetoValor.Size = new Size(88, 32);
+            lblSaldoNetoValor.Size = new Size(70, 25);
             lblSaldoNetoValor.TabIndex = 9;
             lblSaldoNetoValor.Text = "$ 0,00";
-            //
+            // 
             // lblMovimientos
-            //
+            // 
             lblMovimientos.AutoSize = true;
-            lblMovimientos.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblMovimientos.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblMovimientos.ForeColor = Color.FromArgb(163, 230, 53);
             lblMovimientos.Location = new Point(20, 130);
             lblMovimientos.Name = "lblMovimientos";
-            lblMovimientos.Size = new Size(393, 20);
+            lblMovimientos.Size = new Size(345, 17);
             lblMovimientos.TabIndex = 8;
             lblMovimientos.Text = "Productos adeudados (ordenados de menor a mayor costo):";
-            //
+            // 
             // gridMovimientos
-            //
+            // 
             gridMovimientos.AllowUserToAddRows = false;
             gridMovimientos.AllowUserToDeleteRows = false;
+            gridMovimientos.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            gridMovimientos.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gridMovimientos.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridMovimientos.BorderStyle = BorderStyle.None;
             gridMovimientos.GridColor = Color.FromArgb(51, 65, 85);
@@ -187,11 +192,12 @@ namespace Cantina_Padel
             gridMovimientos.RowHeadersVisible = false;
             gridMovimientos.RowHeadersWidth = 51;
             gridMovimientos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            gridMovimientos.Size = new Size(540, 395);
+            gridMovimientos.Size = new Size(810, 540);
             gridMovimientos.TabIndex = 9;
-            //
+            // 
             // grpAbono
-            //
+            // 
+            grpAbono.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             grpAbono.BackColor = Color.FromArgb(30, 41, 59);
             grpAbono.Controls.Add(btnRegistrarPago);
             grpAbono.Controls.Add(cmbComprobante);
@@ -202,117 +208,118 @@ namespace Cantina_Padel
             grpAbono.Controls.Add(lblMonto);
             grpAbono.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             grpAbono.ForeColor = Color.FromArgb(163, 230, 53);
-            grpAbono.Location = new Point(580, 145);
+            grpAbono.Location = new Point(850, 145);
             grpAbono.Name = "grpAbono";
-            grpAbono.Size = new Size(340, 405);
+            grpAbono.Size = new Size(410, 550);
             grpAbono.TabIndex = 10;
             grpAbono.TabStop = false;
             grpAbono.Text = "Abonar Deuda";
-            //
+            // 
             // lblMonto
-            //
+            // 
             lblMonto.AutoSize = true;
             lblMonto.ForeColor = Color.White;
-            lblMonto.Location = new Point(20, 35);
+            lblMonto.Location = new Point(20, 40);
             lblMonto.Name = "lblMonto";
-            lblMonto.Size = new Size(160, 21);
+            lblMonto.Size = new Size(135, 17);
             lblMonto.TabIndex = 0;
             lblMonto.Text = "Monto a abonar ($):";
-            //
+            // 
             // txtMonto
-            //
+            // 
             txtMonto.BackColor = Color.FromArgb(51, 65, 85);
             txtMonto.BorderStyle = BorderStyle.FixedSingle;
             txtMonto.Font = new Font("Segoe UI", 11F);
             txtMonto.ForeColor = Color.White;
-            txtMonto.Location = new Point(20, 60);
+            txtMonto.Location = new Point(20, 65);
             txtMonto.MaxLength = 10;
             txtMonto.Name = "txtMonto";
-            txtMonto.Size = new Size(300, 32);
+            txtMonto.Size = new Size(370, 27);
             txtMonto.TabIndex = 1;
             txtMonto.KeyPress += SoloNumerosDecimal_KeyPress;
-            //
+            // 
             // lblMedioPago
-            //
+            // 
             lblMedioPago.AutoSize = true;
             lblMedioPago.ForeColor = Color.White;
-            lblMedioPago.Location = new Point(20, 110);
+            lblMedioPago.Location = new Point(20, 120);
             lblMedioPago.Name = "lblMedioPago";
-            lblMedioPago.Size = new Size(128, 21);
+            lblMedioPago.Size = new Size(110, 17);
             lblMedioPago.TabIndex = 2;
             lblMedioPago.Text = "Medio de cobro:";
-            //
+            // 
             // cmbMedioPago
-            //
+            // 
             cmbMedioPago.BackColor = Color.FromArgb(51, 65, 85);
             cmbMedioPago.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMedioPago.FlatStyle = FlatStyle.Flat;
             cmbMedioPago.ForeColor = Color.White;
             cmbMedioPago.FormattingEnabled = true;
-            cmbMedioPago.Location = new Point(20, 135);
+            cmbMedioPago.Location = new Point(20, 145);
             cmbMedioPago.Name = "cmbMedioPago";
-            cmbMedioPago.Size = new Size(300, 29);
+            cmbMedioPago.Size = new Size(370, 25);
             cmbMedioPago.TabIndex = 3;
-            //
+            // 
             // lblComprobante
-            //
+            // 
             lblComprobante.AutoSize = true;
             lblComprobante.ForeColor = Color.White;
-            lblComprobante.Location = new Point(20, 185);
+            lblComprobante.Location = new Point(20, 200);
             lblComprobante.Name = "lblComprobante";
-            lblComprobante.Size = new Size(174, 21);
+            lblComprobante.Size = new Size(148, 17);
             lblComprobante.TabIndex = 4;
             lblComprobante.Text = "Tipo de Comprobante:";
-            //
+            // 
             // cmbComprobante
-            //
+            // 
             cmbComprobante.BackColor = Color.FromArgb(51, 65, 85);
             cmbComprobante.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbComprobante.FlatStyle = FlatStyle.Flat;
             cmbComprobante.ForeColor = Color.White;
             cmbComprobante.FormattingEnabled = true;
-            cmbComprobante.Location = new Point(20, 210);
+            cmbComprobante.Location = new Point(20, 225);
             cmbComprobante.Name = "cmbComprobante";
-            cmbComprobante.Size = new Size(300, 29);
+            cmbComprobante.Size = new Size(370, 25);
             cmbComprobante.TabIndex = 5;
-            //
+            // 
             // btnRegistrarPago
-            //
+            // 
             btnRegistrarPago.BackColor = Color.FromArgb(163, 230, 53);
+            btnRegistrarPago.Cursor = Cursors.Hand;
             btnRegistrarPago.FlatAppearance.BorderSize = 0;
             btnRegistrarPago.FlatStyle = FlatStyle.Flat;
-            btnRegistrarPago.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnRegistrarPago.Font = new Font("Segoe UI", 10.5F, FontStyle.Bold);
             btnRegistrarPago.ForeColor = Color.Black;
-            btnRegistrarPago.Location = new Point(20, 270);
+            btnRegistrarPago.Location = new Point(20, 290);
             btnRegistrarPago.Name = "btnRegistrarPago";
-            btnRegistrarPago.Size = new Size(300, 48);
+            btnRegistrarPago.Size = new Size(370, 52);
             btnRegistrarPago.TabIndex = 6;
             btnRegistrarPago.Text = "✔ Registrar Cobro";
             btnRegistrarPago.UseVisualStyleBackColor = false;
             btnRegistrarPago.Click += btnRegistrarPago_Click;
-            //
-            // btnImprimir (oculto: el ticket se genera automáticamente)
-            //
+            // 
+            // btnImprimir
+            // 
             btnImprimir.BackColor = Color.FromArgb(59, 130, 246);
             btnImprimir.FlatAppearance.BorderSize = 0;
             btnImprimir.FlatStyle = FlatStyle.Flat;
             btnImprimir.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             btnImprimir.ForeColor = Color.White;
-            btnImprimir.Location = new Point(20, 335);
+            btnImprimir.Location = new Point(20, 355);
             btnImprimir.Name = "btnImprimir";
-            btnImprimir.Size = new Size(300, 42);
+            btnImprimir.Size = new Size(370, 42);
             btnImprimir.TabIndex = 7;
             btnImprimir.Text = "🖨 Imprimir Recibo";
             btnImprimir.UseVisualStyleBackColor = false;
             btnImprimir.Visible = false;
             btnImprimir.Click += btnImprimir_Click;
-            //
+            // 
             // FormCobroCuentaCorriente
-            //
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
-            ClientSize = new Size(980, 570);
+            ClientSize = new Size(1280, 720);
             Controls.Add(grpAbono);
             Controls.Add(gridMovimientos);
             Controls.Add(lblMovimientos);
@@ -326,16 +333,18 @@ namespace Cantina_Padel
             Controls.Add(lblCliente);
             Controls.Add(btnCerrar);
             Controls.Add(lblTitulo);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            Font = new Font("Segoe UI", 9F);
+            ForeColor = Color.White;
+            MinimumSize = new Size(1150, 680);
             Name = "FormCobroCuentaCorriente";
             StartPosition = FormStartPosition.CenterParent;
-            Text = "Cobro de Cuenta Corriente";
+            Text = "Cobro de Cuenta Corriente - Cantina Padel Club";
             ((System.ComponentModel.ISupportInitialize)gridMovimientos).EndInit();
             grpAbono.ResumeLayout(false);
             grpAbono.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
+                    WindowState = FormWindowState.Maximized;
         }
 
         #endregion

@@ -11,16 +11,29 @@ namespace Cantina_Padel
 
         public FormCancelarVenta(int idUsuario)
         {
-            _idUsuario = idUsuario;
+            _idUsuario = idUsuario > 0 ? idUsuario : 1;
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
 
             ConfigurarGrilla(gridVentas);
             ConfigurarGrilla(gridDetalle);
+
+            gridVentas.DataBindingComplete += (_, _) => MarcarVentasCanceladas();
+            this.Load += (_, _) =>
+            {
+                MarcarVentasCanceladas();
+                CargarDetalle();
+            };
+
             CargarVentas();
         }
 
         private void ConfigurarGrilla(DataGridView grid)
         {
+            this.BindingContext ??= new BindingContext();
+            grid.AutoGenerateColumns = true;
+            grid.BindingContext = this.BindingContext;
+            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.EnableHeadersVisualStyles = false;
             grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);
@@ -35,6 +48,9 @@ namespace Cantina_Padel
         {
             try
             {
+                this.BindingContext ??= new BindingContext();
+                gridVentas.AutoGenerateColumns = true;
+                gridVentas.BindingContext = this.BindingContext;
                 gridVentas.DataSource = GestorVentas.ObtenerVentas();
                 MarcarVentasCanceladas();
                 CargarDetalle();
@@ -47,28 +63,36 @@ namespace Cantina_Padel
 
         private void MarcarVentasCanceladas()
         {
+            if (gridVentas == null || !gridVentas.Columns.Contains("estado")) return;
             foreach (DataGridViewRow fila in gridVentas.Rows)
             {
-                if (fila.Cells["estado"].Value?.ToString() == "Cancelada")
+                if (fila.Cells["estado"]?.Value?.ToString() == "Cancelada")
                     fila.DefaultCellStyle.ForeColor = Color.FromArgb(148, 163, 184);
             }
         }
 
         private int? ObtenerIdVentaSeleccionada()
         {
-            if (gridVentas.CurrentRow == null) return null;
-            return Convert.ToInt32(gridVentas.CurrentRow.Cells["id_venta"].Value);
+            if (gridVentas == null || gridVentas.CurrentRow == null || gridVentas.CurrentRow.IsNewRow) return null;
+            var val = gridVentas.Columns.Contains("id_venta")
+                ? gridVentas.CurrentRow.Cells["id_venta"]?.Value
+                : (gridVentas.CurrentRow.Cells.Count > 0 ? gridVentas.CurrentRow.Cells[0]?.Value : null);
+            if (val == null || val == DBNull.Value) return null;
+            return Convert.ToInt32(val);
         }
 
         private bool VentaSeleccionadaEstaCancelada()
         {
-            if (gridVentas.CurrentRow == null) return false;
-            return gridVentas.CurrentRow.Cells["estado"].Value?.ToString() == "Cancelada";
+            if (gridVentas == null || gridVentas.CurrentRow == null || !gridVentas.Columns.Contains("estado")) return false;
+            return gridVentas.CurrentRow.Cells["estado"]?.Value?.ToString() == "Cancelada";
         }
 
         private void CargarDetalle()
         {
             int? idVenta = ObtenerIdVentaSeleccionada();
+            this.BindingContext ??= new BindingContext();
+            gridDetalle.AutoGenerateColumns = true;
+            gridDetalle.BindingContext = this.BindingContext;
             gridDetalle.DataSource = idVenta.HasValue ? GestorVentas.ObtenerDetalleVenta(idVenta.Value) : null;
         }
 

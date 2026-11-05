@@ -15,27 +15,30 @@ namespace Cantina_Padel
             InitializeComponent();
         }
 
+        private int ObtenerIdUsuarioActual() => SesionActual.HayUsuario ? SesionActual.IdUsuario : 1;
+
         private void Clientes_Boton_Click(object sender, EventArgs e)
         {
-            FormGestionClientes formClientes = new FormGestionClientes();
+            using FormGestionClientes formClientes = new FormGestionClientes();
             formClientes.ShowDialog(this);
         }
 
         private void Reservas_Boton_Click(object sender, EventArgs e)
         {
-            FormGestionHorarios formhorarios = new FormGestionHorarios();
+            using FormGestionHorarios formhorarios = new FormGestionHorarios();
             formhorarios.ShowDialog(this);
         }
 
         private void Caja_Boton_Click(object sender, EventArgs e)
         {
-            FormGestionCaja formCaja = new FormGestionCaja(SesionActual.IdUsuario);
+            using FormGestionCaja formCaja = new FormGestionCaja(ObtenerIdUsuarioActual());
             formCaja.ShowDialog(this);
         }
 
         private void Ventas_Boton_Click(object sender, EventArgs e)
         {
-            int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario);
+            int idUsu = ObtenerIdUsuarioActual();
+            int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(idUsu);
             if (!idSesion.HasValue)
             {
                 MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
@@ -43,20 +46,20 @@ namespace Cantina_Padel
                 return;
             }
 
-            FormGestionVentas formVentas = new FormGestionVentas(SesionActual.IdUsuario, idSesion.Value);
+            using FormGestionVentas formVentas = new FormGestionVentas(idUsu, idSesion.Value);
             formVentas.ShowDialog(this);
         }
 
         private void Reportes_Boton_Click(object sender, EventArgs e)
         {
-            FormReportes formReportes = new FormReportes();
+            using FormReportes formReportes = new FormReportes();
             formReportes.ShowDialog(this);
         }
 
         private bool _volviendoAlLogin = false;
         private void Volver_Menu_Click(object sender, EventArgs e)
         {
-            if (GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario).HasValue)
+            if (GestorVentas.ObtenerIdSesionCajaAbierta(ObtenerIdUsuarioActual()).HasValue)
             {
                 MessageBox.Show(
                     "Debe cerrar la caja antes de salir del sistema.",
@@ -68,9 +71,13 @@ namespace Cantina_Padel
 
             if (this.Owner != null)
             {
-                _volviendoAlLogin = true; // se activa para volver al menu
-                this.Owner.Show();        // muestra el login
-                this.Close();             // se cierra el formulario
+                _volviendoAlLogin = true;
+                this.Owner.Show();
+                this.Close();
+            }
+            else
+            {
+                this.Close();
             }
         }
 
@@ -90,10 +97,9 @@ namespace Cantina_Padel
                 return;
             }
 
-            // si no se vuelve al login el usuario cerro con la X
             if (!_volviendoAlLogin)
             {
-                Application.Exit(); // con esto cerramos toda la app
+                Application.Exit();
             }
         }
     }

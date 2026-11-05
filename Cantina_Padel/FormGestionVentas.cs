@@ -30,6 +30,9 @@ namespace Cantina_Padel
             _idUsuario = idUsuario > 0 ? idUsuario : 1;
             _idSesionCajaActual = idSesion ?? GestorVentas.ObtenerIdSesionCajaAbierta(_idUsuario);
 
+            InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+
             if (!_idSesionCajaActual.HasValue)
             {
                 MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
@@ -37,8 +40,6 @@ namespace Cantina_Padel
                 this.Load += (s, e) => this.Close();
                 return;
             }
-
-            InitializeComponent();
 
             // Solo el administrador puede cancelar ventas; ocultar botón para cajeros
             bool esAdmin = SesionActual.EsAdmin;
@@ -49,6 +50,8 @@ namespace Cantina_Padel
             btnImprimir.Visible = false;
 
             ConfigurarGrilla(gridItems);
+            gridItems.DataBindingComplete += (_, _) => FormatearColumnasItems();
+            this.Load += (_, _) => FormatearColumnasItems();
 
             CargarMediosDePago();
             CargarComprobantes();
@@ -66,7 +69,10 @@ namespace Cantina_Padel
 
         private void ConfigurarGrilla(DataGridView grid)
         {
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            this.BindingContext ??= new BindingContext();
+            grid.AutoGenerateColumns = true;
+            grid.BindingContext = this.BindingContext;
+            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.EnableHeadersVisualStyles = false;
             grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);
@@ -210,7 +216,6 @@ namespace Cantina_Padel
         {
             try
             {
-                // Incluye Consumidor Final como primera opción
                 DataTable dt = GestorVentas.ObtenerClientes(incluirConsumidorFinal: true);
                 cmbCliente.DisplayMember = "nombre_completo";
                 cmbCliente.ValueMember = "id_cliente";
@@ -253,8 +258,12 @@ namespace Cantina_Padel
         {
             if (cmbProducto.SelectedItem is DataRowView fila)
             {
-                decimal precio = Convert.ToDecimal(fila["precio_venta"]);
-                int stock = Convert.ToInt32(fila["stock"]);
+                decimal precio = fila.Row.Table.Columns.Contains("precio_venta") && fila["precio_venta"] != DBNull.Value
+                    ? Convert.ToDecimal(fila["precio_venta"])
+                    : 0m;
+                int stock = fila.Row.Table.Columns.Contains("stock") && fila["stock"] != DBNull.Value
+                    ? Convert.ToInt32(fila["stock"])
+                    : 0;
 
                 txtPrecio.Text = precio.ToString("0.00", CultureInfo.InvariantCulture);
                 lblStockValor.Text = $"{stock} und";
@@ -282,7 +291,6 @@ namespace Cantina_Padel
 
             string query = txtBuscador.Text.Trim();
 
-            // Si el lector de barras ingresó un código numérico completo (ej. EAN 8 a 13)
             if (query.Length >= 8 && query.All(char.IsDigit))
             {
                 DataRow? prodEncontrado = _dtProductos.AsEnumerable()
@@ -298,20 +306,16 @@ namespace Cantina_Padel
                 }
             }
 
-            // Filtrado dinámico LIKE en el desplegable de productos (ubicado debajo del buscador)
             if (string.IsNullOrWhiteSpace(query))
             {
                 _dvProductos.RowFilter = "";
             }
             else
             {
-                // Escapar caracteres para RowFilter
                 string safeQuery = query.Replace("'", "''").Replace("[", "[[]").Replace("%", "[%]");
-                // Filtra para que en el desplegable de productos SOLO aparezcan coincidencias LIKE por nombre o código
                 _dvProductos.RowFilter = $"nombre LIKE '%{safeQuery}%' OR codigo LIKE '%{safeQuery}%'";
             }
 
-            // Si hay productos coincidentes en el desplegable, seleccionar el primero y actualizar precio/stock
             if (cmbProducto.Items.Count > 0)
             {
                 cmbProducto.SelectedIndex = 0;
@@ -335,11 +339,9 @@ namespace Cantina_Padel
                 string query = txtBuscador.Text.Trim();
                 if (string.IsNullOrEmpty(query) || _dtProductos == null) return;
 
-                // Buscar por código de barras primero
                 DataRow? prodEncontrado = _dtProductos.AsEnumerable()
                     .FirstOrDefault(r => r.Table.Columns.Contains("codigo") && string.Equals(r["codigo"]?.ToString(), query, StringComparison.OrdinalIgnoreCase));
 
-                // Si no coincide por código pero hay producto seleccionado o filtrado en el desplegable de abajo
                 if (prodEncontrado == null && _dvProductos != null && _dvProductos.Count > 0)
                 {
                     if (cmbProducto.SelectedItem is DataRowView drv)
@@ -375,14 +377,12 @@ namespace Cantina_Padel
             decimal precio = Convert.ToDecimal(fila["precio_venta"]);
             int stockDisponible = fila.Table.Columns.Contains("stock") && fila["stock"] != DBNull.Value ? Convert.ToInt32(fila["stock"]) : 0;
 
-            // Leer primero la cantidad ingresada en la casilla de cantidad (ej. si puso 5, toma 5)
             int cantAAgregar = 1;
             if (LeerCantidad(out int cantIngresada) && cantIngresada > 0)
             {
                 cantAAgregar = cantIngresada;
             }
 
-            // Verificar si ya está en el carrito (se eliminó restricción de stock para permitir stock negativo)
             var existente = _lineas.FirstOrDefault(l => l.IdProducto == idProducto);
             if (existente != null)
             {
@@ -400,12 +400,10 @@ namespace Cantina_Padel
                 });
             }
 
-            // Mostrar el último producto escaneado / seleccionado en el control de abajo
             if (_dvProductos != null) _dvProductos.RowFilter = "";
-            cmbProducto.SelectedValue = idProducto;
+            try { cmbProducto.SelectedValue = idProducto; } catch { }
             ActualizarPrecioDesdeProducto();
 
-            // Restablecer la casilla de cantidad a 1 para el próximo escaneo
             txtCantidad.Text = "1";
 
             SystemSounds.Beep.Play();
@@ -420,8 +418,14 @@ namespace Cantina_Padel
 
         private int? ObtenerIdSeleccionado(ComboBox combo)
         {
-            if (combo.SelectedValue == null || combo.SelectedValue is DataRowView)
+            if (combo.SelectedValue == null || combo.SelectedValue == DBNull.Value)
                 return null;
+            if (combo.SelectedValue is DataRowView drv)
+            {
+                if (!string.IsNullOrWhiteSpace(combo.ValueMember) && drv.Row.Table.Columns.Contains(combo.ValueMember) && drv[combo.ValueMember] != DBNull.Value)
+                    return Convert.ToInt32(drv[combo.ValueMember]);
+                return null;
+            }
             return Convert.ToInt32(combo.SelectedValue);
         }
 
@@ -436,28 +440,13 @@ namespace Cantina_Padel
 
         private void RefrescarItems(int? idProductoSeleccionado = null)
         {
+            this.BindingContext ??= new BindingContext();
+            gridItems.AutoGenerateColumns = true;
+            gridItems.BindingContext = this.BindingContext;
             gridItems.DataSource = null;
             gridItems.DataSource = new BindingList<LineaVenta>(_lineas);
 
-            if (gridItems.Columns.Contains("Nombre"))
-            {
-                gridItems.Columns["IdProducto"].Visible = false;
-                gridItems.Columns["StockDisponible"].Visible = false;
-                if (gridItems.Columns.Contains("IdReserva"))
-                    gridItems.Columns["IdReserva"].Visible = false;
-
-                gridItems.Columns["Nombre"].HeaderText = "Producto";
-                gridItems.Columns["Cantidad"].HeaderText = "Cant.";
-                gridItems.Columns["PrecioUnitario"].HeaderText = "Precio unit.";
-                gridItems.Columns["Subtotal"].HeaderText = "Subtotal";
-
-                gridItems.Columns["Nombre"].Width = 260;
-                gridItems.Columns["Cantidad"].Width = 65;
-                gridItems.Columns["PrecioUnitario"].Width = 115;
-                gridItems.Columns["PrecioUnitario"].DefaultCellStyle.Format = "C2";
-                gridItems.Columns["Subtotal"].Width = 115;
-                gridItems.Columns["Subtotal"].DefaultCellStyle.Format = "C2";
-            }
+            FormatearColumnasItems();
 
             // En los productos agregados, seleccionar automáticamente el último producto escaneado / agregado
             if (gridItems.Rows.Count > 0)
@@ -482,12 +471,46 @@ namespace Cantina_Padel
 
                 gridItems.ClearSelection();
                 gridItems.Rows[filaASeleccionar].Selected = true;
-                if (gridItems.Columns.Contains("Nombre"))
-                    gridItems.CurrentCell = gridItems.Rows[filaASeleccionar].Cells["Nombre"];
-                gridItems.FirstDisplayedScrollingRowIndex = filaASeleccionar;
+                if (gridItems.Columns["Nombre"] is DataGridViewColumn colNom && colNom.Visible)
+                {
+                    try { gridItems.CurrentCell = gridItems.Rows[filaASeleccionar].Cells["Nombre"]; } catch { }
+                }
+                try { gridItems.FirstDisplayedScrollingRowIndex = filaASeleccionar; } catch { }
             }
 
             ActualizarTotal();
+        }
+
+        private void FormatearColumnasItems()
+        {
+            if (gridItems == null || gridItems.Columns.Count == 0) return;
+
+            if (gridItems.Columns["IdProducto"] is DataGridViewColumn colIdP) colIdP.Visible = false;
+            if (gridItems.Columns["StockDisponible"] is DataGridViewColumn colStk) colStk.Visible = false;
+            if (gridItems.Columns["IdReserva"] is DataGridViewColumn colIdR) colIdR.Visible = false;
+
+            if (gridItems.Columns["Nombre"] is DataGridViewColumn colNom)
+            {
+                colNom.HeaderText = "Producto";
+                colNom.Width = 260;
+            }
+            if (gridItems.Columns["Cantidad"] is DataGridViewColumn colCant)
+            {
+                colCant.HeaderText = "Cant.";
+                colCant.Width = 65;
+            }
+            if (gridItems.Columns["PrecioUnitario"] is DataGridViewColumn colPre)
+            {
+                colPre.HeaderText = "Precio unit.";
+                colPre.Width = 115;
+                colPre.DefaultCellStyle.Format = "C2";
+            }
+            if (gridItems.Columns["Subtotal"] is DataGridViewColumn colSub)
+            {
+                colSub.HeaderText = "Subtotal";
+                colSub.Width = 115;
+                colSub.DefaultCellStyle.Format = "C2";
+            }
         }
 
         private void ActualizarTotal()
@@ -510,14 +533,19 @@ namespace Cantina_Padel
                 return;
             }
 
-            var fila = (DataRowView)cmbProducto.SelectedItem!;
-            int stockDisponible = Convert.ToInt32(fila["stock"]);
-            decimal precio = Convert.ToDecimal(fila["precio_venta"]);
+            if (cmbProducto.SelectedItem is not DataRowView fila)
+            {
+                MostrarAviso("Seleccioná un producto válido.");
+                return;
+            }
+
+            int stockDisponible = fila.Row.Table.Columns.Contains("stock") && fila["stock"] != DBNull.Value ? Convert.ToInt32(fila["stock"]) : 0;
+            decimal precio = fila.Row.Table.Columns.Contains("precio_venta") && fila["precio_venta"] != DBNull.Value ? Convert.ToDecimal(fila["precio_venta"]) : 0m;
 
             LineaVenta nueva = new LineaVenta
             {
                 IdProducto = idProducto.Value,
-                Nombre = fila["nombre"].ToString() ?? "",
+                Nombre = fila.Row.Table.Columns.Contains("nombre") ? (fila["nombre"]?.ToString() ?? "") : "",
                 Cantidad = cantidad,
                 PrecioUnitario = precio,
                 StockDisponible = stockDisponible
@@ -598,7 +626,6 @@ namespace Cantina_Padel
 
             if (confirmacion != DialogResult.Yes) return;
 
-            // Aviso consultando si desea factura o no; si acepta emite la factura correspondiente (A/B/C), si no emite Ticket
             DialogResult deseaFactura = MessageBox.Show(
                 $"¿Desea emitir factura ({facturaDisponible}) para esta compra?\n\nSeleccione 'Sí' para emitir {facturaDisponible} o 'No' para emitir Ticket.",
                 "Comprobante de Venta",
@@ -695,7 +722,7 @@ namespace Cantina_Padel
 
                     if (turno.IdCliente > 0 && turno.IdCliente != 9999)
                     {
-                        cmbCliente.SelectedValue = turno.IdCliente;
+                        try { cmbCliente.SelectedValue = turno.IdCliente; } catch { }
                     }
 
                     agregados++;
@@ -800,16 +827,17 @@ namespace Cantina_Padel
                 if (confirm != DialogResult.Yes) return;
             }
             LimpiarNuevaVenta();
+            txtBuscador.Focus();
         }
 
         private void Volver_Boton_Click(object sender, EventArgs e)
         {
             if (_lineas.Count > 0)
             {
-                MessageBox.Show(
-                    "Hay productos cargados en la venta actual. Debe terminar la compra o limpiar el carrito antes de salir.",
-                    "Compra en curso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                DialogResult confirm = MessageBox.Show(
+                    "Hay productos cargados en el carrito sin cobrar.\n¿Está seguro de que desea salir de Ventas y perder el carrito actual?",
+                    "Confirmar salida", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (confirm != DialogResult.Yes) return;
             }
             this.Close();
         }

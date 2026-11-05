@@ -5,19 +5,19 @@ namespace Cantina_Padel
 {
     public partial class FormGestionCanchas : Form
     {
-        // Guarda el ID de la cancha seleccionada en la grilla (null = alta nueva).
-        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
-        // ejecución ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
 
         public FormGestionCanchas()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridCanchas.AutoGenerateColumns = true;
+            gridCanchas.BindingContext = this.BindingContext;
+            gridCanchas.DataBindingComplete += (_, _) => FormatearColumnasCanchas();
+            this.Load += (_, _) => FormatearColumnasCanchas();
             CargarCanchas();
         }
 
-        // Permite solo letras (incluye acentos y ñ), espacios, números y teclas de
-        // control (backspace, etc.) — el nombre de cancha suele ser "Cancha 1", "Cancha 2A", etc.
         private void Precio_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar) || char.IsDigit(e.KeyChar) || e.KeyChar == ',' || e.KeyChar == '.')
@@ -34,10 +34,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Una cancha "Fuera de Servicio" o "En Reparación" no puede figurar como
-        // activa al mismo tiempo: se desmarca y se bloquea el checkbox mientras
-        // dure ese estado. Se llama tanto al cambiar el combo como al cargar una
-        // fila de la grilla, para que no queden datos inconsistentes en pantalla.
         private void AplicarReglaActivoSegunEstado()
         {
             string estado = cmbEstado.SelectedItem?.ToString() ?? "";
@@ -74,25 +70,49 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridCanchas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridCanchas.AutoGenerateColumns = true;
+                gridCanchas.BindingContext = this.BindingContext;
+                gridCanchas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridCanchas.DataSource = dt;
 
-                gridCanchas.Columns["id_cancha"].HeaderText = "ID";
-                gridCanchas.Columns["nombre"].HeaderText     = "Nombre";
-                gridCanchas.Columns["estado"].HeaderText     = "Estado";
-                gridCanchas.Columns["precio"].HeaderText     = "Precio";
-                gridCanchas.Columns["activo"].HeaderText     = "Activo";
-
-                gridCanchas.Columns["id_cancha"].Width = 40;
-                gridCanchas.Columns["nombre"].Width     = 150;
-                gridCanchas.Columns["estado"].Width     = 120;
-                gridCanchas.Columns["precio"].Width     = 80;
-                gridCanchas.Columns["activo"].Width      = 55;
+                FormatearColumnasCanchas();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar canchas:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void FormatearColumnasCanchas()
+        {
+            if (gridCanchas == null || gridCanchas.Columns.Count == 0) return;
+
+            if (gridCanchas.Columns["id_cancha"] is DataGridViewColumn colId)
+            {
+                colId.HeaderText = "ID";
+                colId.Width = 40;
+            }
+            if (gridCanchas.Columns["nombre"] is DataGridViewColumn colNom)
+            {
+                colNom.HeaderText = "Nombre";
+                colNom.Width = 150;
+            }
+            if (gridCanchas.Columns["estado"] is DataGridViewColumn colEst)
+            {
+                colEst.HeaderText = "Estado";
+                colEst.Width = 120;
+            }
+            if (gridCanchas.Columns["precio"] is DataGridViewColumn colPre)
+            {
+                colPre.HeaderText = "Precio";
+                colPre.Width = 80;
+            }
+            if (gridCanchas.Columns["activo"] is DataGridViewColumn colAct)
+            {
+                colAct.HeaderText = "Activo";
+                colAct.Width = 55;
             }
         }
 
@@ -118,7 +138,8 @@ namespace Cantina_Padel
 
             if (txtNombre.Text.Length > 0 && (char.IsWhiteSpace(txtNombre.Text[0]) || char.IsWhiteSpace(txtNombre.Text[txtNombre.Text.Length - 1])))
             {
-                MessageBox.Show("El nombre no puede empezar ni terminar con espacios en blanco.");
+                MessageBox.Show("El nombre no puede empezar ni terminar con espacios en blanco.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -137,50 +158,89 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                if (esNuevo)
-                    CrearCancha(conn);
-                else
-                    EditarCancha(conn);
+                bool exito = esNuevo
+                    ? CrearCancha(conn)
+                    : EditarCancha(conn);
+
+                if (!exito) return;
 
                 MessageBox.Show("Cancha guardada con éxito.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
                 CargarCanchas();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("Ya existe una cancha con ese nombre.",
+                    "Cancha duplicada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CrearCancha(MySqlConnection conn)
+        private bool CrearCancha(MySqlConnection conn)
         {
+            string nombre = txtNombre.Text.Trim();
+            string check = "SELECT COUNT(*) FROM cancha WHERE nombre = @n";
+            using (MySqlCommand cmdCheck = new MySqlCommand(check, conn))
+            {
+                cmdCheck.Parameters.AddWithValue("@n", nombre);
+                long count = Convert.ToInt64(cmdCheck.ExecuteScalar());
+                if (count > 0)
+                {
+                    MessageBox.Show("Ya existe una cancha con ese nombre.",
+                        "Cancha ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
             string estado = cmbEstado.SelectedItem!.ToString()!;
             bool activo = estado == "Activo" && chkActivo.Checked;
 
             string insert = "INSERT INTO cancha (nombre, estado, precio, activo) VALUES (@n, @e, @p, @a)";
             using MySqlCommand cmd = new MySqlCommand(insert, conn);
-            cmd.Parameters.AddWithValue("@n", txtNombre.Text);
+            cmd.Parameters.AddWithValue("@n", nombre);
             cmd.Parameters.AddWithValue("@e", estado);
             cmd.Parameters.AddWithValue("@p", decimal.Parse(textBox1.Text));
             cmd.Parameters.AddWithValue("@a", activo ? 1 : 0);
             cmd.ExecuteNonQuery();
+            return true;
         }
 
-        private void EditarCancha(MySqlConnection conn)
+        private bool EditarCancha(MySqlConnection conn)
         {
+            int id = _idSeleccionado!.Value;
+            string nombre = txtNombre.Text.Trim();
+
+            string check = "SELECT COUNT(*) FROM cancha WHERE nombre = @n AND id_cancha <> @id";
+            using (MySqlCommand cmdCheck = new MySqlCommand(check, conn))
+            {
+                cmdCheck.Parameters.AddWithValue("@n", nombre);
+                cmdCheck.Parameters.AddWithValue("@id", id);
+                long count = Convert.ToInt64(cmdCheck.ExecuteScalar());
+                if (count > 0)
+                {
+                    MessageBox.Show("Ya existe otra cancha con ese nombre.",
+                        "Cancha ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
             string estado = cmbEstado.SelectedItem!.ToString()!;
             bool activo = estado == "Activo" && chkActivo.Checked;
 
             string update = "UPDATE cancha SET nombre = @n, estado = @e, precio = @p, activo = @a WHERE id_cancha = @id";
             using MySqlCommand cmd = new MySqlCommand(update, conn);
-            cmd.Parameters.AddWithValue("@n",  txtNombre.Text);
+            cmd.Parameters.AddWithValue("@n",  nombre);
             cmd.Parameters.AddWithValue("@e",  estado);
             cmd.Parameters.AddWithValue("@p",  decimal.Parse(textBox1.Text));
             cmd.Parameters.AddWithValue("@a",  activo ? 1 : 0);
-            cmd.Parameters.AddWithValue("@id", _idSeleccionado!.Value);
+            cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
+            return true;
         }
 
         // ─────────────────────────────────────────────
@@ -204,7 +264,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Este es el método de lógica que pones en la planilla de testing
         private void DesactivarCancha(int id)
         {
             try
@@ -221,7 +280,7 @@ namespace Cantina_Padel
                 CargarCanchas();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -232,16 +291,22 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridCanchas_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridCanchas.Rows.Count) return;
             var row = gridCanchas.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado   = Convert.ToInt32(row.Cells["id_cancha"].Value);
-            txtNombre.Text    = row.Cells["nombre"].Value?.ToString() ?? "";
-            cmbEstado.SelectedItem = row.Cells["estado"].Value?.ToString() ?? "Activo";
-            textBox1.Text = row.Cells["precio"].Value == null || row.Cells["precio"].Value == DBNull.Value
+            var idVal = gridCanchas.Columns.Contains("id_cancha") ? row.Cells["id_cancha"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
+
+            _idSeleccionado   = Convert.ToInt32(idVal);
+            txtNombre.Text    = gridCanchas.Columns.Contains("nombre") ? (row.Cells["nombre"]?.Value?.ToString() ?? "") : "";
+            cmbEstado.SelectedItem = gridCanchas.Columns.Contains("estado") ? (row.Cells["estado"]?.Value?.ToString() ?? "Activo") : "Activo";
+            var precioVal = gridCanchas.Columns.Contains("precio") ? row.Cells["precio"]?.Value : null;
+            textBox1.Text = precioVal == null || precioVal == DBNull.Value
                 ? "0.00"
-                : Convert.ToDecimal(row.Cells["precio"].Value).ToString("0.00");
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+                : Convert.ToDecimal(precioVal).ToString("0.00");
+            var activoVal = gridCanchas.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = activoVal != null && activoVal != DBNull.Value && Convert.ToBoolean(activoVal);
             AplicarReglaActivoSegunEstado();
             Guardar_Boton.Text = "Guardar Cambios";
         }
@@ -265,7 +330,7 @@ namespace Cantina_Padel
         {
             _idSeleccionado    = null;
             txtNombre.Text     = "";
-            cmbEstado.SelectedIndex = 0; // "Activo" por defecto
+            if (cmbEstado.Items.Count > 0) cmbEstado.SelectedIndex = 0;
             textBox1.Text = "0.00";
             chkActivo.Checked  = true;
             Guardar_Boton.Text = "Crear Cancha";

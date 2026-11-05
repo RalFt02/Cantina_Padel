@@ -4,18 +4,19 @@ namespace Cantina_Padel
 {
     public partial class FormGestionProveedores : Form
     {
-        // Guarda el ID del proveedor seleccionado en la grilla (null = alta nueva).
-        // Ya no usamos un TextBox oculto para esto: así no aparece ni en tiempo de
-        // ejecución NI en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
 
         public FormGestionProveedores()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridProveedores.AutoGenerateColumns = true;
+            gridProveedores.BindingContext = this.BindingContext;
+            gridProveedores.DataBindingComplete += (_, _) => FormatearColumnasProveedores();
+            this.Load += (_, _) => FormatearColumnasProveedores();
             CargarProveedores();
         }
 
-        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
         private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -24,7 +25,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Permite solo dígitos y teclas de control (backspace, etc.)
         private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -63,39 +63,45 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridProveedores.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridProveedores.AutoGenerateColumns = true;
+                gridProveedores.BindingContext = this.BindingContext;
+                gridProveedores.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridProveedores.DataSource = dt;
 
-                // Personalizar columnas
-                gridProveedores.Columns["id_proveedor"].HeaderText  = "ID";
-                gridProveedores.Columns["nombre"].HeaderText         = "Nombre";
-                gridProveedores.Columns["apellido"].HeaderText       = "Apellido";
-                gridProveedores.Columns["telefono"].HeaderText       = "Teléfono";
-                gridProveedores.Columns["dni"].HeaderText            = "DNI";
-                gridProveedores.Columns["email"].HeaderText          = "Email";
-                gridProveedores.Columns["direccion"].HeaderText      = "Dirección";
-                gridProveedores.Columns["cuit"].HeaderText           = "CUIT";
-                gridProveedores.Columns["razon_social"].HeaderText   = "Razón Social";
-                gridProveedores.Columns["observaciones"].HeaderText  = "Observaciones";
-                gridProveedores.Columns["activo"].HeaderText         = "Activo";
-
-                gridProveedores.Columns["id_proveedor"].Width  = 40;
-                gridProveedores.Columns["nombre"].Width         = 100;
-                gridProveedores.Columns["apellido"].Width       = 100;
-                gridProveedores.Columns["telefono"].Width       = 90;
-                gridProveedores.Columns["dni"].Width            = 80;
-                gridProveedores.Columns["email"].Width          = 140;
-                gridProveedores.Columns["direccion"].Width      = 140;
-                gridProveedores.Columns["cuit"].Width           = 90;
-                gridProveedores.Columns["razon_social"].Width   = 120;
-                gridProveedores.Columns["observaciones"].Width  = 160;
-                gridProveedores.Columns["activo"].Width         = 55;
+                FormatearColumnasProveedores();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar proveedores:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void FormatearColumnasProveedores()
+        {
+            if (gridProveedores == null || gridProveedores.Columns.Count == 0) return;
+
+            void Configurar(string colName, string header, int width)
+            {
+                if (gridProveedores.Columns[colName] is DataGridViewColumn col)
+                {
+                    col.HeaderText = header;
+                    col.Width = width;
+                }
+            }
+
+            Configurar("id_proveedor", "ID", 40);
+            Configurar("nombre", "Nombre", 100);
+            Configurar("apellido", "Apellido", 100);
+            Configurar("telefono", "Teléfono", 90);
+            Configurar("dni", "DNI", 80);
+            Configurar("email", "Email", 140);
+            Configurar("direccion", "Dirección", 140);
+            Configurar("cuit", "CUIT", 90);
+            Configurar("razon_social", "Razón Social", 120);
+            Configurar("observaciones", "Observaciones", 160);
+            Configurar("activo", "Activo", 55);
         }
 
         // ─────────────────────────────────────────────
@@ -129,10 +135,15 @@ namespace Cantina_Padel
                 conn.Open();
                 using MySqlTransaction tx = conn.BeginTransaction();
 
-                if (esNuevo)
-                    CrearProveedor(conn, tx);
-                else
-                    EditarProveedor(conn, tx);
+                bool exito = esNuevo
+                    ? CrearProveedor(conn, tx)
+                    : EditarProveedor(conn, tx);
+
+                if (!exito)
+                {
+                    try { tx.Rollback(); } catch { }
+                    return;
+                }
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -140,50 +151,105 @@ namespace Cantina_Padel
                 CargarProveedores();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("Ya existe un proveedor o persona registrada con esos mismos datos (DNI, Email, CUIT o Razón Social duplicados).",
+                    "Datos duplicados", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CrearProveedor(MySqlConnection conn, MySqlTransaction tx)
+        private bool ValidarDuplicadosProveedor(MySqlConnection conn, MySqlTransaction tx, int? idProveedorActual)
         {
-            // Verificar DNI duplicado
-            string checkQuery = "SELECT COUNT(*) FROM persona WHERE dni = @d";
-            using (MySqlCommand check = new MySqlCommand(checkQuery, conn, tx))
+            string dni = txtDni.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string cuit = txtCuit.Text.Trim();
+            string razonSocial = txtRazonSocial.Text.Trim();
+            string filtroExcluir = idProveedorActual.HasValue
+                ? " AND id_persona <> (SELECT id_persona FROM proveedor WHERE id_proveedor = @idProv LIMIT 1)"
+                : "";
+
+            // 1. Verificar DNI duplicado
+            string checkDni = "SELECT COUNT(*) FROM persona WHERE dni = @d" + filtroExcluir;
+            using (MySqlCommand cmdDni = new MySqlCommand(checkDni, conn, tx))
             {
-                check.Parameters.AddWithValue("@d", txtDni.Text.Trim());
-                long count = (long)check.ExecuteScalar()!;
+                cmdDni.Parameters.AddWithValue("@d", dni);
+                if (idProveedorActual.HasValue) cmdDni.Parameters.AddWithValue("@idProv", idProveedorActual.Value);
+                long count = Convert.ToInt64(cmdDni.ExecuteScalar());
                 if (count > 0)
                 {
-                    MessageBox.Show("Ya existe una persona registrada con ese DNI.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
+                    MessageBox.Show($"Ya existe un registro con el DNI '{dni}'.",
+                        "Proveedor ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
                 }
             }
 
-            // El email es único en la base; si viene vacío, se guarda como NULL
-            // para no chocar con otro proveedor que también lo deje vacío.
+            // 2. Verificar Email duplicado (si se ingresó)
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                string checkEmail = "SELECT COUNT(*) FROM persona WHERE email = @e" + filtroExcluir;
+                using MySqlCommand cmdEmail = new MySqlCommand(checkEmail, conn, tx);
+                cmdEmail.Parameters.AddWithValue("@e", email);
+                if (idProveedorActual.HasValue) cmdEmail.Parameters.AddWithValue("@idProv", idProveedorActual.Value);
+                long countE = Convert.ToInt64(cmdEmail.ExecuteScalar());
+                if (countE > 0)
+                {
+                    MessageBox.Show($"Ya existe un registro con el email '{email}'.",
+                        "Email ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            // 3. Verificar CUIT duplicado (si se ingresó)
+            if (!string.IsNullOrWhiteSpace(cuit))
+            {
+                string checkCuit = "SELECT COUNT(*) FROM persona WHERE cuit = @cu" + filtroExcluir;
+                using MySqlCommand cmdCuit = new MySqlCommand(checkCuit, conn, tx);
+                cmdCuit.Parameters.AddWithValue("@cu", cuit);
+                if (idProveedorActual.HasValue) cmdCuit.Parameters.AddWithValue("@idProv", idProveedorActual.Value);
+                long countC = Convert.ToInt64(cmdCuit.ExecuteScalar());
+                if (countC > 0)
+                {
+                    MessageBox.Show($"Ya existe un registro con el CUIT '{cuit}'.",
+                        "CUIT ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            // 4. Verificar Razón Social duplicada en proveedores (si se ingresó)
+            if (!string.IsNullOrWhiteSpace(razonSocial))
+            {
+                string checkRS = @"
+                    SELECT COUNT(*) FROM persona p
+                    JOIN proveedor pr ON pr.id_persona = p.id_persona
+                    WHERE p.razon_social = @rs" + (idProveedorActual.HasValue ? " AND pr.id_proveedor <> @idProv" : "");
+                using MySqlCommand cmdRS = new MySqlCommand(checkRS, conn, tx);
+                cmdRS.Parameters.AddWithValue("@rs", razonSocial);
+                if (idProveedorActual.HasValue) cmdRS.Parameters.AddWithValue("@idProv", idProveedorActual.Value);
+                long countRS = Convert.ToInt64(cmdRS.ExecuteScalar());
+                if (countRS > 0)
+                {
+                    MessageBox.Show($"Ya existe un proveedor registrado con la Razón Social '{razonSocial}'.",
+                        "Razón Social ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CrearProveedor(MySqlConnection conn, MySqlTransaction tx)
+        {
+            if (!ValidarDuplicadosProveedor(conn, tx, null))
+                return false;
+
             object emailValue = string.IsNullOrWhiteSpace(txtEmail.Text)
                 ? DBNull.Value
                 : txtEmail.Text.Trim();
-
-            if (emailValue is string email)
-            {
-                string checkEmail = "SELECT COUNT(*) FROM persona WHERE email = @e";
-                using MySqlCommand checkE = new MySqlCommand(checkEmail, conn, tx);
-                checkE.Parameters.AddWithValue("@e", email);
-                long countE = (long)checkE.ExecuteScalar()!;
-                if (countE > 0)
-                {
-                    MessageBox.Show("Ya existe una persona registrada con ese email.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
-                }
-            }
 
             string insertPersona = @"
                 INSERT INTO persona (nombre, apellido, telefono, dni, email, direccion, cuit, razon_social, activo)
@@ -213,34 +279,19 @@ namespace Cantina_Padel
             cmdProv.Parameters.AddWithValue("@obs", string.IsNullOrWhiteSpace(txtObservaciones.Text) ? DBNull.Value : txtObservaciones.Text.Trim());
             cmdProv.Parameters.AddWithValue("@idp", idPersona);
             cmdProv.ExecuteNonQuery();
+            return true;
         }
 
-        private void EditarProveedor(MySqlConnection conn, MySqlTransaction tx)
+        private bool EditarProveedor(MySqlConnection conn, MySqlTransaction tx)
         {
             int id = _idSeleccionado!.Value;
+
+            if (!ValidarDuplicadosProveedor(conn, tx, id))
+                return false;
 
             object emailValue = string.IsNullOrWhiteSpace(txtEmail.Text)
                 ? DBNull.Value
                 : txtEmail.Text.Trim();
-
-            if (emailValue is string email)
-            {
-                string checkEmail = @"
-                    SELECT COUNT(*) FROM persona p
-                    JOIN proveedor pr ON pr.id_persona = p.id_persona
-                    WHERE p.email = @e AND pr.id_proveedor <> @id";
-                using MySqlCommand checkE = new MySqlCommand(checkEmail, conn, tx);
-                checkE.Parameters.AddWithValue("@e", email);
-                checkE.Parameters.AddWithValue("@id", id);
-                long countE = (long)checkE.ExecuteScalar()!;
-                if (countE > 0)
-                {
-                    MessageBox.Show("Ya existe otra persona registrada con ese email.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
-                }
-            }
 
             string updatePersona = @"
                 UPDATE persona p
@@ -280,6 +331,7 @@ namespace Cantina_Padel
             cmdProv.Parameters.AddWithValue("@obs", string.IsNullOrWhiteSpace(txtObservaciones.Text) ? DBNull.Value : txtObservaciones.Text.Trim());
             cmdProv.Parameters.AddWithValue("@id",  id);
             cmdProv.ExecuteNonQuery();
+            return true;
         }
 
         // ─────────────────────────────────────────────
@@ -319,7 +371,7 @@ namespace Cantina_Padel
                 CargarProveedores();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -331,21 +383,28 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridProveedores_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridProveedores.Rows.Count) return;
             var row = gridProveedores.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado        = Convert.ToInt32(row.Cells["id_proveedor"].Value);
-            txtNombre.Text        = row.Cells["nombre"].Value?.ToString() ?? "";
-            txtApellido.Text      = row.Cells["apellido"].Value?.ToString() ?? "";
-            txtTelefono.Text      = row.Cells["telefono"].Value?.ToString() ?? "";
-            txtDni.Text            = row.Cells["dni"].Value?.ToString() ?? "";
-            txtEmail.Text          = row.Cells["email"].Value?.ToString() ?? "";
-            txtDireccion.Text      = row.Cells["direccion"].Value?.ToString() ?? "";
-            txtCuit.Text            = row.Cells["cuit"].Value?.ToString() ?? "";
-            txtRazonSocial.Text     = row.Cells["razon_social"].Value?.ToString() ?? "";
-            txtObservaciones.Text   = row.Cells["observaciones"].Value?.ToString() ?? "";
+            var idVal = gridProveedores.Columns.Contains("id_proveedor") ? row.Cells["id_proveedor"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
 
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+            string LeerCelda(string col) => gridProveedores.Columns.Contains(col) ? (row.Cells[col]?.Value?.ToString() ?? "") : "";
+
+            _idSeleccionado        = Convert.ToInt32(idVal);
+            txtNombre.Text        = LeerCelda("nombre");
+            txtApellido.Text      = LeerCelda("apellido");
+            txtTelefono.Text      = LeerCelda("telefono");
+            txtDni.Text            = LeerCelda("dni");
+            txtEmail.Text          = LeerCelda("email");
+            txtDireccion.Text      = LeerCelda("direccion");
+            txtCuit.Text            = LeerCelda("cuit");
+            txtRazonSocial.Text     = LeerCelda("razon_social");
+            txtObservaciones.Text   = LeerCelda("observaciones");
+
+            var actVal = gridProveedores.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = actVal != null && actVal != DBNull.Value && Convert.ToBoolean(actVal);
             Guardar_Boton.Text = "Guardar Cambios";
         }
 

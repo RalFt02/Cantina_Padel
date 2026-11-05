@@ -17,6 +17,10 @@ namespace Cantina_Padel
         {
             _idUsuario = idUsuario > 0 ? idUsuario : 1;
             int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(_idUsuario);
+
+            InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+
             if (!idSesion.HasValue)
             {
                 MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
@@ -25,16 +29,19 @@ namespace Cantina_Padel
                 return;
             }
 
-            InitializeComponent();
-
             ConfigurarGrilla(gridReservas);
+            gridReservas.DataBindingComplete += (_, _) => FormatearColumnasReservas();
+            this.Load += (_, _) => FormatearColumnasReservas();
             CargarClientes();
             CargarReservas();
         }
 
         private void ConfigurarGrilla(DataGridView grid)
         {
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            this.BindingContext ??= new BindingContext();
+            grid.AutoGenerateColumns = true;
+            grid.BindingContext = this.BindingContext;
+            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.EnableHeadersVisualStyles = false;
             grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);
@@ -72,48 +79,19 @@ namespace Cantina_Padel
             try
             {
                 int? idCliente = null;
-                if (cmbCliente.SelectedValue != null && !(cmbCliente.SelectedValue is DataRowView))
+                if (cmbCliente.SelectedValue != null && cmbCliente.SelectedValue != DBNull.Value && !(cmbCliente.SelectedValue is DataRowView))
                 {
                     int val = Convert.ToInt32(cmbCliente.SelectedValue);
                     if (val > 0) idCliente = val;
                 }
 
                 DataTable dt = GestorVentas.ObtenerReservasPendientesPago(idCliente);
+                this.BindingContext ??= new BindingContext();
+                gridReservas.AutoGenerateColumns = true;
+                gridReservas.BindingContext = this.BindingContext;
                 gridReservas.DataSource = dt;
 
-                if (gridReservas.Columns.Contains("id_reserva"))
-                {
-                    gridReservas.Columns["id_reserva"].HeaderText = "ID";
-                    gridReservas.Columns["id_reserva"].Width = 45;
-                }
-                if (gridReservas.Columns.Contains("cancha"))
-                {
-                    gridReservas.Columns["cancha"].HeaderText = "Cancha";
-                    gridReservas.Columns["cancha"].Width = 110;
-                }
-                if (gridReservas.Columns.Contains("fecha"))
-                {
-                    gridReservas.Columns["fecha"].HeaderText = "Fecha";
-                    gridReservas.Columns["fecha"].Width = 95;
-                    gridReservas.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy";
-                }
-                if (gridReservas.Columns.Contains("horario"))
-                {
-                    gridReservas.Columns["horario"].HeaderText = "Turno";
-                    gridReservas.Columns["horario"].Width = 95;
-                }
-                if (gridReservas.Columns.Contains("cliente"))
-                {
-                    gridReservas.Columns["cliente"].HeaderText = "Cliente";
-                    gridReservas.Columns["cliente"].Width = 150;
-                }
-                if (gridReservas.Columns.Contains("precio"))
-                {
-                    gridReservas.Columns["precio"].HeaderText = "Precio ($)";
-                    gridReservas.Columns["precio"].Width = 85;
-                    gridReservas.Columns["precio"].DefaultCellStyle.Format = "N2";
-                }
-
+                FormatearColumnasReservas();
                 ActualizarSeleccion();
             }
             catch (Exception ex)
@@ -123,17 +101,67 @@ namespace Cantina_Padel
             }
         }
 
+        private void FormatearColumnasReservas()
+        {
+            if (gridReservas == null || gridReservas.Columns.Count == 0) return;
+
+            if (gridReservas.Columns["id_reserva"] is DataGridViewColumn colId)
+            {
+                colId.HeaderText = "ID";
+                colId.Width = 45;
+            }
+            if (gridReservas.Columns["id_cliente"] is DataGridViewColumn colIdCli)
+            {
+                colIdCli.Visible = false;
+            }
+            if (gridReservas.Columns["cancha"] is DataGridViewColumn colCan)
+            {
+                colCan.HeaderText = "Cancha";
+                colCan.Width = 110;
+            }
+            if (gridReservas.Columns["fecha"] is DataGridViewColumn colFec)
+            {
+                colFec.HeaderText = "Fecha";
+                colFec.Width = 95;
+                colFec.DefaultCellStyle.Format = "dd/MM/yyyy";
+            }
+            if (gridReservas.Columns["horario"] is DataGridViewColumn colHor)
+            {
+                colHor.HeaderText = "Turno";
+                colHor.Width = 95;
+            }
+            if (gridReservas.Columns["cliente"] is DataGridViewColumn colCli)
+            {
+                colCli.HeaderText = "Cliente";
+                colCli.Width = 150;
+            }
+            if (gridReservas.Columns["precio"] is DataGridViewColumn colPre)
+            {
+                colPre.HeaderText = "Precio ($)";
+                colPre.Width = 85;
+                colPre.DefaultCellStyle.Format = "N2";
+            }
+        }
+
         private void ActualizarSeleccion()
         {
             _reservasSeleccionadas.Clear();
             _totalSeleccionado = 0m;
 
+            if (gridReservas == null || !gridReservas.Columns.Contains("id_reserva"))
+            {
+                lblTotal.Text = "Total: " + _totalSeleccionado.ToString("C2");
+                return;
+            }
+
             foreach (DataGridViewRow row in gridReservas.SelectedRows)
             {
-                if (row.Cells["id_reserva"].Value != null)
+                var idVal = row.Cells["id_reserva"]?.Value;
+                if (idVal != null && idVal != DBNull.Value)
                 {
-                    int idRes = Convert.ToInt32(row.Cells["id_reserva"].Value);
-                    decimal precio = row.Cells["precio"].Value != DBNull.Value ? Convert.ToDecimal(row.Cells["precio"].Value) : 0m;
+                    int idRes = Convert.ToInt32(idVal);
+                    var preVal = gridReservas.Columns.Contains("precio") ? row.Cells["precio"]?.Value : null;
+                    decimal precio = preVal != null && preVal != DBNull.Value ? Convert.ToDecimal(preVal) : 0m;
 
                     _reservasSeleccionadas.Add(idRes);
                     _totalSeleccionado += precio;
@@ -160,7 +188,7 @@ namespace Cantina_Padel
 
         private void btnEnviarAVentas_Click(object sender, EventArgs e)
         {
-            if (gridReservas.SelectedRows.Count == 0)
+            if (gridReservas.SelectedRows.Count == 0 || !gridReservas.Columns.Contains("id_reserva"))
             {
                 MessageBox.Show("Seleccioná al menos un turno de la lista para cobrar.", "Aviso",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -172,9 +200,10 @@ namespace Cantina_Padel
 
             foreach (DataGridViewRow row in gridReservas.SelectedRows)
             {
-                if (row.Cells["id_reserva"].Value != null && row.Cells["id_reserva"].Value != DBNull.Value)
+                var idVal = row.Cells["id_reserva"]?.Value;
+                if (idVal != null && idVal != DBNull.Value)
                 {
-                    DateTime fechaRes = Convert.ToDateTime(row.Cells["fecha"].Value);
+                    DateTime fechaRes = Convert.ToDateTime(row.Cells["fecha"]?.Value);
                     if (fechaRes.Date != hoy)
                     {
                         MessageBox.Show("Solo se pueden cobrar canchas del día de hoy. No se permite cobrar por adelantado.",
@@ -183,15 +212,17 @@ namespace Cantina_Padel
                         return;
                     }
 
-                    int idRes = Convert.ToInt32(row.Cells["id_reserva"].Value);
-                    int idCli = (row.Cells["id_cliente"].Value != null && row.Cells["id_cliente"].Value != DBNull.Value)
-                        ? Convert.ToInt32(row.Cells["id_cliente"].Value)
+                    int idRes = Convert.ToInt32(idVal);
+                    var cliIdVal = gridReservas.Columns.Contains("id_cliente") ? row.Cells["id_cliente"]?.Value : null;
+                    int idCli = (cliIdVal != null && cliIdVal != DBNull.Value)
+                        ? Convert.ToInt32(cliIdVal)
                         : 9999;
-                    string cancha = row.Cells["cancha"].Value?.ToString() ?? "Cancha";
-                    string horario = row.Cells["horario"].Value?.ToString() ?? "";
-                    string cliente = row.Cells["cliente"].Value?.ToString() ?? "";
-                    decimal precio = (row.Cells["precio"].Value != null && row.Cells["precio"].Value != DBNull.Value)
-                        ? Convert.ToDecimal(row.Cells["precio"].Value)
+                    string cancha = gridReservas.Columns.Contains("cancha") ? (row.Cells["cancha"]?.Value?.ToString() ?? "Cancha") : "Cancha";
+                    string horario = gridReservas.Columns.Contains("horario") ? (row.Cells["horario"]?.Value?.ToString() ?? "") : "";
+                    string cliente = gridReservas.Columns.Contains("cliente") ? (row.Cells["cliente"]?.Value?.ToString() ?? "") : "";
+                    var preVal = gridReservas.Columns.Contains("precio") ? row.Cells["precio"]?.Value : null;
+                    decimal precio = (preVal != null && preVal != DBNull.Value)
+                        ? Convert.ToDecimal(preVal)
                         : 0m;
 
                     TurnosParaVenta.Add(new TurnoCanchaSeleccionado
@@ -223,6 +254,7 @@ namespace Cantina_Padel
             this.Close();
         }
     }
+
     public class TurnoCanchaSeleccionado
     {
         public int IdReserva { get; set; }
@@ -233,5 +265,4 @@ namespace Cantina_Padel
         public DateTime Fecha { get; set; }
         public string Cliente { get; set; } = "";
     }
-
 }

@@ -4,18 +4,19 @@ namespace Cantina_Padel
 {
     public partial class FormGestionCategorias : Form
     {
-        // Guarda el ID de la categoría seleccionada en la grilla (null = alta nueva).
-        // No usamos un TextBox oculto: así no aparece ni en tiempo de ejecución
-        // ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
 
         public FormGestionCategorias()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridCategorias.AutoGenerateColumns = true;
+            gridCategorias.BindingContext = this.BindingContext;
+            gridCategorias.DataBindingComplete += (_, _) => FormatearColumnasCategorias();
+            this.Load += (_, _) => FormatearColumnasCategorias();
             CargarCategorias();
         }
 
-        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
         private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -24,7 +25,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Permite dígitos, un único punto decimal y teclas de control (backspace, etc.)
         private void SoloNumerosDecimal_KeyPress(object sender, KeyPressEventArgs e)
         {
             var txt = (TextBox)sender;
@@ -53,23 +53,44 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridCategorias.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridCategorias.AutoGenerateColumns = true;
+                gridCategorias.BindingContext = this.BindingContext;
+                gridCategorias.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridCategorias.DataSource = dt;
 
-                gridCategorias.Columns["id_categoria"].HeaderText         = "ID";
-                gridCategorias.Columns["nombre"].HeaderText                = "Nombre";
-                gridCategorias.Columns["porcentaje_ganancia"].HeaderText  = "% Ganancia";
-                gridCategorias.Columns["activo"].HeaderText                = "Activo";
-
-                gridCategorias.Columns["id_categoria"].Width = 40;
-                gridCategorias.Columns["nombre"].Width        = 180;
-                gridCategorias.Columns["porcentaje_ganancia"].Width = 90;
-                gridCategorias.Columns["activo"].Width         = 55;
+                FormatearColumnasCategorias();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar categorías:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void FormatearColumnasCategorias()
+        {
+            if (gridCategorias == null || gridCategorias.Columns.Count == 0) return;
+
+            if (gridCategorias.Columns["id_categoria"] is DataGridViewColumn colId)
+            {
+                colId.HeaderText = "ID";
+                colId.Width = 40;
+            }
+            if (gridCategorias.Columns["nombre"] is DataGridViewColumn colNom)
+            {
+                colNom.HeaderText = "Nombre";
+                colNom.Width = 180;
+            }
+            if (gridCategorias.Columns["porcentaje_ganancia"] is DataGridViewColumn colPg)
+            {
+                colPg.HeaderText = "% Ganancia";
+                colPg.Width = 90;
+            }
+            if (gridCategorias.Columns["activo"] is DataGridViewColumn colAct)
+            {
+                colAct.HeaderText = "Activo";
+                colAct.Width = 55;
             }
         }
 
@@ -113,7 +134,12 @@ namespace Cantina_Padel
                 else
                     EditarCategoria(conn, porcentaje);
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("Ya existe una categoría con ese nombre.",
+                    "Categoría duplicada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -126,11 +152,11 @@ namespace Cantina_Padel
             using (MySqlCommand check = new MySqlCommand(checkQuery, conn))
             {
                 check.Parameters.AddWithValue("@n", txtNombre.Text.Trim());
-                long count = (long)check.ExecuteScalar()!;
+                long count = Convert.ToInt64(check.ExecuteScalar());
                 if (count > 0)
                 {
                     MessageBox.Show("Ya existe una categoría con ese nombre.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        "Categoría ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }
@@ -157,24 +183,21 @@ namespace Cantina_Padel
             {
                 check.Parameters.AddWithValue("@n", txtNombre.Text.Trim());
                 check.Parameters.AddWithValue("@id", id);
-                long count = (long)check.ExecuteScalar()!;
+                long count = Convert.ToInt64(check.ExecuteScalar());
                 if (count > 0)
                 {
                     MessageBox.Show("Ya existe otra categoría con ese nombre.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        "Categoría ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
             }
 
-            // Si se está desactivando, avisamos cuántos productos activos quedarían
-            // con una categoría no seleccionable (no se les quita la categoría, solo
-            // deja de aparecer en el combo de Productos para asignaciones nuevas).
             if (!chkActivo.Checked)
             {
                 string countProdQuery = "SELECT COUNT(*) FROM producto WHERE id_categoria = @id AND activo = 1";
                 using MySqlCommand cmdCount = new MySqlCommand(countProdQuery, conn);
                 cmdCount.Parameters.AddWithValue("@id", id);
-                long productosAfectados = (long)cmdCount.ExecuteScalar()!;
+                long productosAfectados = Convert.ToInt64(cmdCount.ExecuteScalar());
 
                 if (productosAfectados > 0)
                 {
@@ -225,7 +248,7 @@ namespace Cantina_Padel
                 using (MySqlCommand cmdCount = new MySqlCommand(countProdQuery, conn))
                 {
                     cmdCount.Parameters.AddWithValue("@id", id);
-                    long productosAfectados = (long)cmdCount.ExecuteScalar()!;
+                    long productosAfectados = Convert.ToInt64(cmdCount.ExecuteScalar());
 
                     string mensaje = productosAfectados > 0
                         ? $"¿Desactivar la categoría '{txtNombre.Text}'?\n" +
@@ -248,7 +271,7 @@ namespace Cantina_Padel
                 CargarCategorias();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -260,15 +283,21 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridCategorias_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridCategorias.Rows.Count) return;
             var row = gridCategorias.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado = Convert.ToInt32(row.Cells["id_categoria"].Value);
-            txtNombre.Text = row.Cells["nombre"].Value?.ToString() ?? "";
-            txtPorcentaje.Text = row.Cells["porcentaje_ganancia"].Value != null
-                ? Convert.ToDecimal(row.Cells["porcentaje_ganancia"].Value).ToString("0.##")
+            var idVal = gridCategorias.Columns.Contains("id_categoria") ? row.Cells["id_categoria"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
+
+            _idSeleccionado = Convert.ToInt32(idVal);
+            txtNombre.Text = gridCategorias.Columns.Contains("nombre") ? (row.Cells["nombre"]?.Value?.ToString() ?? "") : "";
+            var pgVal = gridCategorias.Columns.Contains("porcentaje_ganancia") ? row.Cells["porcentaje_ganancia"]?.Value : null;
+            txtPorcentaje.Text = pgVal != null && pgVal != DBNull.Value
+                ? Convert.ToDecimal(pgVal).ToString("0.##")
                 : "0";
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+            var actVal = gridCategorias.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = actVal != null && actVal != DBNull.Value && Convert.ToBoolean(actVal);
             Guardar_Boton.Text = "Guardar Cambios";
         }
 

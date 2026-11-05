@@ -4,20 +4,22 @@ namespace Cantina_Padel
 {
     public partial class FormGestionClientes : Form
     {
-        // Guarda el ID del cliente seleccionado en la grilla (null = alta nueva).
-        // No usamos un TextBox visible para esto, así no aparece ni en tiempo de
-        // ejecución ni en el lienzo de diseño de Visual Studio.
         private int? _idSeleccionado;
 
         public FormGestionClientes()
         {
             InitializeComponent();
-            cmbCondicionFiscal.SelectedIndex = 0;
+            this.BindingContext ??= new BindingContext();
+            gridClientes.AutoGenerateColumns = true;
+            gridClientes.BindingContext = this.BindingContext;
+            gridClientes.DataBindingComplete += (_, _) => FormatearColumnasClientes();
+            this.Load += (_, _) => FormatearColumnasClientes();
+            if (cmbCondicionFiscal.Items.Count > 0)
+                cmbCondicionFiscal.SelectedIndex = 0;
             ActualizarVisibilidadCamposFiscales();
             CargarClientes();
         }
 
-        // Permite solo letras (incluye acentos y ñ), espacios y teclas de control (backspace, etc.)
         private void SoloLetras_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -26,7 +28,6 @@ namespace Cantina_Padel
             }
         }
 
-        // Permite solo dígitos y teclas de control (backspace, etc.)
         private void SoloNumeros_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
@@ -66,39 +67,45 @@ namespace Cantina_Padel
                 System.Data.DataTable dt = new System.Data.DataTable();
                 da.Fill(dt);
 
-                gridClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+                this.BindingContext ??= new BindingContext();
+                gridClientes.AutoGenerateColumns = true;
+                gridClientes.BindingContext = this.BindingContext;
+                gridClientes.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                 gridClientes.DataSource = dt;
 
-                // Personalizar columnas
-                gridClientes.Columns["id_cliente"].HeaderText   = "ID";
-                gridClientes.Columns["nombre"].HeaderText        = "Nombre";
-                gridClientes.Columns["apellido"].HeaderText      = "Apellido";
-                gridClientes.Columns["telefono"].HeaderText      = "Teléfono";
-                gridClientes.Columns["dni"].HeaderText           = "DNI";
-                gridClientes.Columns["email"].HeaderText         = "Email";
-                gridClientes.Columns["direccion"].HeaderText     = "Dirección";
-                gridClientes.Columns["cuit"].HeaderText          = "CUIT";
-                gridClientes.Columns["razon_social"].HeaderText  = "Razón Social";
-                gridClientes.Columns["condicion_fiscal"].HeaderText = "Condición";
-                gridClientes.Columns["activo"].HeaderText        = "Activo";
-
-                gridClientes.Columns["id_cliente"].Width  = 40;
-                gridClientes.Columns["nombre"].Width       = 100;
-                gridClientes.Columns["apellido"].Width     = 100;
-                gridClientes.Columns["telefono"].Width     = 90;
-                gridClientes.Columns["dni"].Width          = 80;
-                gridClientes.Columns["email"].Width        = 140;
-                gridClientes.Columns["direccion"].Width    = 140;
-                gridClientes.Columns["cuit"].Width         = 90;
-                gridClientes.Columns["razon_social"].Width = 120;
-                gridClientes.Columns["condicion_fiscal"].Width = 110;
-                gridClientes.Columns["activo"].Width       = 55;
+                FormatearColumnasClientes();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al cargar clientes:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void FormatearColumnasClientes()
+        {
+            if (gridClientes == null || gridClientes.Columns.Count == 0) return;
+
+            void Configurar(string colName, string header, int width)
+            {
+                if (gridClientes.Columns[colName] is DataGridViewColumn col)
+                {
+                    col.HeaderText = header;
+                    col.Width = width;
+                }
+            }
+
+            Configurar("id_cliente", "ID", 40);
+            Configurar("nombre", "Nombre", 100);
+            Configurar("apellido", "Apellido", 100);
+            Configurar("telefono", "Teléfono", 90);
+            Configurar("dni", "DNI", 80);
+            Configurar("email", "Email", 140);
+            Configurar("direccion", "Dirección", 140);
+            Configurar("cuit", "CUIT", 90);
+            Configurar("razon_social", "Razón Social", 120);
+            Configurar("condicion_fiscal", "Condición", 110);
+            Configurar("activo", "Activo", 55);
         }
 
         // ─────────────────────────────────────────────
@@ -132,10 +139,15 @@ namespace Cantina_Padel
                 conn.Open();
                 using MySqlTransaction tx = conn.BeginTransaction();
 
-                if (esNuevo)
-                    CrearCliente(conn, tx);
-                else
-                    EditarCliente(conn, tx);
+                bool exito = esNuevo
+                    ? CrearCliente(conn, tx)
+                    : EditarCliente(conn, tx);
+
+                if (!exito)
+                {
+                    try { tx.Rollback(); } catch { }
+                    return;
+                }
 
                 tx.Commit();
                 MessageBox.Show("Operación realizada con éxito.",
@@ -143,50 +155,85 @@ namespace Cantina_Padel
                 CargarClientes();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (MySqlException ex) when (ex.Number == 1062)
+            {
+                MessageBox.Show("Ya existe un cliente o persona registrada con esos mismos datos (DNI, Email o CUIT duplicado).",
+                    "Datos duplicados", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar:\n" + ex.Message,
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void CrearCliente(MySqlConnection conn, MySqlTransaction tx)
+        private bool ValidarDuplicadosPersona(MySqlConnection conn, MySqlTransaction tx, int? idClienteActual)
         {
-            // Verificar DNI duplicado
-            string checkQuery = "SELECT COUNT(*) FROM persona WHERE dni = @d";
-            using (MySqlCommand check = new MySqlCommand(checkQuery, conn, tx))
+            string dni = txtDni.Text.Trim();
+            string email = txtEmail.Text.Trim();
+            string cuit = txtCuit.Text.Trim();
+            string filtroExcluir = idClienteActual.HasValue
+                ? " AND id_persona <> (SELECT id_persona FROM cliente WHERE id_cliente = @idCli LIMIT 1)"
+                : "";
+
+            // 1. Verificar DNI duplicado
+            string checkDni = "SELECT COUNT(*) FROM persona WHERE dni = @d" + filtroExcluir;
+            using (MySqlCommand cmdDni = new MySqlCommand(checkDni, conn, tx))
             {
-                check.Parameters.AddWithValue("@d", txtDni.Text.Trim());
-                long count = (long)check.ExecuteScalar()!;
+                cmdDni.Parameters.AddWithValue("@d", dni);
+                if (idClienteActual.HasValue) cmdDni.Parameters.AddWithValue("@idCli", idClienteActual.Value);
+                long count = Convert.ToInt64(cmdDni.ExecuteScalar());
                 if (count > 0)
                 {
-                    MessageBox.Show("Ya existe una persona registrada con ese DNI.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
+                    MessageBox.Show($"Ya existe un registro con el DNI '{dni}'.",
+                        "Cliente ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
                 }
             }
 
-            // El email es único en la base; si viene vacío, se guarda como NULL
-            // para no chocar con otro cliente que también lo deje vacío.
+            // 2. Verificar Email duplicado (si se ingresó)
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                string checkEmail = "SELECT COUNT(*) FROM persona WHERE email = @e" + filtroExcluir;
+                using MySqlCommand cmdEmail = new MySqlCommand(checkEmail, conn, tx);
+                cmdEmail.Parameters.AddWithValue("@e", email);
+                if (idClienteActual.HasValue) cmdEmail.Parameters.AddWithValue("@idCli", idClienteActual.Value);
+                long countE = Convert.ToInt64(cmdEmail.ExecuteScalar());
+                if (countE > 0)
+                {
+                    MessageBox.Show($"Ya existe un registro con el email '{email}'.",
+                        "Email ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            // 3. Verificar CUIT duplicado (si se ingresó)
+            if (!string.IsNullOrWhiteSpace(cuit))
+            {
+                string checkCuit = "SELECT COUNT(*) FROM persona WHERE cuit = @cu" + filtroExcluir;
+                using MySqlCommand cmdCuit = new MySqlCommand(checkCuit, conn, tx);
+                cmdCuit.Parameters.AddWithValue("@cu", cuit);
+                if (idClienteActual.HasValue) cmdCuit.Parameters.AddWithValue("@idCli", idClienteActual.Value);
+                long countC = Convert.ToInt64(cmdCuit.ExecuteScalar());
+                if (countC > 0)
+                {
+                    MessageBox.Show($"Ya existe un registro con el CUIT '{cuit}'.",
+                        "CUIT ya existente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private bool CrearCliente(MySqlConnection conn, MySqlTransaction tx)
+        {
+            if (!ValidarDuplicadosPersona(conn, tx, null))
+                return false;
+
             object emailValue = string.IsNullOrWhiteSpace(txtEmail.Text)
                 ? DBNull.Value
                 : txtEmail.Text.Trim();
-
-            if (emailValue is string email)
-            {
-                string checkEmail = "SELECT COUNT(*) FROM persona WHERE email = @e";
-                using MySqlCommand checkE = new MySqlCommand(checkEmail, conn, tx);
-                checkE.Parameters.AddWithValue("@e", email);
-                long countE = (long)checkE.ExecuteScalar()!;
-                if (countE > 0)
-                {
-                    MessageBox.Show("Ya existe una persona registrada con ese email.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
-                }
-            }
 
             string insertPersona = @"
                 INSERT INTO persona (nombre, apellido, telefono, dni, email, direccion, cuit, razon_social, condicion_fiscal, activo)
@@ -215,34 +262,19 @@ namespace Cantina_Padel
             using MySqlCommand cmdCliente = new MySqlCommand(insertCliente, conn, tx);
             cmdCliente.Parameters.AddWithValue("@idp", idPersona);
             cmdCliente.ExecuteNonQuery();
+            return true;
         }
 
-        private void EditarCliente(MySqlConnection conn, MySqlTransaction tx)
+        private bool EditarCliente(MySqlConnection conn, MySqlTransaction tx)
         {
             int id = _idSeleccionado!.Value;
+
+            if (!ValidarDuplicadosPersona(conn, tx, id))
+                return false;
 
             object emailValue = string.IsNullOrWhiteSpace(txtEmail.Text)
                 ? DBNull.Value
                 : txtEmail.Text.Trim();
-
-            if (emailValue is string email)
-            {
-                string checkEmail = @"
-                    SELECT COUNT(*) FROM persona p
-                    JOIN cliente c ON c.id_persona = p.id_persona
-                    WHERE p.email = @e AND c.id_cliente <> @id";
-                using MySqlCommand checkE = new MySqlCommand(checkEmail, conn, tx);
-                checkE.Parameters.AddWithValue("@e", email);
-                checkE.Parameters.AddWithValue("@id", id);
-                long countE = (long)checkE.ExecuteScalar()!;
-                if (countE > 0)
-                {
-                    MessageBox.Show("Ya existe otra persona registrada con ese email.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    tx.Rollback();
-                    return;
-                }
-            }
 
             string updatePersona = @"
                 UPDATE persona p
@@ -272,6 +304,7 @@ namespace Cantina_Padel
             cmd.Parameters.AddWithValue("@a",   chkActivo.Checked ? 1 : 0);
             cmd.Parameters.AddWithValue("@id",  id);
             cmd.ExecuteNonQuery();
+            return true;
         }
 
         // ─────────────────────────────────────────────
@@ -311,7 +344,7 @@ namespace Cantina_Padel
                 CargarClientes();
                 LimpiarFormulario();
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
                 MessageBox.Show("Error:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -323,29 +356,36 @@ namespace Cantina_Padel
         // ─────────────────────────────────────────────
         private void gridClientes_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex < 0) return;
+            if (e.RowIndex < 0 || e.RowIndex >= gridClientes.Rows.Count) return;
             var row = gridClientes.Rows[e.RowIndex];
+            if (row.IsNewRow) return;
 
-            _idSeleccionado    = Convert.ToInt32(row.Cells["id_cliente"].Value);
-            txtNombre.Text     = row.Cells["nombre"].Value?.ToString() ?? "";
-            txtApellido.Text   = row.Cells["apellido"].Value?.ToString() ?? "";
-            txtTelefono.Text   = row.Cells["telefono"].Value?.ToString() ?? "";
-            txtDni.Text        = row.Cells["dni"].Value?.ToString() ?? "";
-            txtEmail.Text      = row.Cells["email"].Value?.ToString() ?? "";
-            txtDireccion.Text  = row.Cells["direccion"].Value?.ToString() ?? "";
-            txtCuit.Text       = row.Cells["cuit"].Value?.ToString() ?? "";
-            txtRazonSocial.Text = row.Cells["razon_social"].Value?.ToString() ?? "";
+            var idVal = gridClientes.Columns.Contains("id_cliente") ? row.Cells["id_cliente"]?.Value : (row.Cells.Count > 0 ? row.Cells[0]?.Value : null);
+            if (idVal == null || idVal == DBNull.Value) return;
 
-            string cond = row.Cells["condicion_fiscal"].Value?.ToString() ?? "";
+            string LeerCelda(string col) => gridClientes.Columns.Contains(col) ? (row.Cells[col]?.Value?.ToString() ?? "") : "";
+
+            _idSeleccionado    = Convert.ToInt32(idVal);
+            txtNombre.Text     = LeerCelda("nombre");
+            txtApellido.Text   = LeerCelda("apellido");
+            txtTelefono.Text   = LeerCelda("telefono");
+            txtDni.Text        = LeerCelda("dni");
+            txtEmail.Text      = LeerCelda("email");
+            txtDireccion.Text  = LeerCelda("direccion");
+            txtCuit.Text       = LeerCelda("cuit");
+            txtRazonSocial.Text = LeerCelda("razon_social");
+
+            string cond = LeerCelda("condicion_fiscal");
             if (string.IsNullOrWhiteSpace(cond))
             {
-                string rs = row.Cells["razon_social"].Value?.ToString() ?? "";
+                string rs = LeerCelda("razon_social");
                 cond = !string.IsNullOrWhiteSpace(rs) ? "Responsable Inscripto" : "Consumidor Final";
             }
             cmbCondicionFiscal.SelectedItem = cond;
             ActualizarVisibilidadCamposFiscales();
 
-            chkActivo.Checked = Convert.ToBoolean(row.Cells["activo"].Value);
+            var actVal = gridClientes.Columns.Contains("activo") ? row.Cells["activo"]?.Value : null;
+            chkActivo.Checked = actVal != null && actVal != DBNull.Value && Convert.ToBoolean(actVal);
             Guardar_Boton.Text = "Guardar Cambios";
         }
 
@@ -377,7 +417,7 @@ namespace Cantina_Padel
             txtDireccion.Text    = "";
             txtCuit.Text         = "";
             txtRazonSocial.Text  = "";
-            cmbCondicionFiscal.SelectedIndex = 0;
+            if (cmbCondicionFiscal.Items.Count > 0) cmbCondicionFiscal.SelectedIndex = 0;
             ActualizarVisibilidadCamposFiscales();
             chkActivo.Checked    = true;
             Guardar_Boton.Text   = "Crear Cliente";

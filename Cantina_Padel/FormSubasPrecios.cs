@@ -21,8 +21,9 @@ namespace Cantina_Padel
         {
             _idUsuario = idUsuario > 0 ? idUsuario : 1;
             InitializeComponent();
-            ConfigurarEventos();
+            this.BindingContext ??= new BindingContext();
             CargarCombos();
+            ConfigurarEventos();
             this.Shown += (s, e) => txtBuscador.Focus();
         }
 
@@ -55,11 +56,6 @@ namespace Cantina_Padel
             AplicarFiltroBusqueda(permitirAutoCambioCriterio: true);
         }
 
-        /// <summary>
-        /// Filtra por nombre (o código en el caso de productos) el criterio seleccionado
-        /// (proveedor, categoría, marca, producto o unidad). Si el criterio activo no tiene
-        /// coincidencias pero otro sí, cambia automáticamente al criterio con coincidencias.
-        /// </summary>
         private void AplicarFiltroBusqueda(bool permitirAutoCambioCriterio)
         {
             string query = txtBuscador.Text.Trim();
@@ -71,14 +67,12 @@ namespace Cantina_Padel
                     ? $"nombre LIKE '%{safeQuery}%' OR codigo LIKE '%{safeQuery}%'"
                     : $"nombre LIKE '%{safeQuery}%'");
 
-            // Primero limpiar filtros en los criterios no seleccionados para que no queden vacíos visualmente
             if (!rbProveedor.Checked && _dvProveedor != null) _dvProveedor.RowFilter = "";
             if (!rbCategoria.Checked && _dvCategoria != null) _dvCategoria.RowFilter = "";
             if (!rbMarca.Checked && _dvMarca != null)         _dvMarca.RowFilter = "";
             if (!rbProducto.Checked && _dvProducto != null)   _dvProducto.RowFilter = "";
             if (!rbUnidad.Checked && _dvUnidad != null)       _dvUnidad.RowFilter = "";
 
-            // Aplicar filtro al criterio actualmente activo
             DataView? dvActivo = ObtenerDataViewActivo();
             ComboBox cmbActivo = ObtenerComboActivo();
 
@@ -92,8 +86,6 @@ namespace Cantina_Padel
                 }
             }
 
-            // Si el usuario escribió un nombre y en el criterio actual no hay coincidencias,
-            // buscar en Producto, Categoría, Marca, Proveedor o Unidad y activar el que coincida
             if (permitirAutoCambioCriterio && !string.IsNullOrWhiteSpace(safeQuery))
             {
                 if (IntentarActivarCriterioConCoincidencia(_dvProducto, filtroProducto, rbProducto, cmbProducto)) return;
@@ -112,7 +104,6 @@ namespace Cantina_Padel
             if (dv.Count > 0)
             {
                 _cambiandoCriterio = true;
-                // Limpiar el que estaba antes
                 DataView? anterior = ObtenerDataViewActivo();
                 if (anterior != null && anterior != dv) anterior.RowFilter = "";
 
@@ -153,21 +144,16 @@ namespace Cantina_Padel
                 using MySqlConnection conn = Conexion.ObtenerConexion();
                 conn.Open();
 
-                // 1. Proveedores
                 string qProv = @"SELECT prov.id_proveedor, COALESCE(NULLIF(p.razon_social, ''), CONCAT(p.nombre, ' ', p.apellido)) AS nombre
                                  FROM proveedor prov JOIN persona p ON p.id_persona = prov.id_persona WHERE p.activo = 1 ORDER BY nombre";
                 _dvProveedor = LlenarCombo(cmbProveedor, qProv, conn, "id_proveedor", "nombre");
 
-                // 2. Categorías
                 _dvCategoria = LlenarCombo(cmbCategoria, "SELECT id_categoria, nombre FROM categoria WHERE activo = 1 ORDER BY nombre", conn, "id_categoria", "nombre");
 
-                // 3. Marcas
                 _dvMarca = LlenarCombo(cmbMarca, "SELECT id_marca, nombre FROM marca WHERE activo = 1 ORDER BY nombre", conn, "id_marca", "nombre");
 
-                // 4. Productos (incluye codigo para búsqueda rápida)
                 _dvProducto = LlenarCombo(cmbProducto, "SELECT id_producto, nombre, codigo FROM producto WHERE activo = 1 AND id_producto NOT IN (998, 999) ORDER BY nombre", conn, "id_producto", "nombre");
 
-                // 5. Unidades: solo si la BD tiene la tabla 'unidad' y la columna producto.id_unidad
                 if (SubasPrecios.SoportaUnidad())
                 {
                     try
@@ -201,9 +187,9 @@ namespace Cantina_Padel
             DataTable dt = new DataTable();
             da.Fill(dt);
             DataView dv = new DataView(dt);
-            cmb.DataSource = dv;
-            cmb.ValueMember = valueMember;
             cmb.DisplayMember = displayMember;
+            cmb.ValueMember = valueMember;
+            cmb.DataSource = dv;
             cmb.SelectedIndex = dv.Count > 0 ? 0 : -1;
             return dv;
         }
@@ -218,7 +204,6 @@ namespace Cantina_Padel
 
         private void btnAplicar_Click(object sender, EventArgs e)
         {
-            // Validar porcentaje
             string txtPct = txtPorcentaje.Text.Trim().Replace(',', '.');
             if (!decimal.TryParse(txtPct, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out decimal porcentaje) || porcentaje <= 0)
             {
@@ -227,7 +212,6 @@ namespace Cantina_Padel
                 return;
             }
 
-            // Determinar el criterio elegido
             string criterio;
             ComboBox cmbActivo;
             if (rbProveedor.Checked)      { criterio = "proveedor"; cmbActivo = cmbProveedor; }
@@ -236,12 +220,26 @@ namespace Cantina_Padel
             else if (rbProducto.Checked)  { criterio = "producto";  cmbActivo = cmbProducto; }
             else                          { criterio = "unidad";    cmbActivo = cmbUnidad; }
 
-            if (cmbActivo.SelectedValue == null)
+            if (cmbActivo.SelectedValue == null || cmbActivo.SelectedValue == DBNull.Value)
             {
                 MessageBox.Show("Debés seleccionar una opción válida del combo.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            int idSeleccionado = Convert.ToInt32(cmbActivo.SelectedValue);
+
+            int idSeleccionado;
+            if (cmbActivo.SelectedValue is DataRowView drv)
+            {
+                if (string.IsNullOrWhiteSpace(cmbActivo.ValueMember) || !drv.Row.Table.Columns.Contains(cmbActivo.ValueMember) || drv[cmbActivo.ValueMember] == DBNull.Value)
+                {
+                    MessageBox.Show("Debés seleccionar una opción válida del combo.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                idSeleccionado = Convert.ToInt32(drv[cmbActivo.ValueMember]);
+            }
+            else
+            {
+                idSeleccionado = Convert.ToInt32(cmbActivo.SelectedValue);
+            }
 
             DialogResult conf = MessageBox.Show(
                 $"¿Aplicar un aumento del {porcentaje}% a los productos del {criterio} \"{cmbActivo.Text}\"?\n\n" +

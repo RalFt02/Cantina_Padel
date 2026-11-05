@@ -9,6 +9,12 @@ namespace Cantina_Padel
         public FormReservasFijas()
         {
             InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+            gridFijas.AutoGenerateColumns = true;
+            gridFijas.BindingContext = this.BindingContext;
+            gridFijas.DataBindingComplete += (_, _) => ConfigurarGridReservasFijas();
+            this.Load += (_, _) => ConfigurarGridReservasFijas();
+
             dtpDesde.MinDate = DateTime.Today;
             dtpHasta.MinDate = DateTime.Today.AddDays(7);
             dtpHasta.Enabled = false;
@@ -20,25 +26,11 @@ namespace Cantina_Padel
             CargarReservasFijas();
         }
 
-        /// <summary>
-        /// Calcula la fecha final de la serie.
-        /// Mensual = 30 días desde la fecha de inicio.
-        /// Anual = 1 año desde la fecha de inicio.
-        /// </summary>
-        /// <summary>
-        /// Obtiene la fecha real de inicio de la serie aplicando una semana de anticipación.
-        /// Ejemplo: si se solicita el 22/09/2026, la primera reserva será el 29/09/2026.
-        /// </summary>
         private DateTime ObtenerFechaInicioReserva()
         {
             return dtpDesde.Value.Date.AddDays(7);
         }
 
-        /// <summary>
-        /// Calcula la fecha final de la serie a partir de la fecha real de inicio.
-        /// Mensual = 30 días desde el inicio efectivo.
-        /// Anual = 1 año desde el inicio efectivo.
-        /// </summary>
         private void AjustarFechaHasta()
         {
             DateTime inicioReserva = ObtenerFechaInicioReserva();
@@ -82,7 +74,6 @@ namespace Cantina_Padel
             return false;
         }
 
-        // Reservas activas de la cancha en el período de la serie (se usan para ocultar turnos ocupados).
         private List<Ocupacion> CargarOcupaciones(int idCancha, DateTime desde, DateTime hasta)
         {
             var lista = new List<Ocupacion>();
@@ -105,8 +96,6 @@ namespace Cantina_Padel
             return lista;
         }
 
-        // Arma el desplegable con los turnos libres en TODAS las fechas de la serie (cancha + día + período).
-        // Si todavía no hay cancha o día elegidos, muestra todos los turnos.
         private void RefrescarTurnosDisponibles()
         {
             Turno? previo = cmbHorario.SelectedItem is Turno t ? t : null;
@@ -138,7 +127,7 @@ namespace Cantina_Padel
                                      FROM cliente c INNER JOIN persona p ON p.id_persona=c.id_persona
                                      WHERE p.activo=1 ORDER BY p.apellido,p.nombre";
                 var dt = new DataTable(); using var da = new MySqlDataAdapter(sql, conn); da.Fill(dt);
-                cmbCliente.DataSource = dt; cmbCliente.DisplayMember = "cliente"; cmbCliente.ValueMember = "id_cliente";
+                cmbCliente.DisplayMember = "cliente"; cmbCliente.ValueMember = "id_cliente"; cmbCliente.DataSource = dt;
             }
             catch (MySqlException ex) { MessageBox.Show("Error al cargar clientes:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
@@ -150,7 +139,7 @@ namespace Cantina_Padel
                 using var conn = Conexion.ObtenerConexion(); conn.Open();
                 const string sql = "SELECT id_cancha,nombre FROM cancha WHERE activo=1 AND estado='Activo' ORDER BY nombre";
                 var dt = new DataTable(); using var da = new MySqlDataAdapter(sql, conn); da.Fill(dt);
-                cmbCancha.DataSource = dt; cmbCancha.DisplayMember = "nombre"; cmbCancha.ValueMember = "id_cancha";
+                cmbCancha.DisplayMember = "nombre"; cmbCancha.ValueMember = "id_cancha"; cmbCancha.DataSource = dt;
             }
             catch (MySqlException ex) { MessageBox.Show("Error al cargar las canchas:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
@@ -159,19 +148,23 @@ namespace Cantina_Padel
         {
             id = 0;
             if (combo.SelectedValue == null || combo.SelectedValue == DBNull.Value) return false;
-            try { id = Convert.ToInt32(combo.SelectedValue, CultureInfo.InvariantCulture); return true; }
-            catch (InvalidCastException)
+            try
             {
-                if (combo.SelectedItem is DataRowView row && row.Row.Table.Columns.Contains(combo.ValueMember))
-                { id = Convert.ToInt32(row[combo.ValueMember], CultureInfo.InvariantCulture); return true; }
-                return false;
+                if (combo.SelectedValue is DataRowView row)
+                {
+                    if (!string.IsNullOrWhiteSpace(combo.ValueMember) && row.Row.Table.Columns.Contains(combo.ValueMember) && row[combo.ValueMember] != DBNull.Value)
+                    {
+                        id = Convert.ToInt32(row[combo.ValueMember], CultureInfo.InvariantCulture);
+                        return true;
+                    }
+                    return false;
+                }
+                id = Convert.ToInt32(combo.SelectedValue, CultureInfo.InvariantCulture);
+                return true;
             }
             catch { return false; }
         }
 
-        /// <summary>
-        /// Carga las reservas fijas ordenadas por fecha, hora y cancha.
-        /// </summary>
         private void CargarReservasFijas()
         {
             try
@@ -193,6 +186,9 @@ namespace Cantina_Padel
                 var dt = new DataTable();
                 using var da = new MySqlDataAdapter(sql, conn);
                 da.Fill(dt);
+                this.BindingContext ??= new BindingContext();
+                gridFijas.AutoGenerateColumns = true;
+                gridFijas.BindingContext = this.BindingContext;
                 gridFijas.DataSource = dt;
                 ConfigurarGridReservasFijas();
             }
@@ -204,32 +200,35 @@ namespace Cantina_Padel
             RefrescarTurnosDisponibles();
         }
 
-        /// <summary>
-        /// Configura las columnas visibles y el formato del grid de reservas fijas.
-        /// </summary>
         private void ConfigurarGridReservasFijas()
         {
-            if (gridFijas.Columns.Count == 0) return;
+            if (gridFijas == null || gridFijas.Columns.Count == 0) return;
 
-            gridFijas.Columns["id_reserva"].Visible = false;
-            gridFijas.Columns["id_cliente"].Visible = false;
-            gridFijas.Columns["id_cancha"].Visible = false;
-            gridFijas.Columns["reserva_fija"].HeaderText = "Serie desde";
-            gridFijas.Columns["fecha"].HeaderText = "Fecha";
-            gridFijas.Columns["dia_semana"].HeaderText = "Día";
-            gridFijas.Columns["estado"].HeaderText = "Estado";
-            gridFijas.Columns["cancha"].HeaderText = "Cancha";
-            gridFijas.Columns["cliente"].HeaderText = "Cliente";
-            gridFijas.Columns["hora_inicio"].HeaderText = "Inicio";
-            gridFijas.Columns["hora_fin"].HeaderText = "Fin";
-            gridFijas.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy";
-            gridFijas.Columns["hora_inicio"].DefaultCellStyle.Format = @"hh\:mm";
-            gridFijas.Columns["hora_fin"].DefaultCellStyle.Format = @"hh\:mm";
+            if (gridFijas.Columns["id_reserva"] is DataGridViewColumn colIdRes) colIdRes.Visible = false;
+            if (gridFijas.Columns["id_cliente"] is DataGridViewColumn colIdCli) colIdCli.Visible = false;
+            if (gridFijas.Columns["id_cancha"] is DataGridViewColumn colIdCan) colIdCan.Visible = false;
+            if (gridFijas.Columns["reserva_fija"] is DataGridViewColumn colRf) colRf.HeaderText = "Serie desde";
+            if (gridFijas.Columns["fecha"] is DataGridViewColumn colFec)
+            {
+                colFec.HeaderText = "Fecha";
+                colFec.DefaultCellStyle.Format = "dd/MM/yyyy";
+            }
+            if (gridFijas.Columns["dia_semana"] is DataGridViewColumn colDia) colDia.HeaderText = "Día";
+            if (gridFijas.Columns["estado"] is DataGridViewColumn colEst) colEst.HeaderText = "Estado";
+            if (gridFijas.Columns["cancha"] is DataGridViewColumn colCan) colCan.HeaderText = "Cancha";
+            if (gridFijas.Columns["cliente"] is DataGridViewColumn colCli) colCli.HeaderText = "Cliente";
+            if (gridFijas.Columns["hora_inicio"] is DataGridViewColumn colIni)
+            {
+                colIni.HeaderText = "Inicio";
+                colIni.DefaultCellStyle.Format = @"hh\:mm";
+            }
+            if (gridFijas.Columns["hora_fin"] is DataGridViewColumn colFin)
+            {
+                colFin.HeaderText = "Fin";
+                colFin.DefaultCellStyle.Format = @"hh\:mm";
+            }
         }
 
-        /// <summary>
-        /// Genera todas las fechas que coinciden con el día de la semana elegido.
-        /// </summary>
         private IEnumerable<DateTime> GenerarFechas(DateTime desde, DateTime hasta, DayOfWeek dia, string periodicidad)
         {
             DateTime d = desde.Date;
@@ -274,24 +273,18 @@ namespace Cantina_Padel
         {
             string dia=NombreDia(fecha);
             const string q="SELECT id_horario FROM horario WHERE id_cancha=@c AND dia_semana=@d AND hora_inicio=@i AND hora_fin=@f LIMIT 1";
-            using(var cmd=new MySqlCommand(q,conn,tx)){cmd.Parameters.AddWithValue("@c",idCancha);cmd.Parameters.AddWithValue("@d",dia);cmd.Parameters.AddWithValue("@i",inicio);cmd.Parameters.AddWithValue("@f",fin);var x=cmd.ExecuteScalar();if(x!=null)return Convert.ToInt32(x,CultureInfo.InvariantCulture);}
+            using(var cmd=new MySqlCommand(q,conn,tx)){cmd.Parameters.AddWithValue("@c",idCancha);cmd.Parameters.AddWithValue("@d",dia);cmd.Parameters.AddWithValue("@i",inicio);cmd.Parameters.AddWithValue("@f",fin);var x=cmd.ExecuteScalar();if(x!=null&&x!=DBNull.Value)return Convert.ToInt32(x,CultureInfo.InvariantCulture);}
             const string ins="INSERT INTO horario(hora_inicio,hora_fin,id_cancha,dia_semana) VALUES(@i,@f,@c,@d); SELECT LAST_INSERT_ID();";
             using var ic=new MySqlCommand(ins,conn,tx);ic.Parameters.AddWithValue("@i",inicio);ic.Parameters.AddWithValue("@f",fin);ic.Parameters.AddWithValue("@c",idCancha);ic.Parameters.AddWithValue("@d",dia);return Convert.ToInt32(ic.ExecuteScalar(),CultureInfo.InvariantCulture);
         }
 
         private static string NombreDia(DateTime d)=>d.DayOfWeek switch{DayOfWeek.Monday=>"Lunes",DayOfWeek.Tuesday=>"Martes",DayOfWeek.Wednesday=>"Miércoles",DayOfWeek.Thursday=>"Jueves",DayOfWeek.Friday=>"Viernes",DayOfWeek.Saturday=>"Sábado",_=>"Domingo"};
 
-        /// <summary>
-        /// Calcula el inicio efectivo de una reserva fija a partir de la fecha de solicitud.
-        /// </summary>
         private DateTime CalcularFechaInicioReserva(DateTime fechaSolicitud)
         {
             return fechaSolicitud.Date.AddDays(7);
         }
 
-        /// <summary>
-        /// Calcula el final de la serie según la periodicidad.
-        /// </summary>
         private DateTime CalcularFechaFinReserva(DateTime inicioReserva, string periodicidad)
         {
             return periodicidad == "Mensual"
@@ -299,10 +292,6 @@ namespace Cantina_Padel
                 : inicioReserva.Date.AddYears(1);
         }
 
-        /// <summary>
-        /// Valida que la fecha de solicitud no sea anterior a hoy.
-        /// La reserva efectiva se genera una semana después.
-        /// </summary>
         private bool ValidarAnticipacion(DateTime fechaSolicitud, out string mensajeError)
         {
             mensajeError = string.Empty;
@@ -372,7 +361,7 @@ namespace Cantina_Padel
                     cmd.Parameters.AddWithValue("@cliente", idCliente);
                     cmd.Parameters.AddWithValue("@cancha", idCancha);
                     cmd.Parameters.AddWithValue("@horario", idHorario);
-                    cmd.Parameters.AddWithValue("@usuario", 1);
+                    cmd.Parameters.AddWithValue("@usuario", SesionActual.HayUsuario ? SesionActual.IdUsuario : 1);
                     cmd.ExecuteNonQuery();
                 }
 
@@ -386,6 +375,7 @@ namespace Cantina_Padel
                 return false;
             }
         }
+
         private void CrearFija_Boton_Click(object sender, EventArgs e)
         {
             if (!TryObtenerIdCombo(cmbCliente, out int idCliente) || !TryObtenerIdCombo(cmbCancha, out int idCancha) || cmbDia.SelectedItem == null)
@@ -419,15 +409,15 @@ namespace Cantina_Padel
             {
                 DataGridViewRow fila = gridFijas.CurrentRow;
 
-                if (fila.Cells["reserva_fija"].Value == null || fila.Cells["reserva_fija"].Value == DBNull.Value)
+                if (!gridFijas.Columns.Contains("reserva_fija") || fila.Cells["reserva_fija"]?.Value == null || fila.Cells["reserva_fija"].Value == DBNull.Value)
                 {
                     MessageBox.Show("La fila seleccionada no pertenece a una reserva fija.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                DateTime fechaSeleccionada = Convert.ToDateTime(fila.Cells["fecha"].Value).Date;
-                DateTime serie = Convert.ToDateTime(fila.Cells["reserva_fija"].Value).Date;
-                string estado = Convert.ToString(fila.Cells["estado"].Value) ?? string.Empty;
+                DateTime fechaSeleccionada = Convert.ToDateTime(fila.Cells["fecha"]?.Value).Date;
+                DateTime serie = Convert.ToDateTime(fila.Cells["reserva_fija"]?.Value).Date;
+                string estado = Convert.ToString(fila.Cells["estado"]?.Value) ?? string.Empty;
 
                 if (fechaSeleccionada < DateTime.Today)
                 {
@@ -509,7 +499,7 @@ namespace Cantina_Padel
             try
             {
                 DataGridViewRow fila = gridFijas.CurrentRow;
-                string estado = Convert.ToString(fila.Cells["estado"].Value) ?? string.Empty;
+                string estado = Convert.ToString(fila.Cells["estado"]?.Value) ?? string.Empty;
 
                 if (estado != "Cancelada")
                 {
@@ -517,11 +507,11 @@ namespace Cantina_Padel
                     return;
                 }
 
-                int cliente = Convert.ToInt32(fila.Cells["id_cliente"].Value);
-                int cancha = Convert.ToInt32(fila.Cells["id_cancha"].Value);
-                DateTime fecha = Convert.ToDateTime(fila.Cells["fecha"].Value).Date;
-                TimeSpan inicio = (TimeSpan)fila.Cells["hora_inicio"].Value;
-                TimeSpan fin = (TimeSpan)fila.Cells["hora_fin"].Value;
+                int cliente = Convert.ToInt32(fila.Cells["id_cliente"]?.Value);
+                int cancha = Convert.ToInt32(fila.Cells["id_cancha"]?.Value);
+                DateTime fecha = Convert.ToDateTime(fila.Cells["fecha"]?.Value).Date;
+                TimeSpan inicio = (TimeSpan)fila.Cells["hora_inicio"]!.Value!;
+                TimeSpan fin = (TimeSpan)fila.Cells["hora_fin"]!.Value!;
 
                 if (fecha < DateTime.Today)
                 {

@@ -18,6 +18,10 @@ namespace Cantina_Padel
         {
             _idUsuario = idUsuario > 0 ? idUsuario : 1;
             int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(_idUsuario);
+
+            InitializeComponent();
+            this.BindingContext ??= new BindingContext();
+
             if (!idSesion.HasValue)
             {
                 MessageBox.Show("Debe abrir una caja para poder operar", "Caja requerida",
@@ -26,26 +30,30 @@ namespace Cantina_Padel
                 return;
             }
 
-            InitializeComponent();
             _idClienteSeleccionado = idClienteInicial;
 
             // El botón de impresión manual se quita de Cuenta Corriente (se mantiene el desplegable de comprobante)
             btnImprimir.Visible = false;
 
             ConfigurarGrilla(gridMovimientos);
+            gridMovimientos.DataBindingComplete += (_, _) => FormatearColumnasMovimientos();
+            this.Load += (_, _) => FormatearColumnasMovimientos();
             CargarMediosDePago();
             CargarComprobantes();
             CargarClientes();
 
             if (_idClienteSeleccionado.HasValue)
             {
-                cmbCliente.SelectedValue = _idClienteSeleccionado.Value;
+                try { cmbCliente.SelectedValue = _idClienteSeleccionado.Value; } catch { }
             }
         }
 
         private void ConfigurarGrilla(DataGridView grid)
         {
-            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            this.BindingContext ??= new BindingContext();
+            grid.AutoGenerateColumns = true;
+            grid.BindingContext = this.BindingContext;
+            grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             grid.EnableHeadersVisualStyles = false;
             grid.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(51, 65, 85);
             grid.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(163, 230, 53);
@@ -174,10 +182,19 @@ namespace Cantina_Padel
 
         private void CargarEstadoCuenta()
         {
-            if (cmbCliente.SelectedValue == null || cmbCliente.SelectedValue is DataRowView)
+            if (cmbCliente.SelectedValue == null || cmbCliente.SelectedValue == DBNull.Value)
                 return;
 
-            int idCliente = Convert.ToInt32(cmbCliente.SelectedValue);
+            int idCliente;
+            if (cmbCliente.SelectedValue is DataRowView drv)
+            {
+                if (!drv.Row.Table.Columns.Contains("id_cliente") || drv["id_cliente"] == DBNull.Value) return;
+                idCliente = Convert.ToInt32(drv["id_cliente"]);
+            }
+            else
+            {
+                idCliente = Convert.ToInt32(cmbCliente.SelectedValue);
+            }
             _idClienteSeleccionado = idCliente;
 
             try
@@ -200,35 +217,12 @@ namespace Cantina_Padel
 
                 // Cargar cargos pendientes ordenados DE MENOR A MAYOR COSTO
                 DataTable dtCargos = GestorVentas.ObtenerCargosPendientes(idCliente);
+                this.BindingContext ??= new BindingContext();
+                gridMovimientos.AutoGenerateColumns = true;
+                gridMovimientos.BindingContext = this.BindingContext;
                 gridMovimientos.DataSource = dtCargos;
 
-                if (gridMovimientos.Columns.Contains("id_movimiento_ccc"))
-                {
-                    gridMovimientos.Columns["id_movimiento_ccc"].HeaderText = "ID";
-                    gridMovimientos.Columns["id_movimiento_ccc"].Width = 45;
-                }
-                if (gridMovimientos.Columns.Contains("fecha"))
-                {
-                    gridMovimientos.Columns["fecha"].HeaderText = "Fecha";
-                    gridMovimientos.Columns["fecha"].Width = 95;
-                    gridMovimientos.Columns["fecha"].DefaultCellStyle.Format = "dd/MM/yyyy";
-                }
-                if (gridMovimientos.Columns.Contains("descripcion"))
-                {
-                    gridMovimientos.Columns["descripcion"].HeaderText = "Producto / Detalle";
-                    gridMovimientos.Columns["descripcion"].Width = 240;
-                }
-                if (gridMovimientos.Columns.Contains("importe"))
-                {
-                    gridMovimientos.Columns["importe"].HeaderText = "Precio ($)";
-                    gridMovimientos.Columns["importe"].Width = 90;
-                    gridMovimientos.Columns["importe"].DefaultCellStyle.Format = "N2";
-                }
-                if (gridMovimientos.Columns.Contains("estado"))
-                {
-                    gridMovimientos.Columns["estado"].HeaderText = "Estado";
-                    gridMovimientos.Columns["estado"].Width = 70;
-                }
+                FormatearColumnasMovimientos();
 
                 txtMonto.Text = saldoNeto > 0 ? saldoNeto.ToString("0.00", CultureInfo.InvariantCulture) : "0.00";
             }
@@ -236,6 +230,39 @@ namespace Cantina_Padel
             {
                 MessageBox.Show("Error al consultar cuenta corriente:\n" + ex.Message, "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void FormatearColumnasMovimientos()
+        {
+            if (gridMovimientos == null || gridMovimientos.Columns.Count == 0) return;
+
+            if (gridMovimientos.Columns["id_movimiento_ccc"] is DataGridViewColumn colId)
+            {
+                colId.HeaderText = "ID";
+                colId.Width = 45;
+            }
+            if (gridMovimientos.Columns["fecha"] is DataGridViewColumn colFec)
+            {
+                colFec.HeaderText = "Fecha";
+                colFec.Width = 95;
+                colFec.DefaultCellStyle.Format = "dd/MM/yyyy";
+            }
+            if (gridMovimientos.Columns["descripcion"] is DataGridViewColumn colDesc)
+            {
+                colDesc.HeaderText = "Producto / Detalle";
+                colDesc.Width = 240;
+            }
+            if (gridMovimientos.Columns["importe"] is DataGridViewColumn colImp)
+            {
+                colImp.HeaderText = "Precio ($)";
+                colImp.Width = 90;
+                colImp.DefaultCellStyle.Format = "N2";
+            }
+            if (gridMovimientos.Columns["estado"] is DataGridViewColumn colEst)
+            {
+                colEst.HeaderText = "Estado";
+                colEst.Width = 70;
             }
         }
 
@@ -292,7 +319,6 @@ namespace Cantina_Padel
 
             if (conf != DialogResult.Yes) return;
 
-            // Aviso consultando si desea factura o no; si acepta emite la factura correspondiente (A/B/C), si no emite Ticket
             DialogResult deseaFactura = MessageBox.Show(
                 $"¿Desea emitir factura ({facturaDisponible}) para este pago?\n\nSeleccione 'Sí' para emitir {facturaDisponible} o 'No' para emitir Ticket.",
                 "Comprobante de Pago",
