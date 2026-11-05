@@ -210,6 +210,7 @@ namespace Cantina_Padel
             Reportes_Boton.TabIndex = 12;
             Reportes_Boton.Text = "Reportes";
             Reportes_Boton.UseVisualStyleBackColor = false;
+            Reportes_Boton.Click += Reportes_Boton_Click;
             // 
             // Volver_Menu
             // 

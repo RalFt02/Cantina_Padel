@@ -75,6 +75,12 @@ namespace Cantina_Padel
             formCompras.ShowDialog(this);
         }
 
+        private void Reportes_Boton_Click(object sender, EventArgs e)
+        {
+            FormReportesCompras formReportes = new FormReportesCompras();
+            formReportes.ShowDialog(this);
+        }
+
         private void Ventas_Boton_Click(object sender, EventArgs e)
         {
             int? idSesion = GestorVentas.ObtenerIdSesionCajaAbierta(SesionActual.IdUsuario);
