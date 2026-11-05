@@ -106,9 +106,9 @@ namespace Cantina_Padel
 
                 // 6. Asegurar Consumidor Final en persona y cliente para integridad referencial
                 const string sqlConsumidorFinal = @"
-                    INSERT IGNORE INTO persona (id_persona, nombre, apellido, dni, activo) 
+                    INSERT IGNORE INTO persona (id_persona, nombre, apellido, dni, activo)
                     VALUES (9999, 'Consumidor', 'Final', '0', 1);
-                    INSERT IGNORE INTO cliente (id_cliente, fecha_alta, id_persona) 
+                    INSERT IGNORE INTO cliente (id_cliente, fecha_alta, id_persona)
                     VALUES (9999, CURDATE(), 9999);";
                 EjecutarSqlSeguro(conn, sqlConsumidorFinal);
             }
@@ -1468,10 +1468,10 @@ namespace Cantina_Padel
             List<int> ventasAfectadas = new List<int>();
 
             const string sqlBuscar = @"
-                SELECT DISTINCT id_cuenta, id_venta 
-                FROM movimiento_cuenta_corriente 
-                WHERE id_producto = @prod 
-                  AND tipo_movimiento = 'Cargo' 
+                SELECT DISTINCT id_cuenta, id_venta
+                FROM movimiento_cuenta_corriente
+                WHERE id_producto = @prod
+                  AND tipo_movimiento = 'Cargo'
                   AND estado = 'Pendiente'";
 
             using (MySqlCommand cmdBuscar = new MySqlCommand(sqlBuscar, conn, tx))
@@ -1499,7 +1499,7 @@ namespace Cantina_Padel
             foreach (int idVenta in ventasAfectadas)
             {
                 const string sqlUpdDet = @"
-                    UPDATE detalle_venta 
+                    UPDATE detalle_venta
                     SET precio_unitario = @p,
                         total = cantidad * @p
                     WHERE id_venta = @venta AND id_producto = @prod";
@@ -1512,7 +1512,7 @@ namespace Cantina_Padel
                 }
 
                 const string sqlUpdVenta = @"
-                    UPDATE venta 
+                    UPDATE venta
                     SET total = (SELECT COALESCE(SUM(total), 0) FROM detalle_venta WHERE id_venta = @venta)
                     WHERE id_venta = @venta";
                 using MySqlCommand cmdUpdVenta = new MySqlCommand(sqlUpdVenta, conn, tx);
@@ -1539,12 +1539,12 @@ namespace Cantina_Padel
             foreach (int idCuenta in cuentasAfectadas)
             {
                 const string sqlUpdSaldo = @"
-                    UPDATE cuenta_corriente 
+                    UPDATE cuenta_corriente
                     SET saldo = (
-                        SELECT COALESCE(SUM(importe), 0) 
-                        FROM movimiento_cuenta_corriente 
-                        WHERE id_cuenta = @cta 
-                          AND tipo_movimiento = 'Cargo' 
+                        SELECT COALESCE(SUM(importe), 0)
+                        FROM movimiento_cuenta_corriente
+                        WHERE id_cuenta = @cta
+                          AND tipo_movimiento = 'Cargo'
                           AND estado = 'Pendiente'
                     )
                     WHERE id_cuenta = @cta";

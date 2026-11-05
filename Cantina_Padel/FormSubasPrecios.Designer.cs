@@ -40,9 +40,9 @@ namespace Cantina_Padel
             grpCriterios.SuspendLayout();
             grpAccion.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new System.Drawing.Font("Segoe UI", 15F, System.Drawing.FontStyle.Bold);
             lblTitulo.ForeColor = System.Drawing.Color.FromArgb(163, 230, 53);
@@ -51,9 +51,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new System.Drawing.Size(378, 35);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "AUMENTO MASIVO DE PRECIOS";
-            // 
+            //
             // grpCriterios
-            // 
+            //
             grpCriterios.Controls.Add(lblBuscador);
             grpCriterios.Controls.Add(txtBuscador);
             grpCriterios.Controls.Add(cmbUnidad);
@@ -74,9 +74,9 @@ namespace Cantina_Padel
             grpCriterios.TabIndex = 1;
             grpCriterios.TabStop = false;
             grpCriterios.Text = "Criterio de Suba";
-            // 
+            //
             // lblBuscador
-            // 
+            //
             lblBuscador.AutoSize = true;
             lblBuscador.ForeColor = System.Drawing.Color.FromArgb(163, 230, 53);
             lblBuscador.Location = new System.Drawing.Point(20, 28);
@@ -84,9 +84,9 @@ namespace Cantina_Padel
             lblBuscador.Size = new System.Drawing.Size(445, 21);
             lblBuscador.TabIndex = 0;
             lblBuscador.Text = "🔍 Buscar por nombre (categoría, producto, marca, etc.):";
-            // 
+            //
             // txtBuscador
-            // 
+            //
             txtBuscador.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             txtBuscador.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             txtBuscador.Font = new System.Drawing.Font("Segoe UI", 10F);
@@ -96,9 +96,9 @@ namespace Cantina_Padel
             txtBuscador.PlaceholderText = "Escribí para filtrar proveedor, categoría, marca, producto...";
             txtBuscador.Size = new System.Drawing.Size(490, 30);
             txtBuscador.TabIndex = 1;
-            // 
+            //
             // cmbUnidad
-            // 
+            //
             cmbUnidad.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             cmbUnidad.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbUnidad.Enabled = false;
@@ -109,9 +109,9 @@ namespace Cantina_Padel
             cmbUnidad.Name = "cmbUnidad";
             cmbUnidad.Size = new System.Drawing.Size(330, 29);
             cmbUnidad.TabIndex = 11;
-            // 
+            //
             // rbUnidad
-            // 
+            //
             rbUnidad.AutoSize = true;
             rbUnidad.ForeColor = System.Drawing.Color.White;
             rbUnidad.Location = new System.Drawing.Point(20, 281);
@@ -120,9 +120,9 @@ namespace Cantina_Padel
             rbUnidad.TabIndex = 10;
             rbUnidad.Text = "Por Unidad:";
             rbUnidad.UseVisualStyleBackColor = true;
-            // 
+            //
             // cmbProducto
-            // 
+            //
             cmbProducto.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             cmbProducto.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbProducto.Enabled = false;
@@ -133,9 +133,9 @@ namespace Cantina_Padel
             cmbProducto.Name = "cmbProducto";
             cmbProducto.Size = new System.Drawing.Size(330, 29);
             cmbProducto.TabIndex = 9;
-            // 
+            //
             // rbProducto
-            // 
+            //
             rbProducto.AutoSize = true;
             rbProducto.ForeColor = System.Drawing.Color.White;
             rbProducto.Location = new System.Drawing.Point(20, 236);
@@ -144,9 +144,9 @@ namespace Cantina_Padel
             rbProducto.TabIndex = 8;
             rbProducto.Text = "Por Producto:";
             rbProducto.UseVisualStyleBackColor = true;
-            // 
+            //
             // cmbMarca
-            // 
+            //
             cmbMarca.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             cmbMarca.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbMarca.Enabled = false;
@@ -157,9 +157,9 @@ namespace Cantina_Padel
             cmbMarca.Name = "cmbMarca";
             cmbMarca.Size = new System.Drawing.Size(330, 29);
             cmbMarca.TabIndex = 7;
-            // 
+            //
             // rbMarca
-            // 
+            //
             rbMarca.AutoSize = true;
             rbMarca.ForeColor = System.Drawing.Color.White;
             rbMarca.Location = new System.Drawing.Point(20, 191);
@@ -168,9 +168,9 @@ namespace Cantina_Padel
             rbMarca.TabIndex = 6;
             rbMarca.Text = "Por Marca:";
             rbMarca.UseVisualStyleBackColor = true;
-            // 
+            //
             // cmbCategoria
-            // 
+            //
             cmbCategoria.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             cmbCategoria.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbCategoria.Enabled = false;
@@ -181,9 +181,9 @@ namespace Cantina_Padel
             cmbCategoria.Name = "cmbCategoria";
             cmbCategoria.Size = new System.Drawing.Size(330, 29);
             cmbCategoria.TabIndex = 5;
-            // 
+            //
             // rbCategoria
-            // 
+            //
             rbCategoria.AutoSize = true;
             rbCategoria.ForeColor = System.Drawing.Color.White;
             rbCategoria.Location = new System.Drawing.Point(20, 146);
@@ -192,9 +192,9 @@ namespace Cantina_Padel
             rbCategoria.TabIndex = 4;
             rbCategoria.Text = "Por Categoría:";
             rbCategoria.UseVisualStyleBackColor = true;
-            // 
+            //
             // cmbProveedor
-            // 
+            //
             cmbProveedor.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             cmbProveedor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbProveedor.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -204,9 +204,9 @@ namespace Cantina_Padel
             cmbProveedor.Name = "cmbProveedor";
             cmbProveedor.Size = new System.Drawing.Size(330, 29);
             cmbProveedor.TabIndex = 3;
-            // 
+            //
             // rbProveedor
-            // 
+            //
             rbProveedor.AutoSize = true;
             rbProveedor.Checked = true;
             rbProveedor.ForeColor = System.Drawing.Color.White;
@@ -217,9 +217,9 @@ namespace Cantina_Padel
             rbProveedor.TabStop = true;
             rbProveedor.Text = "Por Proveedor:";
             rbProveedor.UseVisualStyleBackColor = true;
-            // 
+            //
             // grpAccion
-            // 
+            //
             grpAccion.Controls.Add(lblPorcentajeInfo);
             grpAccion.Controls.Add(lblPorcentaje);
             grpAccion.Controls.Add(txtPorcentaje);
@@ -232,9 +232,9 @@ namespace Cantina_Padel
             grpAccion.TabIndex = 2;
             grpAccion.TabStop = false;
             grpAccion.Text = "Acción a Ejecutar";
-            // 
+            //
             // lblPorcentajeInfo
-            // 
+            //
             lblPorcentajeInfo.AutoSize = true;
             lblPorcentajeInfo.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             lblPorcentajeInfo.ForeColor = System.Drawing.Color.Gray;
@@ -243,9 +243,9 @@ namespace Cantina_Padel
             lblPorcentajeInfo.Size = new System.Drawing.Size(262, 40);
             lblPorcentajeInfo.TabIndex = 3;
             lblPorcentajeInfo.Text = "* Solo aumentará si el precio \r\nes mayor al actual y hay stock positivo.";
-            // 
+            //
             // lblPorcentaje
-            // 
+            //
             lblPorcentaje.AutoSize = true;
             lblPorcentaje.ForeColor = System.Drawing.Color.White;
             lblPorcentaje.Location = new System.Drawing.Point(20, 40);
@@ -253,9 +253,9 @@ namespace Cantina_Padel
             lblPorcentaje.Size = new System.Drawing.Size(130, 21);
             lblPorcentaje.TabIndex = 0;
             lblPorcentaje.Text = "Porcentaje (%):";
-            // 
+            //
             // txtPorcentaje
-            // 
+            //
             txtPorcentaje.BackColor = System.Drawing.Color.FromArgb(51, 65, 85);
             txtPorcentaje.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             txtPorcentaje.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
@@ -266,9 +266,9 @@ namespace Cantina_Padel
             txtPorcentaje.TabIndex = 1;
             txtPorcentaje.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             txtPorcentaje.KeyPress += new System.Windows.Forms.KeyPressEventHandler(SoloNumerosDecimal_KeyPress);
-            // 
+            //
             // btnAplicar
-            // 
+            //
             btnAplicar.BackColor = System.Drawing.Color.FromArgb(239, 68, 68);
             btnAplicar.FlatAppearance.BorderSize = 0;
             btnAplicar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -280,9 +280,9 @@ namespace Cantina_Padel
             btnAplicar.Text = "⚡ APLICAR SUBA";
             btnAplicar.UseVisualStyleBackColor = false;
             btnAplicar.Click += new System.EventHandler(btnAplicar_Click);
-            // 
+            //
             // btnCerrar
-            // 
+            //
             btnCerrar.BackColor = System.Drawing.Color.FromArgb(71, 85, 105);
             btnCerrar.FlatAppearance.BorderSize = 0;
             btnCerrar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
@@ -295,9 +295,9 @@ namespace Cantina_Padel
             btnCerrar.Text = "← Volver";
             btnCerrar.UseVisualStyleBackColor = false;
             btnCerrar.Click += new System.EventHandler(btnCerrar_Click);
-            // 
+            //
             // FormSubasPrecios
-            // 
+            //
             AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             BackColor = System.Drawing.Color.FromArgb(15, 23, 42);

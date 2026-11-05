@@ -49,9 +49,9 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridProveedores).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // gridProveedores
-            // 
+            //
             gridProveedores.AllowUserToAddRows = false;
             gridProveedores.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridProveedores.BorderStyle = BorderStyle.None;
@@ -82,9 +82,9 @@ namespace Cantina_Padel
             gridProveedores.Size = new Size(580, 520);
             gridProveedores.TabIndex = 3;
             gridProveedores.CellClick += gridProveedores_CellClick;
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -93,9 +93,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new Size(367, 37);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "GESTIÓN DE PROVEEDORES";
-            // 
+            //
             // lblBuscar
-            // 
+            //
             lblBuscar.AutoSize = true;
             lblBuscar.ForeColor = Color.White;
             lblBuscar.Location = new Point(20, 60);
@@ -103,17 +103,17 @@ namespace Cantina_Padel
             lblBuscar.Size = new Size(55, 20);
             lblBuscar.TabIndex = 1;
             lblBuscar.Text = "Buscar:";
-            // 
+            //
             // txtBuscar
-            // 
+            //
             txtBuscar.Location = new Point(80, 57);
             txtBuscar.Name = "txtBuscar";
             txtBuscar.Size = new Size(250, 27);
             txtBuscar.TabIndex = 2;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
-            // 
+            //
             // grpDatos
-            // 
+            //
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
@@ -145,9 +145,9 @@ namespace Cantina_Padel
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos del Proveedor";
-            // 
+            //
             // lblNombre
-            // 
+            //
             lblNombre.AutoSize = true;
             lblNombre.ForeColor = Color.White;
             lblNombre.Location = new Point(10, 25);
@@ -155,9 +155,9 @@ namespace Cantina_Padel
             lblNombre.Size = new Size(71, 20);
             lblNombre.TabIndex = 2;
             lblNombre.Text = "Nombre:";
-            // 
+            //
             // txtNombre
-            // 
+            //
             txtNombre.BackColor = Color.FromArgb(51, 65, 85);
             txtNombre.ForeColor = Color.White;
             txtNombre.Location = new Point(10, 50);
@@ -166,9 +166,9 @@ namespace Cantina_Padel
             txtNombre.Size = new Size(205, 27);
             txtNombre.TabIndex = 3;
             txtNombre.KeyPress += SoloLetras_KeyPress;
-            // 
+            //
             // lblApellido
-            // 
+            //
             lblApellido.AutoSize = true;
             lblApellido.ForeColor = Color.White;
             lblApellido.Location = new Point(235, 25);
@@ -176,9 +176,9 @@ namespace Cantina_Padel
             lblApellido.Size = new Size(71, 20);
             lblApellido.TabIndex = 4;
             lblApellido.Text = "Apellido:";
-            // 
+            //
             // txtApellido
-            // 
+            //
             txtApellido.BackColor = Color.FromArgb(51, 65, 85);
             txtApellido.ForeColor = Color.White;
             txtApellido.Location = new Point(235, 50);
@@ -187,9 +187,9 @@ namespace Cantina_Padel
             txtApellido.Size = new Size(205, 27);
             txtApellido.TabIndex = 5;
             txtApellido.KeyPress += SoloLetras_KeyPress;
-            // 
+            //
             // lblTelefono
-            // 
+            //
             lblTelefono.AutoSize = true;
             lblTelefono.ForeColor = Color.White;
             lblTelefono.Location = new Point(10, 85);
@@ -197,9 +197,9 @@ namespace Cantina_Padel
             lblTelefono.Size = new Size(74, 20);
             lblTelefono.TabIndex = 6;
             lblTelefono.Text = "Teléfono:";
-            // 
+            //
             // txtTelefono
-            // 
+            //
             txtTelefono.BackColor = Color.FromArgb(51, 65, 85);
             txtTelefono.ForeColor = Color.White;
             txtTelefono.Location = new Point(10, 110);
@@ -208,9 +208,9 @@ namespace Cantina_Padel
             txtTelefono.Size = new Size(205, 27);
             txtTelefono.TabIndex = 7;
             txtTelefono.KeyPress += SoloNumeros_KeyPress;
-            // 
+            //
             // lblDni
-            // 
+            //
             lblDni.AutoSize = true;
             lblDni.ForeColor = Color.White;
             lblDni.Location = new Point(235, 85);
@@ -218,9 +218,9 @@ namespace Cantina_Padel
             lblDni.Size = new Size(41, 20);
             lblDni.TabIndex = 8;
             lblDni.Text = "DNI:";
-            // 
+            //
             // txtDni
-            // 
+            //
             txtDni.BackColor = Color.FromArgb(51, 65, 85);
             txtDni.ForeColor = Color.White;
             txtDni.Location = new Point(235, 110);
@@ -229,9 +229,9 @@ namespace Cantina_Padel
             txtDni.Size = new Size(205, 27);
             txtDni.TabIndex = 9;
             txtDni.KeyPress += SoloNumeros_KeyPress;
-            // 
+            //
             // lblEmail
-            // 
+            //
             lblEmail.AutoSize = true;
             lblEmail.ForeColor = Color.White;
             lblEmail.Location = new Point(10, 140);
@@ -239,9 +239,9 @@ namespace Cantina_Padel
             lblEmail.Size = new Size(51, 20);
             lblEmail.TabIndex = 10;
             lblEmail.Text = "Email:";
-            // 
+            //
             // txtEmail
-            // 
+            //
             txtEmail.BackColor = Color.FromArgb(51, 65, 85);
             txtEmail.ForeColor = Color.White;
             txtEmail.Location = new Point(10, 161);
@@ -249,9 +249,9 @@ namespace Cantina_Padel
             txtEmail.Name = "txtEmail";
             txtEmail.Size = new Size(205, 27);
             txtEmail.TabIndex = 11;
-            // 
+            //
             // lblDireccion
-            // 
+            //
             lblDireccion.AutoSize = true;
             lblDireccion.ForeColor = Color.White;
             lblDireccion.Location = new Point(235, 140);
@@ -259,9 +259,9 @@ namespace Cantina_Padel
             lblDireccion.Size = new Size(78, 20);
             lblDireccion.TabIndex = 12;
             lblDireccion.Text = "Dirección:";
-            // 
+            //
             // txtDireccion
-            // 
+            //
             txtDireccion.BackColor = Color.FromArgb(51, 65, 85);
             txtDireccion.ForeColor = Color.White;
             txtDireccion.Location = new Point(235, 161);
@@ -269,9 +269,9 @@ namespace Cantina_Padel
             txtDireccion.Name = "txtDireccion";
             txtDireccion.Size = new Size(205, 27);
             txtDireccion.TabIndex = 13;
-            // 
+            //
             // lblCuit
-            // 
+            //
             lblCuit.AutoSize = true;
             lblCuit.ForeColor = Color.White;
             lblCuit.Location = new Point(10, 190);
@@ -279,9 +279,9 @@ namespace Cantina_Padel
             lblCuit.Size = new Size(47, 20);
             lblCuit.TabIndex = 14;
             lblCuit.Text = "CUIT:";
-            // 
+            //
             // txtCuit
-            // 
+            //
             txtCuit.BackColor = Color.FromArgb(51, 65, 85);
             txtCuit.ForeColor = Color.White;
             txtCuit.Location = new Point(10, 215);
@@ -290,9 +290,9 @@ namespace Cantina_Padel
             txtCuit.Size = new Size(205, 27);
             txtCuit.TabIndex = 15;
             txtCuit.KeyPress += SoloNumeros_KeyPress;
-            // 
+            //
             // lblRazonSocial
-            // 
+            //
             lblRazonSocial.AutoSize = true;
             lblRazonSocial.ForeColor = Color.White;
             lblRazonSocial.Location = new Point(235, 190);
@@ -300,9 +300,9 @@ namespace Cantina_Padel
             lblRazonSocial.Size = new Size(100, 20);
             lblRazonSocial.TabIndex = 16;
             lblRazonSocial.Text = "Razón Social:";
-            // 
+            //
             // txtRazonSocial
-            // 
+            //
             txtRazonSocial.BackColor = Color.FromArgb(51, 65, 85);
             txtRazonSocial.ForeColor = Color.White;
             txtRazonSocial.Location = new Point(235, 215);
@@ -310,9 +310,9 @@ namespace Cantina_Padel
             txtRazonSocial.Name = "txtRazonSocial";
             txtRazonSocial.Size = new Size(205, 27);
             txtRazonSocial.TabIndex = 17;
-            // 
+            //
             // lblObservaciones
-            // 
+            //
             lblObservaciones.AutoSize = true;
             lblObservaciones.ForeColor = Color.White;
             lblObservaciones.Location = new Point(10, 256);
@@ -320,9 +320,9 @@ namespace Cantina_Padel
             lblObservaciones.Size = new Size(115, 20);
             lblObservaciones.TabIndex = 18;
             lblObservaciones.Text = "Observaciones:";
-            // 
+            //
             // txtObservaciones
-            // 
+            //
             txtObservaciones.BackColor = Color.FromArgb(51, 65, 85);
             txtObservaciones.ForeColor = Color.White;
             txtObservaciones.Location = new Point(10, 287);
@@ -331,9 +331,9 @@ namespace Cantina_Padel
             txtObservaciones.Name = "txtObservaciones";
             txtObservaciones.Size = new Size(430, 60);
             txtObservaciones.TabIndex = 19;
-            // 
+            //
             // chkActivo
-            // 
+            //
             chkActivo.AutoSize = true;
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
@@ -343,9 +343,9 @@ namespace Cantina_Padel
             chkActivo.Size = new Size(149, 24);
             chkActivo.TabIndex = 20;
             chkActivo.Text = "Proveedor activo";
-            // 
+            //
             // Guardar_Boton
-            // 
+            //
             Guardar_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Guardar_Boton.FlatAppearance.BorderSize = 0;
             Guardar_Boton.FlatStyle = FlatStyle.Flat;
@@ -358,9 +358,9 @@ namespace Cantina_Padel
             Guardar_Boton.Text = "Crear Proveedor";
             Guardar_Boton.UseVisualStyleBackColor = false;
             Guardar_Boton.Click += Guardar_Boton_Click;
-            // 
+            //
             // Cancelar_Boton
-            // 
+            //
             Cancelar_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Cancelar_Boton.FlatAppearance.BorderSize = 0;
             Cancelar_Boton.FlatStyle = FlatStyle.Flat;
@@ -372,9 +372,9 @@ namespace Cantina_Padel
             Cancelar_Boton.Text = "Limpiar";
             Cancelar_Boton.UseVisualStyleBackColor = false;
             Cancelar_Boton.Click += Cancelar_Boton_Click;
-            // 
+            //
             // Eliminar_Boton
-            // 
+            //
             Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
@@ -386,9 +386,9 @@ namespace Cantina_Padel
             Eliminar_Boton.Text = "Desactivar Proveedor";
             Eliminar_Boton.UseVisualStyleBackColor = false;
             Eliminar_Boton.Click += Eliminar_Boton_Click;
-            // 
+            //
             // Nuevo_Boton
-            // 
+            //
             Nuevo_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Nuevo_Boton.FlatAppearance.BorderSize = 0;
             Nuevo_Boton.FlatStyle = FlatStyle.Flat;
@@ -401,9 +401,9 @@ namespace Cantina_Padel
             Nuevo_Boton.Text = "+ Nuevo Proveedor";
             Nuevo_Boton.UseVisualStyleBackColor = false;
             Nuevo_Boton.Click += Nuevo_Boton_Click;
-            // 
+            //
             // Volver_Boton
-            // 
+            //
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Volver_Boton.FlatAppearance.BorderSize = 0;
             Volver_Boton.FlatStyle = FlatStyle.Flat;
@@ -415,9 +415,9 @@ namespace Cantina_Padel
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            // 
+            //
             // FormGestionProveedores
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

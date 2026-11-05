@@ -181,4 +181,17 @@
     </Compile>
   </ItemGroup>
 
+  <!-- FormReportes -->
+  <ItemGroup>
+    <Compile Update="FormReportes.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="FormReportes.Designer.cs">
+      <DependentUpon>FormReportes.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="FormReportes.resx">
+      <DependentUpon>FormReportes.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

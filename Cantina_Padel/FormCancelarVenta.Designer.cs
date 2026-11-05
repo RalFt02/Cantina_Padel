@@ -28,9 +28,9 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridVentas).BeginInit();
             ((System.ComponentModel.ISupportInitialize)gridDetalle).BeginInit();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -38,9 +38,9 @@ namespace Cantina_Padel
             lblTitulo.Name = "lblTitulo";
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "CANCELACIÓN DE VENTAS";
-            // 
+            //
             // gridVentas
-            // 
+            //
             gridVentas.AllowUserToAddRows = false;
             gridVentas.AllowUserToDeleteRows = false;
             gridVentas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -58,9 +58,9 @@ namespace Cantina_Padel
             gridVentas.Size = new Size(960, 270);
             gridVentas.TabIndex = 1;
             gridVentas.SelectionChanged += gridVentas_SelectionChanged;
-            // 
+            //
             // lblDetalle
-            // 
+            //
             lblDetalle.AutoSize = true;
             lblDetalle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblDetalle.ForeColor = Color.White;
@@ -68,9 +68,9 @@ namespace Cantina_Padel
             lblDetalle.Name = "lblDetalle";
             lblDetalle.TabIndex = 2;
             lblDetalle.Text = "Detalle de la venta seleccionada:";
-            // 
+            //
             // gridDetalle
-            // 
+            //
             gridDetalle.AllowUserToAddRows = false;
             gridDetalle.AllowUserToDeleteRows = false;
             gridDetalle.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -86,9 +86,9 @@ namespace Cantina_Padel
             gridDetalle.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             gridDetalle.Size = new Size(960, 150);
             gridDetalle.TabIndex = 3;
-            // 
+            //
             // lblMotivo
-            // 
+            //
             lblMotivo.AutoSize = true;
             lblMotivo.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblMotivo.ForeColor = Color.White;
@@ -96,9 +96,9 @@ namespace Cantina_Padel
             lblMotivo.Name = "lblMotivo";
             lblMotivo.TabIndex = 4;
             lblMotivo.Text = "Motivo de la cancelación:";
-            // 
+            //
             // txtMotivo
-            // 
+            //
             txtMotivo.BackColor = Color.FromArgb(51, 65, 85);
             txtMotivo.BorderStyle = BorderStyle.FixedSingle;
             txtMotivo.Font = new Font("Segoe UI", 10F);
@@ -108,9 +108,9 @@ namespace Cantina_Padel
             txtMotivo.Name = "txtMotivo";
             txtMotivo.Size = new Size(560, 30);
             txtMotivo.TabIndex = 5;
-            // 
+            //
             // btnCancelarVenta
-            // 
+            //
             btnCancelarVenta.BackColor = Color.FromArgb(239, 68, 68);
             btnCancelarVenta.FlatAppearance.BorderSize = 0;
             btnCancelarVenta.FlatStyle = FlatStyle.Flat;
@@ -123,9 +123,9 @@ namespace Cantina_Padel
             btnCancelarVenta.Text = "🚫 Cancelar venta";
             btnCancelarVenta.UseVisualStyleBackColor = false;
             btnCancelarVenta.Click += btnCancelarVenta_Click;
-            // 
+            //
             // btnCerrar
-            // 
+            //
             btnCerrar.BackColor = Color.FromArgb(71, 85, 105);
             btnCerrar.FlatAppearance.BorderSize = 0;
             btnCerrar.FlatStyle = FlatStyle.Flat;
@@ -138,9 +138,9 @@ namespace Cantina_Padel
             btnCerrar.Text = "← Volver";
             btnCerrar.UseVisualStyleBackColor = false;
             btnCerrar.Click += btnCerrar_Click;
-            // 
+            //
             // FormCancelarVenta
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

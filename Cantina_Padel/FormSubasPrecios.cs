@@ -154,7 +154,7 @@ namespace Cantina_Padel
                 conn.Open();
 
                 // 1. Proveedores
-                string qProv = @"SELECT prov.id_proveedor, COALESCE(NULLIF(p.razon_social, ''), CONCAT(p.nombre, ' ', p.apellido)) AS nombre 
+                string qProv = @"SELECT prov.id_proveedor, COALESCE(NULLIF(p.razon_social, ''), CONCAT(p.nombre, ' ', p.apellido)) AS nombre
                                  FROM proveedor prov JOIN persona p ON p.id_persona = prov.id_persona WHERE p.activo = 1 ORDER BY nombre";
                 _dvProveedor = LlenarCombo(cmbProveedor, qProv, conn, "id_proveedor", "nombre");
 

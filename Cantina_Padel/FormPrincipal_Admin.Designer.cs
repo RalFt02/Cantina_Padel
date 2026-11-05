@@ -45,9 +45,9 @@ namespace Cantina_Padel
             Volver_Menu = new Button();
             ((System.ComponentModel.ISupportInitialize)Imagen).BeginInit();
             SuspendLayout();
-            // 
+            //
             // Imagen
-            // 
+            //
             Imagen.Image = (Image)resources.GetObject("Imagen.Image");
             Imagen.Location = new Point(411, 82);
             Imagen.Name = "Imagen";
@@ -55,9 +55,9 @@ namespace Cantina_Padel
             Imagen.SizeMode = PictureBoxSizeMode.StretchImage;
             Imagen.TabIndex = 0;
             Imagen.TabStop = false;
-            // 
+            //
             // Clientes_Boton
-            // 
+            //
             Clientes_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Clientes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Clientes_Boton.ForeColor = Color.Black;
@@ -68,9 +68,9 @@ namespace Cantina_Padel
             Clientes_Boton.Text = "Clientes";
             Clientes_Boton.UseVisualStyleBackColor = false;
             Clientes_Boton.Click += Clientes_Boton_Click;
-            // 
+            //
             // Usuarios_Boton
-            // 
+            //
             Usuarios_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Usuarios_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Usuarios_Boton.ForeColor = Color.Black;
@@ -81,9 +81,9 @@ namespace Cantina_Padel
             Usuarios_Boton.Text = "Usuarios";
             Usuarios_Boton.UseVisualStyleBackColor = false;
             Usuarios_Boton.Click += Usuarios_Boton_Click;
-            // 
+            //
             // Caja_Boton
-            // 
+            //
             Caja_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Caja_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Caja_Boton.ForeColor = Color.Black;
@@ -94,9 +94,9 @@ namespace Cantina_Padel
             Caja_Boton.Text = "Caja";
             Caja_Boton.UseVisualStyleBackColor = false;
             Caja_Boton.Click += Caja_Boton_Click;
-            // 
+            //
             // Productos_Boton
-            // 
+            //
             Productos_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Productos_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Productos_Boton.ForeColor = Color.Black;
@@ -107,9 +107,9 @@ namespace Cantina_Padel
             Productos_Boton.Text = "Productos";
             Productos_Boton.UseVisualStyleBackColor = false;
             Productos_Boton.Click += Productos_Boton_Click;
-            // 
+            //
             // Canchas_Reservas
-            // 
+            //
             Canchas_Reservas.BackColor = Color.FromArgb(163, 230, 53);
             Canchas_Reservas.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Canchas_Reservas.ForeColor = Color.Black;
@@ -120,9 +120,9 @@ namespace Cantina_Padel
             Canchas_Reservas.Text = "Canchas";
             Canchas_Reservas.UseVisualStyleBackColor = false;
             Canchas_Reservas.Click += Canchas_Reservas_Click;
-            // 
+            //
             // Reservas_Boton
-            // 
+            //
             Reservas_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Reservas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Reservas_Boton.ForeColor = Color.Black;
@@ -133,9 +133,9 @@ namespace Cantina_Padel
             Reservas_Boton.Text = "Reservas";
             Reservas_Boton.UseVisualStyleBackColor = false;
             Reservas_Boton.Click += Reservas_Boton_Click;
-            // 
+            //
             // Marcas_Boton
-            // 
+            //
             Marcas_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Marcas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Marcas_Boton.ForeColor = Color.Black;
@@ -146,9 +146,9 @@ namespace Cantina_Padel
             Marcas_Boton.Text = "Marcas";
             Marcas_Boton.UseVisualStyleBackColor = false;
             Marcas_Boton.Click += Marcas_Boton_Click;
-            // 
+            //
             // Categorias_Boton
-            // 
+            //
             Categorias_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Categorias_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Categorias_Boton.ForeColor = Color.Black;
@@ -159,9 +159,9 @@ namespace Cantina_Padel
             Categorias_Boton.Text = "Categorias";
             Categorias_Boton.UseVisualStyleBackColor = false;
             Categorias_Boton.Click += Categorias_Boton_Click;
-            // 
+            //
             // Proveedores_Boton
-            // 
+            //
             Proveedores_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Proveedores_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Proveedores_Boton.ForeColor = Color.Black;
@@ -172,9 +172,9 @@ namespace Cantina_Padel
             Proveedores_Boton.Text = "Proveedores";
             Proveedores_Boton.UseVisualStyleBackColor = false;
             Proveedores_Boton.Click += Proveedores_Boton_Click;
-            // 
+            //
             // Compras_Boton
-            // 
+            //
             Compras_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Compras_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Compras_Boton.ForeColor = Color.Black;
@@ -185,9 +185,9 @@ namespace Cantina_Padel
             Compras_Boton.Text = "Compras";
             Compras_Boton.UseVisualStyleBackColor = false;
             Compras_Boton.Click += Compras_Boton_Click;
-            // 
+            //
             // Ventas_Boton
-            // 
+            //
             Ventas_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Ventas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Ventas_Boton.ForeColor = Color.Black;
@@ -198,9 +198,9 @@ namespace Cantina_Padel
             Ventas_Boton.Text = "Ventas";
             Ventas_Boton.UseVisualStyleBackColor = false;
             Ventas_Boton.Click += Ventas_Boton_Click;
-            // 
+            //
             // Reportes_Boton
-            // 
+            //
             Reportes_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Reportes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Reportes_Boton.ForeColor = Color.Black;
@@ -210,9 +210,10 @@ namespace Cantina_Padel
             Reportes_Boton.TabIndex = 12;
             Reportes_Boton.Text = "Reportes";
             Reportes_Boton.UseVisualStyleBackColor = false;
-            // 
+            Reportes_Boton.Click += Reportes_Boton_Click;
+            //
             // Volver_Menu
-            // 
+            //
             Volver_Menu.BackColor = Color.FromArgb(163, 230, 53);
             Volver_Menu.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             Volver_Menu.ForeColor = Color.Black;
@@ -223,9 +224,9 @@ namespace Cantina_Padel
             Volver_Menu.Text = "Volver al Inicio";
             Volver_Menu.UseVisualStyleBackColor = false;
             Volver_Menu.Click += Volver_Menu_Click;
-            // 
+            //
             // FormPrincipal_Admin
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

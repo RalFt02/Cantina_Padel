@@ -43,9 +43,9 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridItems).BeginInit();
             grpNuevaCompra.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -53,9 +53,9 @@ namespace Cantina_Padel
             lblTitulo.Name = "lblTitulo";
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "GESTIÓN DE COMPRAS";
-            // 
+            //
             // Volver_Boton
-            // 
+            //
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Volver_Boton.FlatAppearance.BorderSize = 0;
             Volver_Boton.FlatStyle = FlatStyle.Flat;
@@ -67,9 +67,9 @@ namespace Cantina_Padel
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            // 
+            //
             // lblCompras
-            // 
+            //
             lblCompras.AutoSize = true;
             lblCompras.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblCompras.ForeColor = Color.FromArgb(163, 230, 53);
@@ -77,9 +77,9 @@ namespace Cantina_Padel
             lblCompras.Name = "lblCompras";
             lblCompras.TabIndex = 2;
             lblCompras.Text = "Compras registradas:";
-            // 
+            //
             // gridCompras
-            // 
+            //
             gridCompras.AllowUserToAddRows = false;
             gridCompras.AllowUserToDeleteRows = false;
             gridCompras.BackgroundColor = Color.FromArgb(30, 41, 59);
@@ -95,9 +95,9 @@ namespace Cantina_Padel
             gridCompras.Size = new Size(600, 290);
             gridCompras.TabIndex = 3;
             gridCompras.CellClick += gridCompras_CellClick;
-            // 
+            //
             // Eliminar_Boton
-            // 
+            //
             Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
@@ -110,9 +110,9 @@ namespace Cantina_Padel
             Eliminar_Boton.Text = "Eliminar compra seleccionada";
             Eliminar_Boton.UseVisualStyleBackColor = false;
             Eliminar_Boton.Click += Eliminar_Boton_Click;
-            // 
+            //
             // lblDetalle
-            // 
+            //
             lblDetalle.AutoSize = true;
             lblDetalle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblDetalle.ForeColor = Color.FromArgb(163, 230, 53);
@@ -120,9 +120,9 @@ namespace Cantina_Padel
             lblDetalle.Name = "lblDetalle";
             lblDetalle.TabIndex = 5;
             lblDetalle.Text = "Detalle de la compra seleccionada:";
-            // 
+            //
             // gridDetalle
-            // 
+            //
             gridDetalle.AllowUserToAddRows = false;
             gridDetalle.AllowUserToDeleteRows = false;
             gridDetalle.BackgroundColor = Color.FromArgb(30, 41, 59);
@@ -137,9 +137,9 @@ namespace Cantina_Padel
             gridDetalle.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             gridDetalle.Size = new Size(600, 185);
             gridDetalle.TabIndex = 6;
-            // 
+            //
             // grpNuevaCompra
-            // 
+            //
             grpNuevaCompra.BackColor = Color.FromArgb(30, 41, 59);
             grpNuevaCompra.Controls.Add(lblProducto);
             grpNuevaCompra.Controls.Add(cmbProducto);
@@ -162,18 +162,18 @@ namespace Cantina_Padel
             grpNuevaCompra.TabIndex = 7;
             grpNuevaCompra.TabStop = false;
             grpNuevaCompra.Text = "Nueva compra";
-            // 
+            //
             // lblProducto
-            // 
+            //
             lblProducto.AutoSize = true;
             lblProducto.ForeColor = Color.White;
             lblProducto.Location = new Point(10, 25);
             lblProducto.Name = "lblProducto";
             lblProducto.TabIndex = 2;
             lblProducto.Text = "Producto:";
-            // 
+            //
             // cmbProducto
-            // 
+            //
             cmbProducto.BackColor = Color.FromArgb(51, 65, 85);
             cmbProducto.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbProducto.FlatStyle = FlatStyle.Flat;
@@ -182,18 +182,18 @@ namespace Cantina_Padel
             cmbProducto.Name = "cmbProducto";
             cmbProducto.Size = new Size(555, 28);
             cmbProducto.TabIndex = 3;
-            // 
+            //
             // lblCantidad
-            // 
+            //
             lblCantidad.AutoSize = true;
             lblCantidad.ForeColor = Color.White;
             lblCantidad.Location = new Point(10, 88);
             lblCantidad.Name = "lblCantidad";
             lblCantidad.TabIndex = 4;
             lblCantidad.Text = "Cantidad:";
-            // 
+            //
             // txtCantidad
-            // 
+            //
             txtCantidad.BackColor = Color.FromArgb(51, 65, 85);
             txtCantidad.ForeColor = Color.White;
             txtCantidad.Location = new Point(10, 113);
@@ -202,18 +202,18 @@ namespace Cantina_Padel
             txtCantidad.Size = new Size(120, 27);
             txtCantidad.TabIndex = 5;
             txtCantidad.KeyPress += SoloNumeros_KeyPress;
-            // 
+            //
             // lblPrecio
-            // 
+            //
             lblPrecio.AutoSize = true;
             lblPrecio.ForeColor = Color.White;
             lblPrecio.Location = new Point(145, 88);
             lblPrecio.Name = "lblPrecio";
             lblPrecio.TabIndex = 6;
             lblPrecio.Text = "Costo unitario:";
-            // 
+            //
             // txtPrecio
-            // 
+            //
             txtPrecio.BackColor = Color.FromArgb(51, 65, 85);
             txtPrecio.ForeColor = Color.White;
             txtPrecio.Location = new Point(145, 113);
@@ -222,9 +222,9 @@ namespace Cantina_Padel
             txtPrecio.Size = new Size(140, 27);
             txtPrecio.TabIndex = 7;
             txtPrecio.KeyPress += SoloNumerosDecimal_KeyPress;
-            // 
+            //
             // Agregar_Boton
-            // 
+            //
             Agregar_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Agregar_Boton.FlatAppearance.BorderSize = 0;
             Agregar_Boton.FlatStyle = FlatStyle.Flat;
@@ -237,9 +237,9 @@ namespace Cantina_Padel
             Agregar_Boton.Text = "Agregar ítem";
             Agregar_Boton.UseVisualStyleBackColor = false;
             Agregar_Boton.Click += Agregar_Boton_Click;
-            // 
+            //
             // Quitar_Boton
-            // 
+            //
             Quitar_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Quitar_Boton.FlatAppearance.BorderSize = 0;
             Quitar_Boton.FlatStyle = FlatStyle.Flat;
@@ -252,9 +252,9 @@ namespace Cantina_Padel
             Quitar_Boton.Text = "Quitar ítem";
             Quitar_Boton.UseVisualStyleBackColor = false;
             Quitar_Boton.Click += Quitar_Boton_Click;
-            // 
+            //
             // gridItems
-            // 
+            //
             gridItems.AllowUserToAddRows = false;
             gridItems.AllowUserToDeleteRows = false;
             gridItems.BackgroundColor = Color.FromArgb(30, 41, 59);
@@ -269,9 +269,9 @@ namespace Cantina_Padel
             gridItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             gridItems.Size = new Size(555, 305);
             gridItems.TabIndex = 10;
-            // 
+            //
             // lblTotal
-            // 
+            //
             lblTotal.AutoSize = true;
             lblTotal.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblTotal.ForeColor = Color.FromArgb(163, 230, 53);
@@ -279,9 +279,9 @@ namespace Cantina_Padel
             lblTotal.Name = "lblTotal";
             lblTotal.TabIndex = 11;
             lblTotal.Text = "Total: $ 0,00";
-            // 
+            //
             // lblTotalGanancia
-            // 
+            //
             lblTotalGanancia.AutoSize = true;
             lblTotalGanancia.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
             lblTotalGanancia.ForeColor = Color.White;
@@ -289,9 +289,9 @@ namespace Cantina_Padel
             lblTotalGanancia.Name = "lblTotalGanancia";
             lblTotalGanancia.TabIndex = 14;
             lblTotalGanancia.Text = "Total con ganancia: $ 0,00";
-            // 
+            //
             // Registrar_Boton
-            // 
+            //
             Registrar_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Registrar_Boton.FlatAppearance.BorderSize = 0;
             Registrar_Boton.FlatStyle = FlatStyle.Flat;
@@ -304,9 +304,9 @@ namespace Cantina_Padel
             Registrar_Boton.Text = "Registrar compra";
             Registrar_Boton.UseVisualStyleBackColor = false;
             Registrar_Boton.Click += Registrar_Boton_Click;
-            // 
+            //
             // Limpiar_Boton
-            // 
+            //
             Limpiar_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Limpiar_Boton.FlatAppearance.BorderSize = 0;
             Limpiar_Boton.FlatStyle = FlatStyle.Flat;
@@ -319,9 +319,9 @@ namespace Cantina_Padel
             Limpiar_Boton.Text = "Limpiar";
             Limpiar_Boton.UseVisualStyleBackColor = false;
             Limpiar_Boton.Click += Limpiar_Boton_Click;
-            // 
+            //
             // FormGestionCompras
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

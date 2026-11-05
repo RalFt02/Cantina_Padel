@@ -35,11 +35,12 @@ namespace Cantina_Padel
             Ventas_Boton = new Button();
             Reservas_Boton = new Button();
             Volver_Menu = new Button();
+            Reportes_Boton = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
-            // 
+            //
             // pictureBox1
-            // 
+            //
             pictureBox1.Image = (Image)resources.GetObject("pictureBox1.Image");
             pictureBox1.Location = new Point(413, 93);
             pictureBox1.Name = "pictureBox1";
@@ -47,9 +48,9 @@ namespace Cantina_Padel
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
-            // 
+            //
             // Clientes_Boton
-            // 
+            //
             Clientes_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Clientes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Clientes_Boton.ForeColor = Color.Black;
@@ -60,9 +61,9 @@ namespace Cantina_Padel
             Clientes_Boton.Text = "Clientes";
             Clientes_Boton.UseVisualStyleBackColor = false;
             Clientes_Boton.Click += Clientes_Boton_Click;
-            // 
+            //
             // Caja_Boton
-            // 
+            //
             Caja_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Caja_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Caja_Boton.ForeColor = Color.Black;
@@ -73,9 +74,9 @@ namespace Cantina_Padel
             Caja_Boton.Text = "Caja";
             Caja_Boton.UseVisualStyleBackColor = false;
             Caja_Boton.Click += Caja_Boton_Click;
-            // 
+            //
             // Ventas_Boton
-            // 
+            //
             Ventas_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Ventas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Ventas_Boton.ForeColor = Color.Black;
@@ -86,9 +87,9 @@ namespace Cantina_Padel
             Ventas_Boton.Text = "Ventas";
             Ventas_Boton.UseVisualStyleBackColor = false;
             Ventas_Boton.Click += Ventas_Boton_Click;
-            // 
+            //
             // Reservas_Boton
-            // 
+            //
             Reservas_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Reservas_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             Reservas_Boton.ForeColor = Color.Black;
@@ -99,9 +100,22 @@ namespace Cantina_Padel
             Reservas_Boton.Text = "Reservas";
             Reservas_Boton.UseVisualStyleBackColor = false;
             Reservas_Boton.Click += Reservas_Boton_Click;
-            // 
+            //
+            // Reportes_Boton
+            //
+            Reportes_Boton.BackColor = Color.FromArgb(163, 230, 53);
+            Reportes_Boton.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+            Reportes_Boton.ForeColor = Color.Black;
+            Reportes_Boton.Location = new Point(550, 565);
+            Reportes_Boton.Name = "Reportes_Boton";
+            Reportes_Boton.Size = new Size(216, 64);
+            Reportes_Boton.TabIndex = 7;
+            Reportes_Boton.Text = "Reportes";
+            Reportes_Boton.UseVisualStyleBackColor = false;
+            Reportes_Boton.Click += Reportes_Boton_Click;
+            //
             // Volver_Menu
-            // 
+            //
             Volver_Menu.BackColor = Color.FromArgb(163, 230, 53);
             Volver_Menu.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             Volver_Menu.ForeColor = Color.Black;
@@ -112,14 +126,15 @@ namespace Cantina_Padel
             Volver_Menu.Text = "Volver al Inicio";
             Volver_Menu.UseVisualStyleBackColor = false;
             Volver_Menu.Click += Volver_Menu_Click;
-            // 
+            //
             // FormPrincipal_Usuario
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
             ClientSize = new Size(1280, 720);
             Controls.Add(Volver_Menu);
+            Controls.Add(Reportes_Boton);
             Controls.Add(Reservas_Boton);
             Controls.Add(Ventas_Boton);
             Controls.Add(Caja_Boton);
@@ -143,5 +158,6 @@ namespace Cantina_Padel
         private Button Ventas_Boton;
         private Button Reservas_Boton;
         private Button Volver_Menu;
+        private Button Reportes_Boton;
     }
 }

@@ -37,9 +37,9 @@
             Usuario_Text = new Label();
             ((System.ComponentModel.ISupportInitialize)Imagen).BeginInit();
             SuspendLayout();
-            // 
+            //
             // Iniciar_Sesion
-            // 
+            //
             Iniciar_Sesion.BackColor = Color.FromArgb(163, 230, 53);
             Iniciar_Sesion.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             Iniciar_Sesion.ForeColor = SystemColors.InfoText;
@@ -50,9 +50,9 @@
             Iniciar_Sesion.Text = "Ingresar";
             Iniciar_Sesion.UseVisualStyleBackColor = false;
             Iniciar_Sesion.Click += Iniciar_Sesion_Click;
-            // 
+            //
             // Contra_Campo
-            // 
+            //
             Contra_Campo.Font = new Font("Segoe UI", 10F);
             Contra_Campo.Location = new Point(411, 523);
             Contra_Campo.MaxLength = 40;
@@ -60,18 +60,18 @@
             Contra_Campo.PasswordChar = '*';
             Contra_Campo.Size = new Size(494, 30);
             Contra_Campo.TabIndex = 1;
-            // 
+            //
             // Usuario_Campo
-            // 
+            //
             Usuario_Campo.Font = new Font("Segoe UI", 10F);
             Usuario_Campo.Location = new Point(411, 432);
             Usuario_Campo.MaxLength = 30;
             Usuario_Campo.Name = "Usuario_Campo";
             Usuario_Campo.Size = new Size(494, 30);
             Usuario_Campo.TabIndex = 2;
-            // 
+            //
             // Imagen
-            // 
+            //
             Imagen.Image = (Image)resources.GetObject("Imagen.Image");
             Imagen.Location = new Point(411, 82);
             Imagen.Name = "Imagen";
@@ -79,9 +79,9 @@
             Imagen.SizeMode = PictureBoxSizeMode.StretchImage;
             Imagen.TabIndex = 3;
             Imagen.TabStop = false;
-            // 
+            //
             // Contra_Text
-            // 
+            //
             Contra_Text.AutoSize = true;
             Contra_Text.Font = new Font("Segoe UI", 10F);
             Contra_Text.ForeColor = SystemColors.ControlLightLight;
@@ -91,9 +91,9 @@
             Contra_Text.TabIndex = 4;
             Contra_Text.Text = "Contraseña";
             Contra_Text.Click += label1_Click;
-            // 
+            //
             // Usuario_Text
-            // 
+            //
             Usuario_Text.AutoSize = true;
             Usuario_Text.Font = new Font("Segoe UI", 10F);
             Usuario_Text.ForeColor = SystemColors.ControlLightLight;
@@ -102,9 +102,9 @@
             Usuario_Text.Size = new Size(68, 23);
             Usuario_Text.TabIndex = 5;
             Usuario_Text.Text = "Usuario";
-            // 
+            //
             // Principal
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

@@ -163,10 +163,10 @@ namespace Cantina_Padel
             const string query = @"
                 UPDATE producto
                 SET producto.stock = producto.stock + @cant,
-                    producto.precio_venta = CASE 
-                        WHEN @nuevoPrecio > producto.precio_venta AND (producto.stock + @cant) > 0 
-                        THEN @nuevoPrecio 
-                        ELSE producto.precio_venta 
+                    producto.precio_venta = CASE
+                        WHEN @nuevoPrecio > producto.precio_venta AND (producto.stock + @cant) > 0
+                        THEN @nuevoPrecio
+                        ELSE producto.precio_venta
                     END
                 WHERE producto.id_producto = @prod";
 

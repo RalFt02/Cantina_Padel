@@ -364,7 +364,7 @@ namespace Cantina_Padel
                     }
 
                     int idHorario = ObtenerOCrearHorario(conn, tx, idCancha, fecha, inicio, fin);
-                    const string ins = @"INSERT INTO reserva(fecha,reserva_fija,estado,id_cliente,id_cancha,id_horario,id_usuario) 
+                    const string ins = @"INSERT INTO reserva(fecha,reserva_fija,estado,id_cliente,id_cancha,id_horario,id_usuario)
                                 VALUES(@fecha,@serie,'Confirmada',@cliente,@cancha,@horario,@usuario)";
                     using var cmd = new MySqlCommand(ins, conn, tx);
                     cmd.Parameters.AddWithValue("@fecha", fecha);

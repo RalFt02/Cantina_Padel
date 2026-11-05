@@ -29,9 +29,9 @@ namespace Cantina_Padel
             gridOcupados = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)gridOcupados).BeginInit();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 18F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -40,9 +40,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new Size(346, 41);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "GESTIÓN DE RESERVAS";
-            // 
+            //
             // lblCliente
-            // 
+            //
             lblCliente.AutoSize = true;
             lblCliente.ForeColor = Color.White;
             lblCliente.Location = new Point(25, 70);
@@ -50,9 +50,9 @@ namespace Cantina_Padel
             lblCliente.Size = new Size(58, 20);
             lblCliente.TabIndex = 1;
             lblCliente.Text = "Cliente:";
-            // 
+            //
             // cmbCliente
-            // 
+            //
             cmbCliente.BackColor = Color.FromArgb(51, 65, 85);
             cmbCliente.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCliente.ForeColor = Color.White;
@@ -60,9 +60,9 @@ namespace Cantina_Padel
             cmbCliente.Name = "cmbCliente";
             cmbCliente.Size = new Size(300, 28);
             cmbCliente.TabIndex = 1;
-            // 
+            //
             // lblCancha
-            // 
+            //
             lblCancha.AutoSize = true;
             lblCancha.ForeColor = Color.White;
             lblCancha.Location = new Point(345, 70);
@@ -70,9 +70,9 @@ namespace Cantina_Padel
             lblCancha.Size = new Size(60, 20);
             lblCancha.TabIndex = 2;
             lblCancha.Text = "Cancha:";
-            // 
+            //
             // cmbCancha
-            // 
+            //
             cmbCancha.BackColor = Color.FromArgb(51, 65, 85);
             cmbCancha.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCancha.ForeColor = Color.White;
@@ -80,9 +80,9 @@ namespace Cantina_Padel
             cmbCancha.Name = "cmbCancha";
             cmbCancha.Size = new Size(190, 28);
             cmbCancha.TabIndex = 2;
-            // 
+            //
             // lblFecha
-            // 
+            //
             lblFecha.AutoSize = true;
             lblFecha.ForeColor = Color.White;
             lblFecha.Location = new Point(555, 70);
@@ -90,17 +90,17 @@ namespace Cantina_Padel
             lblFecha.Size = new Size(50, 20);
             lblFecha.TabIndex = 3;
             lblFecha.Text = "Fecha:";
-            // 
+            //
             // dtpFecha
-            // 
+            //
             dtpFecha.Format = DateTimePickerFormat.Short;
             dtpFecha.Location = new Point(555, 95);
             dtpFecha.Name = "dtpFecha";
             dtpFecha.Size = new Size(145, 27);
             dtpFecha.TabIndex = 3;
-            // 
+            //
             // lblHorario
-            // 
+            //
             lblHorario.AutoSize = true;
             lblHorario.ForeColor = Color.White;
             lblHorario.Location = new Point(720, 70);
@@ -108,9 +108,9 @@ namespace Cantina_Padel
             lblHorario.Size = new Size(65, 20);
             lblHorario.TabIndex = 4;
             lblHorario.Text = "Horario:";
-            // 
+            //
             // cmbHorario
-            // 
+            //
             cmbHorario.BackColor = Color.FromArgb(51, 65, 85);
             cmbHorario.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbHorario.ForeColor = Color.White;
@@ -119,18 +119,18 @@ namespace Cantina_Padel
             cmbHorario.Name = "cmbHorario";
             cmbHorario.Size = new Size(210, 28);
             cmbHorario.TabIndex = 4;
-            // 
+            //
             // lblEstado
-            // 
+            //
             lblEstado.AutoSize = true;
             lblEstado.ForeColor = Color.FromArgb(163, 230, 53);
             lblEstado.Location = new Point(25, 165);
             lblEstado.Name = "lblEstado";
             lblEstado.Size = new Size(0, 20);
             lblEstado.TabIndex = 7;
-            // 
+            //
             // lblInfo
-            // 
+            //
             lblInfo.AutoSize = true;
             lblInfo.ForeColor = Color.LightGray;
             lblInfo.Location = new Point(25, 140);
@@ -138,9 +138,9 @@ namespace Cantina_Padel
             lblInfo.Size = new Size(648, 20);
             lblInfo.TabIndex = 6;
             lblInfo.Text = "Turnos de 1 hora, de 08:00 a 03:00 del día siguiente. Los turnos ya reservados no aparecen en la lista.";
-            // 
+            //
             // Reservar_Boton
-            // 
+            //
             Reservar_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Reservar_Boton.FlatStyle = FlatStyle.Flat;
             Reservar_Boton.ForeColor = Color.Black;
@@ -151,9 +151,9 @@ namespace Cantina_Padel
             Reservar_Boton.Text = "Reservar";
             Reservar_Boton.UseVisualStyleBackColor = false;
             Reservar_Boton.Click += Reservar_Boton_Click;
-            // 
+            //
             // ReservasFijas_Boton
-            // 
+            //
             ReservasFijas_Boton.BackColor = Color.FromArgb(59, 130, 246);
             ReservasFijas_Boton.FlatStyle = FlatStyle.Flat;
             ReservasFijas_Boton.ForeColor = Color.White;
@@ -164,9 +164,9 @@ namespace Cantina_Padel
             ReservasFijas_Boton.Text = "Reservas Fijas";
             ReservasFijas_Boton.UseVisualStyleBackColor = false;
             ReservasFijas_Boton.Click += ReservasFijas_Boton_Click;
-            // 
+            //
             // CancelarReserva_Boton
-            // 
+            //
             CancelarReserva_Boton.BackColor = Color.FromArgb(239, 68, 68);
             CancelarReserva_Boton.FlatStyle = FlatStyle.Flat;
             CancelarReserva_Boton.ForeColor = Color.White;
@@ -177,9 +177,9 @@ namespace Cantina_Padel
             CancelarReserva_Boton.Text = "Cancelar reserva";
             CancelarReserva_Boton.UseVisualStyleBackColor = false;
             CancelarReserva_Boton.Click += CancelarReserva_Boton_Click;
-            // 
+            //
             // Realquilar_Boton
-            // 
+            //
             Realquilar_Boton.BackColor = Color.FromArgb(245, 158, 11);
             Realquilar_Boton.FlatStyle = FlatStyle.Flat;
             Realquilar_Boton.ForeColor = Color.Black;
@@ -190,9 +190,9 @@ namespace Cantina_Padel
             Realquilar_Boton.Text = "Realquilar hora";
             Realquilar_Boton.UseVisualStyleBackColor = false;
             Realquilar_Boton.Click += Realquilar_Boton_Click;
-            // 
+            //
             // Limpiar_Boton
-            // 
+            //
             Limpiar_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Limpiar_Boton.FlatStyle = FlatStyle.Flat;
             Limpiar_Boton.ForeColor = Color.White;
@@ -203,9 +203,9 @@ namespace Cantina_Padel
             Limpiar_Boton.Text = "Limpiar";
             Limpiar_Boton.UseVisualStyleBackColor = false;
             Limpiar_Boton.Click += Limpiar_Boton_Click;
-            // 
+            //
             // Volver_Boton
-            // 
+            //
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Volver_Boton.FlatStyle = FlatStyle.Flat;
             Volver_Boton.ForeColor = Color.White;
@@ -216,9 +216,9 @@ namespace Cantina_Padel
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            // 
+            //
             // lblOcupados
-            // 
+            //
             lblOcupados.AutoSize = true;
             lblOcupados.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             lblOcupados.ForeColor = Color.LightGray;
@@ -227,9 +227,9 @@ namespace Cantina_Padel
             lblOcupados.Size = new Size(270, 23);
             lblOcupados.TabIndex = 11;
             lblOcupados.Text = "Horarios ocupados / bloqueados";
-            // 
+            //
             // gridOcupados
-            // 
+            //
             gridOcupados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             gridOcupados.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridOcupados.BorderStyle = BorderStyle.None;
@@ -243,9 +243,9 @@ namespace Cantina_Padel
             gridOcupados.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             gridOcupados.Size = new Size(905, 235);
             gridOcupados.TabIndex = 10;
-            // 
+            //
             // FormGestionHorarios
-            // 
+            //
             BackColor = Color.FromArgb(15, 23, 42);
             ClientSize = new Size(960, 590);
             Controls.Add(lblTitulo);

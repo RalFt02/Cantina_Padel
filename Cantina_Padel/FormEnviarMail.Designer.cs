@@ -27,9 +27,9 @@ namespace Cantina_Padel
             btnEnviar = new Button();
             btnCancelar = new Button();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -38,9 +38,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new Size(346, 32);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "ENVIAR COMPROBANTE POR EMAIL";
-            // 
+            //
             // lblDestinatario
-            // 
+            //
             lblDestinatario.AutoSize = true;
             lblDestinatario.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblDestinatario.ForeColor = Color.White;
@@ -49,9 +49,9 @@ namespace Cantina_Padel
             lblDestinatario.Size = new Size(135, 20);
             lblDestinatario.TabIndex = 1;
             lblDestinatario.Text = "Correo Electrónico:";
-            // 
+            //
             // txtDestinatario
-            // 
+            //
             txtDestinatario.BackColor = Color.FromArgb(51, 65, 85);
             txtDestinatario.BorderStyle = BorderStyle.FixedSingle;
             txtDestinatario.Font = new Font("Segoe UI", 10F);
@@ -60,9 +60,9 @@ namespace Cantina_Padel
             txtDestinatario.Name = "txtDestinatario";
             txtDestinatario.Size = new Size(490, 30);
             txtDestinatario.TabIndex = 2;
-            // 
+            //
             // lblAsunto
-            // 
+            //
             lblAsunto.AutoSize = true;
             lblAsunto.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblAsunto.ForeColor = Color.White;
@@ -71,9 +71,9 @@ namespace Cantina_Padel
             lblAsunto.Size = new Size(64, 20);
             lblAsunto.TabIndex = 3;
             lblAsunto.Text = "Asunto:";
-            // 
+            //
             // txtAsunto
-            // 
+            //
             txtAsunto.BackColor = Color.FromArgb(51, 65, 85);
             txtAsunto.BorderStyle = BorderStyle.FixedSingle;
             txtAsunto.Font = new Font("Segoe UI", 10F);
@@ -82,9 +82,9 @@ namespace Cantina_Padel
             txtAsunto.Name = "txtAsunto";
             txtAsunto.Size = new Size(490, 30);
             txtAsunto.TabIndex = 4;
-            // 
+            //
             // lblVistaPrevia
-            // 
+            //
             lblVistaPrevia.AutoSize = true;
             lblVistaPrevia.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblVistaPrevia.ForeColor = Color.White;
@@ -93,9 +93,9 @@ namespace Cantina_Padel
             lblVistaPrevia.Size = new Size(183, 20);
             lblVistaPrevia.TabIndex = 5;
             lblVistaPrevia.Text = "Contenido / Vista Previa:";
-            // 
+            //
             // txtVistaPrevia
-            // 
+            //
             txtVistaPrevia.BackColor = Color.FromArgb(30, 41, 59);
             txtVistaPrevia.BorderStyle = BorderStyle.FixedSingle;
             txtVistaPrevia.Font = new Font("Courier New", 9F);
@@ -107,9 +107,9 @@ namespace Cantina_Padel
             txtVistaPrevia.ScrollBars = ScrollBars.Vertical;
             txtVistaPrevia.Size = new Size(490, 250);
             txtVistaPrevia.TabIndex = 6;
-            // 
+            //
             // btnEnviar
-            // 
+            //
             btnEnviar.BackColor = Color.FromArgb(16, 185, 129);
             btnEnviar.FlatAppearance.BorderSize = 0;
             btnEnviar.FlatStyle = FlatStyle.Flat;
@@ -122,9 +122,9 @@ namespace Cantina_Padel
             btnEnviar.Text = "✉ Enviar Correo";
             btnEnviar.UseVisualStyleBackColor = false;
             btnEnviar.Click += btnEnviar_Click;
-            // 
+            //
             // btnCancelar
-            // 
+            //
             btnCancelar.BackColor = Color.FromArgb(71, 85, 105);
             btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
@@ -137,9 +137,9 @@ namespace Cantina_Padel
             btnCancelar.Text = "Cerrar";
             btnCancelar.UseVisualStyleBackColor = false;
             btnCancelar.Click += btnCancelar_Click;
-            // 
+            //
             // FormEnviarMail
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

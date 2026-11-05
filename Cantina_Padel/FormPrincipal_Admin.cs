@@ -89,6 +89,12 @@ namespace Cantina_Padel
             formVentas.ShowDialog(this);
         }
 
+        private void Reportes_Boton_Click(object sender, EventArgs e)
+        {
+            FormReportes formReportes = new FormReportes();
+            formReportes.ShowDialog(this);
+        }
+
         private bool _volviendoAlLogin = false;
         private void Volver_Menu_Click(object sender, EventArgs e)
         {

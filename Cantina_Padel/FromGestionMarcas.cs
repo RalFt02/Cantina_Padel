@@ -254,9 +254,9 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridMarcas).BeginInit();
             grpDatos.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // gridMarcas
-            // 
+            //
             gridMarcas.AllowUserToAddRows = false;
             gridMarcas.BackgroundColor = Color.FromArgb(30, 41, 59);
             gridMarcas.BorderStyle = BorderStyle.None;
@@ -287,9 +287,9 @@ namespace Cantina_Padel
             gridMarcas.Size = new Size(237, 490);
             gridMarcas.TabIndex = 3;
             gridMarcas.CellClick += gridMarcas_CellClick;
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -298,9 +298,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new Size(293, 37);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "GESTIÓN DE MARCAS";
-            // 
+            //
             // lblBuscar
-            // 
+            //
             lblBuscar.AutoSize = true;
             lblBuscar.ForeColor = Color.White;
             lblBuscar.Location = new Point(20, 60);
@@ -308,9 +308,9 @@ namespace Cantina_Padel
             lblBuscar.Size = new Size(55, 20);
             lblBuscar.TabIndex = 1;
             lblBuscar.Text = "Buscar:";
-            // 
+            //
             // txtBuscar
-            // 
+            //
             txtBuscar.BackColor = Color.FromArgb(51, 65, 85);
             txtBuscar.ForeColor = Color.White;
             txtBuscar.Location = new Point(80, 57);
@@ -318,9 +318,9 @@ namespace Cantina_Padel
             txtBuscar.Size = new Size(240, 27);
             txtBuscar.TabIndex = 2;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
-            // 
+            //
             // grpDatos
-            // 
+            //
             grpDatos.BackColor = Color.FromArgb(30, 41, 59);
             grpDatos.Controls.Add(lblNombre);
             grpDatos.Controls.Add(txtNombre);
@@ -336,9 +336,9 @@ namespace Cantina_Padel
             grpDatos.TabIndex = 4;
             grpDatos.TabStop = false;
             grpDatos.Text = "Datos de la Marca";
-            // 
+            //
             // lblNombre
-            // 
+            //
             lblNombre.AutoSize = true;
             lblNombre.ForeColor = Color.White;
             lblNombre.Location = new Point(10, 65);
@@ -346,9 +346,9 @@ namespace Cantina_Padel
             lblNombre.Size = new Size(82, 20);
             lblNombre.TabIndex = 2;
             lblNombre.Text = "Nombre: *";
-            // 
+            //
             // txtNombre
-            // 
+            //
             txtNombre.BackColor = Color.FromArgb(51, 65, 85);
             txtNombre.ForeColor = Color.White;
             txtNombre.Location = new Point(10, 87);
@@ -356,9 +356,9 @@ namespace Cantina_Padel
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(350, 27);
             txtNombre.TabIndex = 3;
-            // 
+            //
             // chkActivo
-            // 
+            //
             chkActivo.AutoSize = true;
             chkActivo.Checked = true;
             chkActivo.CheckState = CheckState.Checked;
@@ -368,9 +368,9 @@ namespace Cantina_Padel
             chkActivo.Size = new Size(119, 24);
             chkActivo.TabIndex = 4;
             chkActivo.Text = "Marca activa";
-            // 
+            //
             // Guardar_Boton
-            // 
+            //
             Guardar_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Guardar_Boton.FlatAppearance.BorderSize = 0;
             Guardar_Boton.FlatStyle = FlatStyle.Flat;
@@ -383,9 +383,9 @@ namespace Cantina_Padel
             Guardar_Boton.Text = "Crear Marca";
             Guardar_Boton.UseVisualStyleBackColor = false;
             Guardar_Boton.Click += Guardar_Boton_Click;
-            // 
+            //
             // Cancelar_Boton
-            // 
+            //
             Cancelar_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Cancelar_Boton.FlatAppearance.BorderSize = 0;
             Cancelar_Boton.FlatStyle = FlatStyle.Flat;
@@ -397,9 +397,9 @@ namespace Cantina_Padel
             Cancelar_Boton.Text = "Limpiar";
             Cancelar_Boton.UseVisualStyleBackColor = false;
             Cancelar_Boton.Click += Cancelar_Boton_Click;
-            // 
+            //
             // Eliminar_Boton
-            // 
+            //
             Eliminar_Boton.BackColor = Color.FromArgb(239, 68, 68);
             Eliminar_Boton.FlatAppearance.BorderSize = 0;
             Eliminar_Boton.FlatStyle = FlatStyle.Flat;
@@ -411,9 +411,9 @@ namespace Cantina_Padel
             Eliminar_Boton.Text = "Desactivar";
             Eliminar_Boton.UseVisualStyleBackColor = false;
             Eliminar_Boton.Click += Eliminar_Boton_Click;
-            // 
+            //
             // Nuevo_Boton
-            // 
+            //
             Nuevo_Boton.BackColor = Color.FromArgb(163, 230, 53);
             Nuevo_Boton.FlatAppearance.BorderSize = 0;
             Nuevo_Boton.FlatStyle = FlatStyle.Flat;
@@ -426,9 +426,9 @@ namespace Cantina_Padel
             Nuevo_Boton.Text = "+ Nueva Marca";
             Nuevo_Boton.UseVisualStyleBackColor = false;
             Nuevo_Boton.Click += Nuevo_Boton_Click;
-            // 
+            //
             // Volver_Boton
-            // 
+            //
             Volver_Boton.BackColor = Color.FromArgb(71, 85, 105);
             Volver_Boton.FlatAppearance.BorderSize = 0;
             Volver_Boton.FlatStyle = FlatStyle.Flat;
@@ -440,9 +440,9 @@ namespace Cantina_Padel
             Volver_Boton.Text = "← Volver";
             Volver_Boton.UseVisualStyleBackColor = false;
             Volver_Boton.Click += Volver_Boton_Click;
-            // 
+            //
             // FormGestionMarcas
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);

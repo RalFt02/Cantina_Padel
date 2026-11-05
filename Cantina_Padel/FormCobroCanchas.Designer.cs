@@ -30,9 +30,9 @@ namespace Cantina_Padel
             ((System.ComponentModel.ISupportInitialize)gridReservas).BeginInit();
             grpCobro.SuspendLayout();
             SuspendLayout();
-            // 
+            //
             // lblTitulo
-            // 
+            //
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 15F, FontStyle.Bold);
             lblTitulo.ForeColor = Color.FromArgb(163, 230, 53);
@@ -41,9 +41,9 @@ namespace Cantina_Padel
             lblTitulo.Size = new Size(428, 35);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "COBRO DE RESERVAS DE CANCHAS";
-            // 
+            //
             // btnCerrar
-            // 
+            //
             btnCerrar.BackColor = Color.FromArgb(71, 85, 105);
             btnCerrar.FlatAppearance.BorderSize = 0;
             btnCerrar.FlatStyle = FlatStyle.Flat;
@@ -56,9 +56,9 @@ namespace Cantina_Padel
             btnCerrar.Text = "← Volver";
             btnCerrar.UseVisualStyleBackColor = false;
             btnCerrar.Click += btnCerrar_Click;
-            // 
+            //
             // lblCliente
-            // 
+            //
             lblCliente.AutoSize = true;
             lblCliente.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblCliente.ForeColor = Color.White;
@@ -67,9 +67,9 @@ namespace Cantina_Padel
             lblCliente.Size = new Size(140, 20);
             lblCliente.TabIndex = 2;
             lblCliente.Text = "Filtrar por Cliente:";
-            // 
+            //
             // cmbCliente
-            // 
+            //
             cmbCliente.BackColor = Color.FromArgb(51, 65, 85);
             cmbCliente.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCliente.FlatStyle = FlatStyle.Flat;
@@ -81,9 +81,9 @@ namespace Cantina_Padel
             cmbCliente.Size = new Size(490, 29);
             cmbCliente.TabIndex = 3;
             cmbCliente.SelectedIndexChanged += cmbCliente_SelectedIndexChanged;
-            // 
+            //
             // btnRefrescar
-            // 
+            //
             btnRefrescar.BackColor = Color.FromArgb(51, 65, 85);
             btnRefrescar.FlatAppearance.BorderSize = 0;
             btnRefrescar.FlatStyle = FlatStyle.Flat;
@@ -96,9 +96,9 @@ namespace Cantina_Padel
             btnRefrescar.Text = "🔄 Refrescar";
             btnRefrescar.UseVisualStyleBackColor = false;
             btnRefrescar.Click += btnRefrescar_Click;
-            // 
+            //
             // lblReservas
-            // 
+            //
             lblReservas.AutoSize = true;
             lblReservas.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblReservas.ForeColor = Color.FromArgb(163, 230, 53);
@@ -107,9 +107,9 @@ namespace Cantina_Padel
             lblReservas.Size = new Size(295, 20);
             lblReservas.TabIndex = 5;
             lblReservas.Text = "Reservas pendientes de cobro (seleccioná):";
-            // 
+            //
             // gridReservas
-            // 
+            //
             gridReservas.AllowUserToAddRows = false;
             gridReservas.AllowUserToDeleteRows = false;
             gridReservas.BackgroundColor = Color.FromArgb(30, 41, 59);
@@ -125,9 +125,9 @@ namespace Cantina_Padel
             gridReservas.Size = new Size(610, 370);
             gridReservas.TabIndex = 6;
             gridReservas.SelectionChanged += gridReservas_SelectionChanged;
-            // 
+            //
             // grpCobro
-            // 
+            //
             grpCobro.BackColor = Color.FromArgb(30, 41, 59);
             grpCobro.Controls.Add(btnEnviarAVentas);
             grpCobro.Controls.Add(lblTotal);
@@ -139,9 +139,9 @@ namespace Cantina_Padel
             grpCobro.TabIndex = 7;
             grpCobro.TabStop = false;
             grpCobro.Text = "Acción de Cobro";
-            // 
+            //
             // lblTotal
-            // 
+            //
             lblTotal.AutoSize = true;
             lblTotal.Font = new Font("Segoe UI", 16F, FontStyle.Bold);
             lblTotal.ForeColor = Color.FromArgb(163, 230, 53);
@@ -150,9 +150,9 @@ namespace Cantina_Padel
             lblTotal.Size = new Size(168, 37);
             lblTotal.TabIndex = 0;
             lblTotal.Text = "Total: $ 0,00";
-            // 
+            //
             // btnEnviarAVentas
-            // 
+            //
             btnEnviarAVentas.BackColor = Color.FromArgb(163, 230, 53);
             btnEnviarAVentas.FlatAppearance.BorderSize = 0;
             btnEnviarAVentas.FlatStyle = FlatStyle.Flat;
@@ -165,9 +165,9 @@ namespace Cantina_Padel
             btnEnviarAVentas.Text = "🛒 Enviar Turno(s) a Ventas";
             btnEnviarAVentas.UseVisualStyleBackColor = false;
             btnEnviarAVentas.Click += btnEnviarAVentas_Click;
-            // 
+            //
             // FormCobroCanchas
-            // 
+            //
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(15, 23, 42);
